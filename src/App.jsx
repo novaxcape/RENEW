@@ -28,14 +28,14 @@ const App = () =>  {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/h" element={<Home />} />
+
         <Route path="/signup" element={<SignUp />} />
         <Route path="/signin" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/support" element={<Supportpage />} />
-        <Route path="/discover" element={<Discover />} />
+        {/* <Route path="/discover" element={<Discover />} /> */}
         <Route path="/centres" element={<Centres />} />
         <Route path="/about" element={<Aboutpage />} />
         <Route path="/product" element={<ProductDetails />} />
@@ -51,12 +51,12 @@ const App = () =>  {
           path="/payment-confirmation"
           element={<PaymentConfirmationPage />}
         />
+          <Route path="/support" element={<Supportpage />} />
         <Route path="/dashboard" element={<DashboardLayout />}>
 
           <Route path="bookings" element={<MyBookingsPage />} />
           <Route path="revenue" element={<RevenueTrendPage />} />
           {/* <Route path="settings" element={<SettingsPage />} /> */}
-          <Route path="support" element={<Supportpage />} />
         </Route>
       </Routes>
     </BrowserRouter>

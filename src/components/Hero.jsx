@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { LuCalendarDays } from 'react-icons/lu';
 import './css/Hero.css';
 
@@ -7,7 +7,7 @@ const Hero = () => {
     <div className="heroSection">
       <div className="heroLeft">
         <div className="taglineRow">
-          <img src="/src/assets/plane.png" alt="Plane Icon" className="planeAssetIcon" />
+          <img src="/novaxcape/plane.png" alt="Plane Icon" className="planeAssetIcon" />
           <span className="taglineText">Explore Nigeria's hidden gems</span>
         </div>
         
@@ -28,7 +28,7 @@ const Hero = () => {
               <h3 className="statsBadgeTitle">100+Destinations</h3>
               <p className="statsBadgeSub">More Than 100 Travelers use this platform</p>
             </div>
-            <img src="/src/assets/photo1.png" alt="Hot Air Balloon" className="gridImage" />
+            <img src="/novaxcape/photo1.png" alt="Hot Air Balloon" className="gridImage" />
           </div>
 
           <div className="gridItem topRightCell">
@@ -36,15 +36,15 @@ const Hero = () => {
               <div className="verifiedPercent">100%</div>
               <div className="verifiedText">Verified</div>
             </div>
-            <img src="/src/assets/photo2.png" alt="Clear Water" className="Image" />
+            <img src="/novaxcape/photo2.png" alt="Clear Water" className="Image" />
           </div>
 
           <div className="gridItem bottomLeftCell">
-            <img src="/src/assets/photo3.png" alt="House with Balloon" className="Image" />
+            <img src="/novaxcape/photo3.png" alt="House with Balloon" className="Image" />
           </div>
 
           <div className="gridItem bottomRightCell">
-            <img src="/src/assets/photo4.png" alt="Pink Trees" className="gridImage" />
+            <img src="/novaxcape/photo4.png" alt="Pink Trees" className="gridImage" />
           </div>
         </div>
 

@@ -1,18 +1,24 @@
-import React from 'react';
-import { IoLocationOutline } from 'react-icons/io5';
-import './css/PopularDestinations.css';
+import React from "react";
+import { IoLocationOutline } from "react-icons/io5";
+import "./css/PopularDestinations.css";
 
 const PopularDestinations = () => {
   return (
     <div className="destinationsSection">
       <div className="destinationsHeader">
         <div className="sectionMainTitle">Popular Destination</div>
-        <div className="sectionSubDescription">Explore Top Cities with the most attractions</div>
+        <div className="sectionSubDescription">
+          Explore Top Cities with the most attractions
+        </div>
       </div>
 
       <div className="destinationsGrid">
         <div className="destinationCard">
-          <img src="/src/assets/lagos.png" alt="Lagos" className="cardDisplayImage" />
+          <img
+            src="/novaxcape/lagos.png"
+            alt="Lagos"
+            className="cardDisplayImage"
+          />
           <div className="cardTextOverlay">
             <div className="locationLabelRow">
               <IoLocationOutline className="locationPinIcon" />
@@ -23,7 +29,11 @@ const PopularDestinations = () => {
         </div>
 
         <div className="destinationCard">
-          <img src="/src/assets/ibadan.png" alt="Ibadan" className="cardDisplayImage" />
+          <img
+            src="/novaxcape/ibadan.png"
+            alt="Ibadan"
+            className="cardDisplayImage"
+          />
           <div className="cardTextOverlay">
             <div className="locationLabelRow">
               <IoLocationOutline className="locationPinIcon" />
@@ -34,7 +44,11 @@ const PopularDestinations = () => {
         </div>
 
         <div className="destinationCard">
-          <img src="/src/assets/abuja.png" alt="Abuja" className="cardDisplayImage" />
+          <img
+            src="/novaxcape/abuja.png"
+            alt="Abuja"
+            className="cardDisplayImage"
+          />
           <div className="cardTextOverlay">
             <div className="locationLabelRow">
               <IoLocationOutline className="locationPinIcon" />
@@ -45,7 +59,11 @@ const PopularDestinations = () => {
         </div>
 
         <div className="destinationCard">
-          <img src="/src/assets/port.png" alt="Port Harcourt" className="cardDisplayImage" />
+          <img
+            src="/novaxcape/port.png"
+            alt="Port Harcourt"
+            className="cardDisplayImage"
+          />
           <div className="cardTextOverlay">
             <div className="locationLabelRow">
               <IoLocationOutline className="locationPinIcon" />

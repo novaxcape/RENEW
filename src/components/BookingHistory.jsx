@@ -1,11 +1,10 @@
-import React from 'react';
-import './css/BookingHistory.css';
-import { FiSearch, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import React from "react";
+import "./css/BookingHistory.css";
+import { FiSearch, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 const BookingHistory = () => {
   return (
     <div className="history-page-wrapper">
-      
       <div className="history-header-row">
         <div className="header-text-block">
           <h1 className="history-main-title">Booking History</h1>
@@ -19,14 +18,18 @@ const BookingHistory = () => {
           <div className="search-icon-square">
             <FiSearch className="toolbar-search-icon" />
           </div>
-          <input type="text" placeholder="Type here" className="toolbar-text-input" />
+          <input
+            type="text"
+            placeholder="Type here"
+            className="toolbar-text-input"
+          />
         </div>
-        
+
         <button className="filter-dropdown-trigger-btn">
-          <img 
-            src="/src/assets/filter.png" 
-            alt="Filter" 
-            className="toolbar-filter-img" 
+          <img
+            src="/novaxcape/filter.png"
+            alt="Filter"
+            className="toolbar-filter-img"
           />
           Filter By
         </button>
@@ -47,7 +50,6 @@ const BookingHistory = () => {
             </tr>
           </thead>
           <tbody>
-            
             <tr className="table-data-row">
               <td className="td-checkbox-cell">
                 <div className="custom-table-checkbox"></div>
@@ -70,7 +72,9 @@ const BookingHistory = () => {
               <td className="date-txt">may 20,2026</td>
               <td className="amount-txt">₦11,000</td>
               <td>
-                <span className="status-badge badge-installment">Installment</span>
+                <span className="status-badge badge-installment">
+                  Installment
+                </span>
               </td>
             </tr>
 
@@ -83,7 +87,9 @@ const BookingHistory = () => {
               <td className="date-txt">May 10,2026</td>
               <td className="amount-txt">₦13,500</td>
               <td>
-                <span className="status-badge badge-successful">Successful</span>
+                <span className="status-badge badge-successful">
+                  Successful
+                </span>
               </td>
             </tr>
 
@@ -109,7 +115,9 @@ const BookingHistory = () => {
               <td className="date-txt">May 04,2026</td>
               <td className="amount-txt">₦4,500</td>
               <td>
-                <span className="status-badge badge-successful">Successful</span>
+                <span className="status-badge badge-successful">
+                  Successful
+                </span>
               </td>
             </tr>
 
@@ -122,7 +130,9 @@ const BookingHistory = () => {
               <td className="date-txt">Mar 28,2026</td>
               <td className="amount-txt">₦7,000</td>
               <td>
-                <span className="status-badge badge-successful">Successful</span>
+                <span className="status-badge badge-successful">
+                  Successful
+                </span>
               </td>
             </tr>
 
@@ -135,7 +145,9 @@ const BookingHistory = () => {
               <td className="date-txt">May 30,2026</td>
               <td className="amount-txt">₦13,200</td>
               <td>
-                <span className="status-badge badge-successful">Successful</span>
+                <span className="status-badge badge-successful">
+                  Successful
+                </span>
               </td>
             </tr>
 
@@ -151,33 +163,33 @@ const BookingHistory = () => {
                 <span className="status-badge badge-cancelled">Cancelled</span>
               </td>
             </tr>
-
           </tbody>
         </table>
       </div>
 
       <div className="history-table-footer-row">
-        <span className="pagination-count-summary-txt">Showing Total Pages of 5</span>
-        
+        <span className="pagination-count-summary-txt">
+          Showing Total Pages of 5
+        </span>
+
         <div className="pagination-controls-wrapper">
           <button className="pag-nav-btn disabled-nav">
             <FiChevronLeft className="pag-arrow-icon" />
             Back
           </button>
-          
+
           <button className="pag-num-btn active-num">1</button>
           <button className="pag-num-btn">2</button>
           <button className="pag-num-btn">3</button>
           <span className="pag-ellipsis-dots">...</span>
           <button className="pag-num-btn">10</button>
-          
+
           <button className="pag-nav-btn">
             Next
             <FiChevronRight className="pag-arrow-icon" />
           </button>
         </div>
       </div>
-
     </div>
   );
 };

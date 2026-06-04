@@ -6,6 +6,18 @@
   display: flex;
   justify-content: center;
 }
+/* Style the links inside the list items */
+.link ul li a {
+  text-decoration: none;
+  color: #333; /* Your default link color */
+  transition: color 0.3s ease;
+}
+
+/* Style for the active state */
+.link ul li.active-link a {
+  color: #007bff; /* Change this to your brand color */
+  font-weight: bold;
+}
 
 .header-body {
   width: 90%;

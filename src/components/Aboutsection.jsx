@@ -1,9 +1,7 @@
 import React from "react";
 import "../components/css/AboutSection.css";
 
-import img1 from "../assets/img1.png";
-import img2 from "../assets/img2.png";
-import img3 from "../assets/img3.png";
+
 
 const Aboutsection = () => {
   return (
@@ -11,12 +9,12 @@ const Aboutsection = () => {
       <div className="about-container">
         <div className="about-images">
           <div className="left-column">
-            <img src={img1} alt="Volunteer" className="medium-image" />
-            <img src={img2} alt="Volunteer" className="small-image" />
+            <img src="/novaxcape/img1.png" alt="Volunteer" className="medium-image" />
+            <img src="/novaxcape/img2.png" alt="Volunteer" className="small-image" />
           </div>
 
           <div className="right-column">
-            <img src={img3} alt="Group" className="large-image" />
+            <img src="/novaxcape/img3.png" alt="Group" className="large-image" />
           </div>
         </div>
 
