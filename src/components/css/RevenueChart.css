@@ -1,0 +1,24 @@
+.ticket-chart{
+  background:white;
+  border-radius:20px;
+  padding:25px;
+  border:1px solid #ececec;
+}
+
+.ticket-legend{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.ticket-legend div{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.legend-dot{
+  width:12px;
+  height:12px;
+  border-radius:50%;
+}

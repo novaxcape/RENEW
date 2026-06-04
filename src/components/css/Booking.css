@@ -1,0 +1,39 @@
+.bookings-card{
+  background:white;
+  margin-top:25px;
+  border-radius:20px;
+  padding:25px;
+  border:1px solid #ececec;
+}
+
+.booking-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.booking-header button{
+  border:none;
+  background:none;
+  color:#0d47a1;
+  font-weight:600;
+  cursor:pointer;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th{
+  background:#f5f7fa;
+  text-align:left;
+  padding:16px;
+  color:#666;
+}
+
+td{
+  padding:18px 16px;
+  border-bottom:1px solid #eee;
+}

@@ -1,0 +1,27 @@
+.welcome-section{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin:30px 0;
+}
+
+.welcome-section h1{
+  font-size:32px;
+  font-weight:700;
+  color:#1a1a1a;
+}
+
+.welcome-section p{
+  margin-top:8px;
+  color:#777;
+}
+
+.manage-centre-btn{
+  background:#ff6b35;
+  color:white;
+  border:none;
+  padding:14px 24px;
+  border-radius:30px;
+  cursor:pointer;
+  font-weight:600;
+}

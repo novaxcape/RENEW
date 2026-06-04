@@ -1,0 +1,24 @@
+.supportpage_herocontent_wrapper {
+  width: 100%;
+  height: 80vh;
+
+  .supportpage_herocontent {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    .supportpage_herocontent_image {
+      width: 100%;
+      height: 100%;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+  }
+}

@@ -1,0 +1,232 @@
+.featured-section {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 40px 20px;
+  color: #1a1a1a;
+  background-color: #ffffff;
+}
+
+.section-header {
+  margin-bottom: 32px;
+}
+
+.section-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #111111;
+}
+
+.section-subtitle {
+  font-size: 14px;
+  color: #666666;
+  margin: 0;
+}
+
+.attractions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.attraction-card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #eaeaea;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.attraction-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+.card-image-wrapper {
+  width: 100%;
+  background-color: #f0f0f0;
+}
+
+.card-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.card-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: #222222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-location {
+  font-size: 13px;
+  color: #555555;
+  margin: 0 0 16px 0;
+}
+
+.card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 8px;
+}
+
+.rating-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stars-wrapper {
+  display: flex;
+  gap: 2px;
+}
+
+.star-icon {
+  font-size: 11px;
+}
+
+.star-icon.filled {
+  color: #ffb400;
+}
+
+.star-icon.empty {
+  color: #cccccc;
+}
+
+.rating-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: #333333;
+}
+
+.reviews-count {
+  color: #888888;
+  font-weight: 400;
+}
+
+.time-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #666666;
+}
+
+.time-icon {
+  font-size: 11px;
+  color: #888888;
+}
+
+.time-text {
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid #f5f5f5;
+}
+
+.price-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.price-label {
+  font-size: 11px;
+  color: #777777;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.price-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #222222;
+}
+
+.price-value::before {
+  content: "₦";
+  margin-right: 2px;
+}
+
+.book-now-btn {
+  background-color: #ff6633;
+  color: #ffffff;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease;
+}
+
+.book-now-btn:hover {
+  background-color: #e65524;
+}
+
+.book-now-btn:active {
+  transform: scale(0.97);
+}
+
+@media (max-width: 900px) {
+  .attractions-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .section-title {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 600px) {
+  .featured-section {
+    padding: 24px 16px;
+  }
+
+  .attractions-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .card-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .time-container {
+    margin-top: 2px;
+  }
+}

@@ -1,0 +1,42 @@
+.performance-card{
+  background:white;
+  border-radius:20px;
+  padding:35px;
+  border:1px solid #ececec;
+  text-align:center;
+}
+
+.performance-icon{
+  width:70px;
+  height:70px;
+  margin:auto;
+  border-radius:50%;
+  background:#eaf4ff;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:30px;
+  color:#0d47a1;
+}
+
+.performance-card h3{
+  margin-top:20px;
+  margin-bottom:10px;
+}
+
+.performance-card p{
+  color:#666;
+  line-height:1.6;
+  margin-bottom:20px;
+}
+
+.performance-card button{
+  border:none;
+  background:#0d47a1;
+  color:white;
+  padding:12px 24px;
+  border-radius:25px;
+  cursor:pointer;
+}

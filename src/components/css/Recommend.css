@@ -1,0 +1,196 @@
+/* src/components/css/Recommend.css */
+@import url('https://googleapis.com');
+
+.recommendSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 80px 48px;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: 'Manrope', sans-serif;
+  background: #ffffff;
+  gap: 80px;
+}
+
+.recommendLeft {
+  flex: 1;
+  width: 50%;
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.imageCollage {
+  position: relative;
+  width: 480px;
+  height: 480px;
+}
+
+.collageCard {
+  position: absolute;
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.04);
+}
+
+.collageImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cardMain {
+  width: 320px;
+  height: 380px;
+  top: 0;
+  left: 10px;
+  border-radius: 40px;
+  z-index: 1;
+}
+
+.cardBottom {
+  width: 270px;
+  height: 270px;
+  bottom: 0;
+  left: 140px;
+  border-radius: 48px;
+  z-index: 2;
+}
+
+.cardTopRight {
+  width: 200px;
+  height: 200px;
+  top: 70px;
+  right: 10px;
+  border-radius: 48px;
+  z-index: 3;
+}
+
+.recommendRight {
+  flex: 1;
+  width: 50%;
+  box-sizing: border-box;
+  padding-left: 20px;
+  text-align: left;
+}
+
+.sectionTagline {
+  color: #f97316;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.sectionHeading {
+  color: #231f20;
+  font-size: 46px;
+  line-height: 1.25;
+  margin: 0 0 24px 0;
+  max-width: 540px;
+}
+
+.headingBold {
+  font-weight: 700;
+}
+
+.headingLight {
+  font-weight: 500;
+}
+
+.sectionSubtext {
+  color: #231f20;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 44px 0;
+  max-width: 560px;
+}
+
+.statsRowGroup {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  max-width: 540px;
+}
+
+.statBlockCard {
+  flex: 1;
+  background: #f2f2f2;
+  border: 1px solid #dcdcdc;
+  border-radius: 18px;
+  padding: 16px 8px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.statValueNumber {
+  color: #231f20;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.statValueLabel {
+  color: #595959;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+@media (max-width: 1140px) {
+  .recommendSection {
+    flex-direction: column;
+    padding: 60px 24px;
+    gap: 60px;
+  }
+
+  .recommendLeft {
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .recommendRight {
+    width: 100%;
+    max-width: 540px;
+    text-align: left;
+    padding-left: 0;
+  }
+}
+
+@media (max-width: 580px) {
+  .sectionHeading {
+    font-size: 32px;
+  }
+
+  .imageCollage {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+  }
+
+  .cardMain {
+    width: 66%;
+    height: 78%;
+  }
+
+  .cardBottom {
+    width: 56%;
+    height: 56%;
+    left: 28%;
+  }
+
+  .cardTopRight {
+    width: 42%;
+    height: 42%;
+    top: 15%;
+  }
+
+  .statsRowGroup {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .statBlockCard {
+    width: 100%;
+  }
+}

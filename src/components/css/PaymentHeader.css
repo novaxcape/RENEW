@@ -1,0 +1,90 @@
+.payment-navbar-header {
+  width: 100%;
+  background-color: #ffffff;
+  border-bottom: 2px solid #3b5998; 
+  box-sizing: border-box;
+}
+
+.navbar-inner-container {
+  max-width: 1200px;
+  height: 80px;
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.navbar-logo-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-brand-logo {
+  height: 32px; 
+  width: auto;
+  display: block;
+}
+
+.navbar-navigation-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.nav-item-link {
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 500;
+  font-style: normal;
+  font-size: 18px;
+  line-height: 28px;
+  letter-spacing: 0%;
+  color: #333333;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.nav-item-link:hover {
+  color: #0060a3;
+}
+
+.navbar-actions-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.navbar-action-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #333333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.navbar-action-btn:hover {
+  color: #0060a3;
+}
+
+@media (max-width: 1240px) {
+  .navbar-inner-container {
+    padding: 0 20px;
+  }
+}
+
+@media (max-width: 992px) {
+  .navbar-navigation-links {
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-navigation-links {
+    display: none; 
+  }
+}

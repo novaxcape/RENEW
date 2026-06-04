@@ -1,0 +1,249 @@
+@import url('https://googleapis.com');
+
+.confirmation-page-wrapper {
+  background-color: #fafafa;
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+.confirmation-card {
+  background-color: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 580px;
+  padding: 50px 40px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.success-badge-container {
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.success-checkmark-img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  display: block;
+}
+
+.confirmation-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #111111;
+  margin: 0 0 8px 0;
+  text-align: center;
+}
+
+.confirmation-subtitle {
+  font-size: 14.5px;
+  color: #555555;
+  margin: 0 0 24px 0;
+  text-align: center;
+}
+
+.email-toast-message {
+  background-color: #dbe7f4;
+  border: 1px solid #abc1dc;
+  border-radius: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 30px;
+}
+
+.email-left-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: auto;
+}
+
+.email-toast-icon {
+  font-size: 18px;
+  color: #0060a3;
+  flex-shrink: 0;
+}
+
+.email-toast-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0060a3;
+  white-space: nowrap;
+}
+
+.booking-details-box {
+  background-color: #ffffff;
+  border: 1px solid #f2f2f2;
+  border-radius: 12px;
+  width: 100%;
+  padding: 24px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.details-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111111;
+  margin: 0 0 4px 0;
+}
+
+.detail-item-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.detail-meta-icon {
+  font-size: 22px;
+  color: #0060a3;
+  flex-shrink: 0;
+}
+
+.detail-text-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.detail-field-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: #888888;
+}
+
+.detail-field-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222222;
+}
+
+.passcode-container-card {
+  background: linear-gradient(135deg, #fff3ee 0%, #edf1f5 100%);
+  border: 1.5px solid #ff7643;
+  border-radius: 14px;
+  width: 100%;
+  padding: 28px 24px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 35px;
+}
+
+.passcode-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.passcode-shield-icon {
+  font-size: 18px;
+  color: #ff7643;
+}
+
+.passcode-main-heading {
+  font-size: 16px;
+  font-weight: 700;
+  color: #222222;
+  margin: 0;
+}
+
+.passcode-sub-caption {
+  font-size: 12px;
+  color: #666666;
+  margin: 0 0 24px 0;
+  text-align: center;
+}
+
+.passcode-display-block {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 14px 30px;
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  margin-bottom: 24px;
+}
+
+.passcode-digit {
+  font-size: 26px;
+  font-weight: 700;
+  color: #111111;
+  letter-spacing: 2px;
+}
+
+.download-passcode-action-btn {
+  background-color: transparent;
+  border: 1px solid #a0a0a0;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 380px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #333333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.download-action-icon {
+  font-size: 14px;
+}
+
+.navigation-footer-action {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.homepage-redirect-btn {
+  background-color: #ff6633;
+  color: #ffffff;
+  border: none;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 320px;
+  padding: 14px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 540px) {
+  .confirmation-card {
+    padding: 30px 20px;
+  }
+  .passcode-display-block {
+    padding: 12px 20px;
+    gap: 10px;
+  }
+  .passcode-digit {
+    font-size: 22px;
+  }
+}

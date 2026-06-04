@@ -1,0 +1,177 @@
+.hero {
+  width: 100%;
+  height: 100vh;
+  background-image: url("/public/novaxcape/discoverhero.png");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.hero_overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.hero_content {
+  position: relative;
+  z-index: 2;
+  padding-left: 100px;
+  max-width: 900px;
+}
+
+.hero_content h1 {
+  color: white;
+  font-size: 80px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.hero_content p {
+  color: white;
+  font-size: 28px;
+  font-weight: 500;
+  margin-bottom: 40px;
+}
+
+/* Destination Button */
+
+.destination_btn {
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  padding: 18px 25px;
+  border-radius: 50px;
+  margin-bottom: 30px;
+  cursor: pointer;
+}
+
+.destination_btn svg {
+  font-size: 28px;
+  color: #2b2b2b;
+}
+
+.destination_btn span {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+/* Search Area */
+
+.search_container {
+  width: 850px;
+  background: white;
+  border-radius: 50px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.search_input {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  border: 1px solid #d8d8d8;
+  border-radius: 40px;
+  overflow: hidden;
+}
+
+.search_input svg {
+  width: 80px;
+  height: 60px;
+  background: #8f8782;
+  color: white;
+  padding: 15px;
+}
+
+.search_input input {
+  border: none;
+  outline: none;
+  flex: 1;
+  padding: 0 20px;
+  font-size: 20px;
+}
+
+.filter_btn {
+  margin-left: 15px;
+  border: 1px solid #d8d8d8;
+  background: white;
+  border-radius: 40px;
+  padding: 18px 30px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.filter_btn svg {
+  font-size: 24px;
+}
+
+/* Tablet */
+
+@media (max-width: 1024px) {
+  .hero_content {
+    padding: 0 40px;
+  }
+
+  .hero_content h1 {
+    font-size: 60px;
+  }
+
+  .hero_content p {
+    font-size: 24px;
+  }
+
+  .search_container {
+    width: 100%;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 768px) {
+  .hero {
+    height: 90vh;
+  }
+
+  .hero_content {
+    padding: 0 20px;
+  }
+
+  .hero_content h1 {
+    font-size: 42px;
+  }
+
+  .hero_content p {
+    font-size: 18px;
+  }
+
+  .destination_btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .search_container {
+    flex-direction: column;
+    gap: 15px;
+    border-radius: 20px;
+  }
+
+  .search_input {
+    width: 100%;
+  }
+
+  .filter_btn {
+    width: 100%;
+    justify-content: center;
+    margin-left: 0;
+  }
+}

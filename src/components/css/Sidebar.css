@@ -1,0 +1,50 @@
+.sidebar {
+  width: 260px;
+  background: #fff;
+  padding: 24px;
+  border-right: 1px solid #ececec;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.logo-section h2 {
+  color: #0d47a1;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.logo-section p {
+  color: #666;
+  font-size: 14px;
+}
+
+.sidebar-nav {
+  margin-top: 40px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  color: #555;
+}
+
+.nav-item.active {
+  background: #eef5ff;
+  color: #0d47a1;
+  font-weight: 600;
+}
+
+.logout-btn {
+  border: none;
+  background: #ff6b35;
+  color: white;
+  padding: 14px;
+  border-radius: 30px;
+  cursor: pointer;
+}

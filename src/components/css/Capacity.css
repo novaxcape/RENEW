@@ -1,0 +1,31 @@
+.capacity-card{
+  background:white;
+  border-radius:20px;
+  padding:25px;
+  border:1px solid #ececec;
+}
+
+.capacity-row{
+  display:flex;
+  justify-content:space-between;
+  margin:20px 0 12px;
+}
+
+.progress-bar{
+  width:100%;
+  height:10px;
+  background:#ededed;
+  border-radius:20px;
+  overflow:hidden;
+}
+
+.progress-fill{
+  width:75%;
+  height:100%;
+  background:#7b61ff;
+}
+
+.goal-info{
+  margin-top:15px;
+  color:#666;
+}

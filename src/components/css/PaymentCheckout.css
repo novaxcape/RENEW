@@ -1,0 +1,393 @@
+@import url('https://googleapis.com');
+
+.payment-page-wrapper {
+  background-color: #fdfcfb;
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100vh;
+  width: 100%;
+  padding: 50px 60px 100px 60px;
+  color: #111111;
+  box-sizing: border-box;
+}
+
+.back-btn-container {
+  max-width: 1200px;
+  margin: 0 auto 30px auto;
+}
+
+.back-nav-btn {
+  background-color: #ff6633;
+  color: #ffffff;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 32px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.payment-page-header {
+  max-width: 1200px;
+  margin: 0 auto 40px auto;
+}
+
+.main-title {
+  font-size: 34px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  color: #111111;
+  letter-spacing: -0.5px;
+}
+
+.main-subtitle {
+  font-size: 15px;
+  color: #555555;
+  margin: 0;
+}
+
+.installment-banner-container {
+  max-width: 1200px;
+  margin: 0 auto 40px auto;
+}
+
+.installment-banner-card {
+  background-color: #ffffff;
+  border: 1px solid #eef0f2;
+  border-radius: 16px;
+  padding: 28px;
+  width: 310px;
+  box-sizing: border-box;
+}
+
+.banner-icon-box {
+  width: 44px;
+  height: 44px;
+  background-color: #fff1ec;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff6633;
+  font-size: 20px;
+  margin-bottom: 22px;
+}
+
+.banner-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #1a1a1a;
+}
+
+.banner-subtitle {
+  font-size: 13.5px;
+  color: #666666;
+  margin: 0 0 18px 0;
+}
+
+.banner-badge {
+  display: inline-block;
+  background-color: #fff1ec;
+  color: #ff6633;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 14px;
+}
+
+.payment-layout-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  column-gap: 35px;
+  align-items: start;
+}
+
+.plan-selector-card {
+  background-color: #ffffff;
+  border: 1px solid #eef0f2;
+  border-radius: 16px;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-section-heading {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 24px 0;
+  color: #111111;
+}
+
+.plans-list-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.plan-option-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 22px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background-color: #ffffff;
+}
+
+.plan-option-row.selected {
+  border-color: #e2e8f0;
+}
+
+.plan-left-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.plan-duration-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111111;
+}
+
+.plan-interval-subtitle {
+  font-size: 12.5px;
+  color: #666666;
+}
+
+.plan-right-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.plan-price-value {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0060a3;
+}
+
+.plan-price-label {
+  font-size: 11px;
+  color: #666666;
+}
+
+.plan-info-alert-box {
+  background-color: #d6e9f7;
+  border: 1px solid #bbdaf3;
+  border-radius: 24px;
+  padding: 10px 24px;
+  margin-top: 0;
+}
+
+.info-alert-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.info-alert-icon {
+  color: #0060a3;
+  font-size: 16px;
+}
+
+.info-alert-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0060a3;
+}
+
+.info-alert-text {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #0060a3;
+  margin: 0;
+}
+
+.booking-summary-card {
+  background-color: #ffffff;
+  border: 1px solid #eef0f2;
+  border-radius: 16px;
+  padding: 40px 0 35px 0;
+  min-height: 530px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.summary-card-title,
+.summary-breakdown-table,
+.summary-highlight-toast {
+  padding-left: 35px;
+  padding-right: 35px;
+}
+
+.summary-card-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 28px 0;
+  color: #111111;
+}
+
+.summary-breakdown-table {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 35px;
+}
+
+.summary-data-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.summary-row-label {
+  font-size: 15px;
+  color: #666666;
+}
+
+.summary-row-val {
+  font-size: 16px;
+  font-weight: 500;
+  color: #666666;
+}
+
+.summary-highlight-toast {
+  background-color: #ffdfd5;
+  border-radius: 16px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  margin-bottom: 35px;
+  margin-left: 35px;
+  margin-right: 35px;
+}
+
+.toast-row-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.toast-label-txt {
+  font-size: 15px;
+  color: #666666;
+  font-weight: 500;
+}
+
+.toast-val-price {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ea5425;
+}
+
+.toast-sub-caption {
+  font-size: 13px;
+  color: #666666;
+  margin: 0;
+}
+
+.due-date-row-block {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 35px;
+  border-top: 1px solid #e2e8f0;
+  padding: 24px 35px 0 35px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.due-main-heading {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111111;
+}
+
+.due-main-amount {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0060a3;
+}
+
+.checkout-submit-btn {
+  background-color: #ff6633;
+  color: #ffffff;
+  border: none;
+  border-radius: 28px;
+  padding: 16px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 16px;
+  margin-left: 35px;
+  margin-right: 35px;
+}
+
+.security-notice-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #333333;
+  margin-top: 0;
+  padding-left: 35px;
+  padding-right: 35px;
+}
+
+.security-shield-icon {
+  font-size: 18px;
+  color: #0060a3;
+}
+
+.security-notice-txt {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+@media (max-width: 992px) {
+  .payment-page-wrapper {
+    padding: 30px 30px;
+  }
+  .payment-layout-container {
+    grid-template-columns: 1fr;
+    row-gap: 30px;
+  }
+  .booking-summary-card {
+    min-height: auto;
+    padding: 24px 0;
+  }
+  .summary-card-title,
+  .summary-breakdown-table,
+  .due-date-row-block,
+  .security-notice-row {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .summary-highlight-toast,
+  .checkout-submit-btn {
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .payment-page-wrapper {
+    padding: 20px 16px;
+  }
+  .main-title {
+    font-size: 28px;
+  }
+  .plan-selector-card {
+    padding: 24px 16px;
+  }
+  .plan-option-row {
+    padding: 14px 12px;
+  }
+}

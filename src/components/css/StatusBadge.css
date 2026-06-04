@@ -1,0 +1,26 @@
+.status-badge{
+  padding:8px 14px;
+  border-radius:20px;
+  font-size:13px;
+  font-weight:500;
+}
+
+.successful{
+  background:#e8f8ee;
+  color:#22a559;
+}
+
+.cancelled{
+  background:#ffe8e8;
+  color:#e53935;
+}
+
+.in-progress{
+  background:#e8f1ff;
+  color:#0d47a1;
+}
+
+.installment{
+  background:#fff4dd;
+  color:#f5a623;
+}

@@ -1,0 +1,40 @@
+.stat-card{
+  background:white;
+  border-radius:18px;
+  padding:24px;
+  position:relative;
+  border:1px solid #ececec;
+}
+
+.stat-icon{
+  position:absolute;
+  right:20px;
+  top:20px;
+
+  width:45px;
+  height:45px;
+
+  border-radius:50%;
+  background:#0d47a1;
+  color:white;
+
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  font-size:20px;
+}
+
+.stat-card h4{
+  color:#666;
+  margin-bottom:12px;
+}
+
+.stat-card h2{
+  font-size:32px;
+  margin-bottom:8px;
+}
+
+.stat-card p{
+  color:#888;
+}

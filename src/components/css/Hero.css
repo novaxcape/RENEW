@@ -1,0 +1,347 @@
+.heroSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 60px 48px 120px;
+  min-height: calc(100vh - 80px);
+  width: 100%;
+  box-sizing: border-box;
+  /* font-family: 'Poppins', sans-serif; */
+  background: #ffffff;
+  gap: 60px;
+}
+
+.heroLeft {
+  flex: 1;
+  width: 50%;
+  box-sizing: border-box;
+}
+
+.taglineRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.planeAssetIcon {
+  height: 64px;
+  width: auto;
+  object-fit: contain;
+}
+
+.taglineText {
+  color: #f97316;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.headingGroup {
+  margin-bottom: 24px;
+}
+
+.headingLineOne {
+  color: #111827;
+  font-weight: 700;
+  font-size: 42px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.headingLineTwo {
+  color: #1e3a8a;
+  font-weight: 700;
+  font-size: 42px;
+  line-height: 1.2;
+}
+
+.descriptionText {
+  color: #6b7280;
+  font-size: 15px;
+  line-height: 1.7;
+  max-width: 480px;
+}
+
+.heroRight {
+  flex: 1;
+  width: 50%;
+  display: flex;
+  justify-content: stretch;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.imageGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 240px);
+  gap: 20px;
+  width: 100%;
+}
+
+.gridItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.topLeftCell,
+.bottomLeftCell,
+.topRightCell,
+.bottomRightCell {
+  justify-content: stretch;
+}
+
+.gridImage {
+  object-fit: cover;
+  display: block;
+  border-radius: 24px;
+  width: 100%;
+  height: 100%;
+}
+
+.searchContainerBar {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 30px;
+  padding: 12px;
+  gap: 12px;
+  width: 850px;
+  position: absolute;
+  left: -750px;
+  bottom: 40px;
+  z-index: 100;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+}
+
+.searchFieldGroup {
+  flex: 1;
+  background: #f3f4f6;
+  border-radius: 30px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+}
+
+.searchInput {
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  height: 100%;
+  width: 100%;
+  padding: 0 16px;
+  color: #111827;
+}
+
+.dateWrapper {
+  position: relative;
+}
+
+.calendarAssetIcon {
+  position: absolute;
+  left: 16px;
+  font-size: 18px;
+  color: #6b7280;
+  pointer-events: none;
+}
+
+.dateInput {
+  padding-left: 44px;
+}
+
+.searchActionBtn {
+  flex: 1;
+  background: #f97316;
+  color: #ffffff;
+  border: none;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  font-family: inherit;
+  height: 48px;
+  white-space: nowrap;
+}
+
+.statsFloatingBadge {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: -90px;
+  z-index: 30;
+  background: #003da5;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border-radius: 14px;
+  padding: 18px 14px;
+  width: 185px;
+  box-shadow: 0 10px 25px rgba(0, 61, 165, 0.2);
+}
+
+.statsBadgeTitle {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.statsBadgeSub {
+  color: #bfdbfe;
+  font-size: 11px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.verifiedFloatingBadge {
+  position: absolute;
+  top: -12px;
+  left: 15px;
+  z-index: 30;
+  background: #003da5;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 8px 16px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 61, 165, 0.15);
+}
+
+.verifiedPercent {
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.verifiedText {
+  font-size: 10px;
+  color: #bfdbfe;
+}
+
+@media (max-width: 1240px) {
+  .heroSection {
+    flex-direction: column;
+    padding: 40px 24px;
+    gap: 48px;
+  }
+
+  .heroLeft {
+    flex: none;
+    width: 100%;
+    max-width: 520px;
+    text-align: center;
+  }
+
+  .taglineRow {
+    justify-content: center;
+  }
+
+  .headingLineOne {
+    white-space: normal;
+  }
+
+  .descriptionText {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .heroRight {
+    width: 100%;
+    justify-content: center;
+    padding-top: 20px;
+  }
+
+  .searchContainerBar {
+    position: relative;
+    left: 0;
+    bottom: 0;
+    margin-top: 32px;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: none;
+    padding: 0;
+    border: none;
+    background: transparent;
+  }
+}
+
+@media (max-width: 620px) {
+  .heroSection {
+    padding: 40px 16px;
+  }
+
+  .headingLineOne,
+  .headingLineTwo {
+    font-size: 32px;
+  }
+
+  .searchContainerBar {
+    flex-direction: column;
+    border-radius: 0;
+    gap: 12px;
+  }
+
+  .searchFieldGroup {
+    width: 100%;
+  }
+
+  .searchActionBtn {
+    width: 100%;
+  }
+
+  .imageGrid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: auto;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .gridItem {
+    aspect-ratio: 1 / 1;
+    height: auto;
+  }
+
+  .gridImage {
+    width: 100%;
+    height: 100%;
+  }
+
+  .statsFloatingBadge {
+    position: absolute;
+    left: 8px;
+    bottom: 8px;
+    top: auto;
+    transform: none;
+    width: calc(100% - 16px);
+    box-sizing: border-box;
+    padding: 8px;
+  }
+
+  .statsBadgeTitle {
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+
+  .statsBadgeSub {
+    font-size: 8px;
+    line-height: 1.1;
+  }
+
+  .verifiedFloatingBadge {
+    left: 8px;
+    top: 8px;
+    padding: 4px 8px;
+  }
+
+  .verifiedPercent {
+    font-size: 11px;
+  }
+
+  .verifiedText {
+    font-size: 7px;
+  }
+}

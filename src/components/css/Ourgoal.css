@@ -1,0 +1,123 @@
+/* Base container layout */
+.goals-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 40px;
+  max-width: 1440px;
+  /* height: 500px; */
+  margin: 0 auto;
+  padding: 40px 20px;
+  background-image: url('/public/novaxcape/goalbackground.png'); ;
+}
+
+/* Left Column Styling */
+.content-column {
+  flex: 1;
+  display: flex;
+  gap: 40px;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.goal-title {
+  color: #0d3880; /* Deep blue title color */
+  font-size: 34px;
+  font-weight: 600;
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.goal-description {
+  color: #333333;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+/* Tab Component Styling */
+.tabs-wrapper {
+  margin-top: 24px;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.tabs-buttons {
+  display: flex;
+  gap: 0;
+}
+
+.tab-btn {
+  flex: 1;
+  max-width: 200px;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  border-radius: 25px; /* Pill shape styling */
+  color: #333333;
+}
+
+/* Selected Active Tab State */
+.tab-btn.active {
+  background-color: #003b95; /* Vibrant corporate dark blue */
+  color: #ffffff;
+}
+
+/* Subtle dividing line matching image layout */
+.tabs-divider {
+  height: 1px;
+  background-color: #e0e0e0;
+  margin-top: 12px;
+  width: 100%;
+}
+
+/* Dynamic Tab Content Text */
+.tab-content {
+  color: #333333;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+/* Right Column & Image Frame Styling */
+.image-column {
+  flex: 1;
+  display: flex;
+}
+
+.image-wrapper {
+  width: 100%;
+  position: relative;
+}
+
+.side-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 24px; /* Smooth rounded corners */
+  display: block;
+}
+
+/* Responsive breakpoint for tablets and mobile devices */
+@media (max-width: 768px) {
+  .goals-container {
+    flex-direction: column;
+    padding: 24px 16px;
+    gap: 32px;
+  }
+
+  .tab-btn {
+    max-width: 50%;
+  }
+
+  .side-image {
+    max-height: 350px;
+  }
+}
