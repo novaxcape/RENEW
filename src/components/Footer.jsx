@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import "./css/Footer.css";
 import { FaLinkedinIn, FaInstagram, FaTiktok } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
@@ -57,10 +58,10 @@ const Footer = () => {
             <h4 className="footer-column-heading">For Tourism Centres</h4>
             <ul className="footer-links-list">
               <li>
-                <a href="/list-centre">List your Centre</a>
+                <Link to="/add-centre">List your Centre</Link>
               </li>
               <li>
-                <a href="/dashboard">Dashboard</a>
+                <Link to="/dashboard">Dashboard</Link>
               </li>
               <li>
                 <a href="/pricing">Pricing</a>
@@ -77,16 +78,16 @@ const Footer = () => {
             <h4 className="footer-column-heading">For Tourist</h4>
             <ul className="footer-links-list">
               <li>
-                <a href="/discover">Discover Attractions</a>
+                <Link to="/discover">Discover Attractions</Link>
               </li>
               <li>
-                <a href="/bookings">My Bookings</a>
+                <Link to="/my-bookings">My Bookings</Link>
               </li>
               <li>
-                <a href="/payment">Payment Options</a>
+                <Link to="/payment">Payment Options</Link>
               </li>
               <li>
-                <a href="/support">Help & Support</a>
+                <Link to="/support">Help & Support</Link>
               </li>
             </ul>
           </div>
