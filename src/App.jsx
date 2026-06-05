@@ -24,7 +24,7 @@ import RevenueTrendPage from "./Pages/RevenueTrendPage";
 import SettingsPage from "./Pages/SettingPage";
 import ProfileSettingPage from "./Pages/ProfileSettingPage";
 
-import AddCentre from "./Pages/AddCentre";
+import AddCentre from "./Pages/Addcentre";
 import Kyc from "./Pages/Kyc";
 
 const App = () => {
@@ -68,7 +68,7 @@ const App = () => {
         <Route path="/profile-settings" element={<ProfileSettingPage />} />
 
         {/* NEW ROUTES: Add Centre & KYC */}
-        <Route path="/add-centre" element={<AddCentre />} />
+        <Route path="/add-centre" element={<Addcentre />} />
         <Route path="/kyc" element={<Kyc />} />
 
         {/* Fallback for 404 */}
