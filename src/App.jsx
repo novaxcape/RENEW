@@ -68,7 +68,7 @@ const App = () => {
         <Route path="/profile-settings" element={<ProfileSettingPage />} />
 
         {/* NEW ROUTES: Add Centre & KYC */}
-        <Route path="/add-centre" element={<Addcentre />} />
+        <Route path="/add-centre" element={<AddCentre />} />
         <Route path="/kyc" element={<Kyc />} />
 
         {/* Fallback for 404 */}
