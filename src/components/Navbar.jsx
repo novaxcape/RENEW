@@ -1,6 +1,6 @@
-
-import React from 'react';
-import { IconCheck } from './Icon';
+import React from "react";
+import { Link } from "react-router-dom";
+import { IconCheck } from "./Icon";
 
 const Navbar = () => {
   return (
@@ -10,11 +10,13 @@ const Navbar = () => {
         <span className="logo-text">Novaxcape</span>
       </div>
       <div className="nav-links">
-  <a href="/">Home</a>
-  <a href="/dashboard">Dashboard</a>
-  <a href="/add-centre" className="active">Add Centre</a>
-  <a href="/kyc-verification">KYC Verification</a>
-</div>
+        <Link to="/">Home</Link>
+        <Link to="/dashboard">Dashboard</Link>
+        <Link to="/add-centre" className="active">
+          Add Centre
+        </Link>
+        <Link to="/kyc">KYC Verification</Link>
+      </div>
       <div className="nav-user">
         <IconCheck />
       </div>

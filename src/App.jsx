@@ -19,8 +19,10 @@ import MyBookingsPage from "./Pages/MyBookingsPage";
 import PaymentConfirmationPage from "./Pages/PaymentConfirmationPage";
 
 import DashboardLayout from "./components/DashboardLayout";
+import Dashboard from "./Pages/Dashboard";
 import RevenueTrendPage from "./Pages/RevenueTrendPage";
-import BasicInfo from "./components/BasicInfo" // ← Add this
+import SettingsPage from "./Pages/SettingPage";
+import ProfileSettingPage from "./Pages/ProfileSettingPage";
 
 import AddCentre from "./Pages/AddCentre";
 import Kyc from "./Pages/Kyc";
@@ -29,7 +31,6 @@ const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-  
         <Route path="/" element={<LandingPage />} />
         <Route path="/about" element={<Aboutpage />} />
         <Route path="/centres" element={<Centres />} />
@@ -48,14 +49,23 @@ const App = () => {
         <Route path="/wishlist" element={<WishList />} />
         <Route path="/payment" element={<PaymentOptionPage />} />
         <Route path="/my-bookings" element={<MyBookingsPage />} />
-        <Route path="/payment-confirmation" element={<PaymentConfirmationPage />} />
+        <Route
+          path="/payment-confirmation"
+          element={<PaymentConfirmationPage />}
+        />
 
         {/* Dashboard Routes */}
         <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<BasicInfo />} />
+          <Route index element={<Dashboard />} />
           <Route path="bookings" element={<MyBookingsPage />} />
           <Route path="revenue" element={<RevenueTrendPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="support" element={<Supportpage />} />
         </Route>
+
+        {/* Standalone Pages */}
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/profile-settings" element={<ProfileSettingPage />} />
 
         {/* NEW ROUTES: Add Centre & KYC */}
         <Route path="/add-centre" element={<AddCentre />} />
