@@ -1,17 +1,17 @@
-@import url('https://googleapis.com');
+@import url("https://googleapis.com");
 
 .profile-settings-container {
-  font-family: 'Manrope', sans-serif;
+  font-family: "Manrope", sans-serif;
   font-weight: 600;
   font-size: 18px;
   line-height: 28px;
   letter-spacing: 0%;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   max-width: 1050px;
   width: 100%;
   margin: 0 auto;
   padding: 40px 48px;
-  color: #1A1A1A;
+  color: #1a1a1a;
   box-sizing: border-box;
 }
 
@@ -20,7 +20,7 @@
 }
 
 .settings-title {
-  font-family: 'Manrope', sans-serif;
+  font-family: "Manrope", sans-serif;
   font-weight: 600;
   font-size: 18px;
   line-height: 28px;
@@ -29,7 +29,7 @@
 }
 
 .settings-subtitle {
-  font-family: 'Manrope', sans-serif;
+  font-family: "Manrope", sans-serif;
   font-weight: 600;
   font-size: 18px;
   line-height: 28px;
@@ -49,7 +49,7 @@
   height: 130px;
   border-radius: 50%;
   overflow: hidden;
-  background-color: #F3F3F3;
+  background-color: #f3f3f3;
 }
 
 .avatar-image {
@@ -64,7 +64,7 @@
 }
 
 .profile-label {
-  font-family: 'Manrope', sans-serif;
+  font-family: "Manrope", sans-serif;
   font-weight: 600;
   font-size: 18px;
   line-height: 28px;
@@ -83,12 +83,12 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background-color: #00338D;
-  color: #FFFFFF;
+  background-color: #00338d;
+  color: #ffffff;
   border: none;
   border-radius: 20px;
   padding: 6px 16px;
-  font-family: 'Manrope', sans-serif;
+  font-family: "Manrope", sans-serif;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
@@ -108,12 +108,12 @@
 }
 
 .btn-remove {
-  background-color: #FFFFFF;
-  color: #4A4A4A;
-  border: 1px solid #CCCCCC;
+  background-color: #ffffff;
+  color: #4a4a4a;
+  border: 1px solid #cccccc;
   border-radius: 20px;
   padding: 6px 16px;
-  font-family: 'Manrope', sans-serif;
+  font-family: "Manrope", sans-serif;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
@@ -121,11 +121,11 @@
 }
 
 .btn-remove:hover {
-  background-color: #F9F9F9;
+  background-color: #f9f9f9;
 }
 
 .photo-hint {
-  font-family: 'Manrope', sans-serif;
+  font-family: "Manrope", sans-serif;
   font-weight: 600;
   font-size: 14px;
   color: #666666;
@@ -136,7 +136,7 @@
    🧭 PIXEL PERFECT EXTRACTED TAB SEGMENT BAR (MATCHES IMAGE AT 500% ACCURACY)
    ========================================================================= */
 .settings-tabs-wrapper {
-  border-bottom: 1px solid #E2E8F0; /* Clean thin underline frame baseline divider */
+  border-bottom: 1px solid #e2e8f0; /* Clean thin underline frame baseline divider */
   margin-bottom: 40px;
   padding-bottom: 14px;
   width: 100%;
@@ -153,7 +153,7 @@
 .tab-item {
   flex: 1;
   border: none;
-  font-family: 'Manrope', sans-serif;
+  font-family: "Manrope", sans-serif;
   font-weight: 600;
   font-size: 15px;
   height: 48px;
@@ -169,13 +169,13 @@
 /* Selected Active Dark Blue State styling */
 .tab-item.active {
   background-color: #003797; /* Exact flat dark blue color matching image */
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 /* Unselected Static White Background State styling */
 .tab-item.regular {
-  background-color: #FAFAFA; /* Subtle high-contrast white profile container layout */
-  color: #1A1A1A;
+  background-color: #fafafa; /* Subtle high-contrast white profile container layout */
+  color: #1a1a1a;
 }
 
 /* ========================================================================= */
@@ -199,10 +199,10 @@
 }
 
 .form-group label {
-  font-family: 'Manrope', sans-serif;
+  font-family: "Manrope", sans-serif;
   font-weight: 600;
   font-size: 16px;
-  color: #1A1A1A;
+  color: #1a1a1a;
 }
 
 .input-wrapper {
@@ -214,26 +214,26 @@
 .input-wrapper select {
   width: 100%;
   height: 48px;
-  background-color: #FFFFFF;
-  border: 1px solid #CCCCCC;
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
   border-radius: 24px;
   padding: 0 20px;
-  font-family: 'Manrope', sans-serif;
+  font-family: "Manrope", sans-serif;
   font-weight: 600;
   font-size: 16px;
-  color: #1A1A1A;
+  color: #1a1a1a;
   outline: none;
   box-sizing: border-box;
   transition: border-color 0.2s ease;
 }
 
 .input-wrapper input::placeholder {
-  color: #B3B3B3;
+  color: #b3b3b3;
 }
 
 .input-wrapper input:focus,
 .input-wrapper select:focus {
-  border-color: #00338D;
+  border-color: #00338d;
 }
 
 .select-wrapper select {
@@ -242,7 +242,7 @@
 }
 
 .select-wrapper::after {
-  content: '';
+  content: "";
   position: absolute;
   right: 20px;
   top: 50%;
@@ -266,12 +266,12 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background-color: #FF5A1F;
-  color: #FFFFFF;
+  background-color: #ff5a1f;
+  color: #ffffff;
   border: none;
   border-radius: 24px;
   padding: 10px 24px;
-  font-family: 'Manrope', sans-serif;
+  font-family: "Manrope", sans-serif;
   font-weight: 600;
   font-size: 16px;
   cursor: pointer;
@@ -294,12 +294,12 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background-color: #FFFFFF;
-  color: #4A4A4A;
-  border: 1px solid #CCCCCC;
+  background-color: #ffffff;
+  color: #4a4a4a;
+  border: 1px solid #cccccc;
   border-radius: 24px;
   padding: 10px 24px;
-  font-family: 'Manrope', sans-serif;
+  font-family: "Manrope", sans-serif;
   font-weight: 600;
   font-size: 16px;
   cursor: pointer;
@@ -307,9 +307,9 @@
 }
 
 .btn-delete:hover {
-  background-color: #FFF5F2;
-  border-color: #FF5A1F;
-  color: #FF5A1F;
+  background-color: #fff5f2;
+  border-color: #ff5a1f;
+  color: #ff5a1f;
 }
 
 .btn-delete:hover .icon-delete {
@@ -353,7 +353,8 @@
     align-items: stretch;
   }
 
-  .btn-save, .btn-delete {
+  .btn-save,
+  .btn-delete {
     justify-content: center;
     width: 100%;
   }
