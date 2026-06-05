@@ -345,3 +345,121 @@
     font-size: 7px;
   }
 }
+@media (max-width: 400px) {
+  .heroSection {
+    padding: 24px 12px;
+    gap: 28px;
+  }
+
+  .heroLeft,
+  .heroRight {
+    width: 100%;
+  }
+
+  .taglineRow {
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .planeAssetIcon {
+    height: 42px;
+  }
+
+  .taglineText {
+    font-size: 12px;
+  }
+
+  .headingGroup {
+    margin-bottom: 16px;
+  }
+
+  .headingLineOne,
+  .headingLineTwo {
+    font-size: 24px;
+    line-height: 1.3;
+    white-space: normal;
+  }
+
+  .descriptionText {
+    font-size: 13px;
+    line-height: 1.6;
+    max-width: 100%;
+  }
+
+  .heroRight {
+    padding-top: 0;
+  }
+
+  /* Stack images vertically on tiny screens */
+  .imageGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .gridItem {
+    aspect-ratio: 4 / 3;
+  }
+
+  .gridImage {
+    border-radius: 16px;
+  }
+
+  .searchContainerBar {
+    margin-top: 20px;
+    gap: 10px;
+  }
+
+  .searchFieldGroup {
+    height: 40px;
+  }
+
+  .searchInput {
+    font-size: 13px;
+    padding: 0 12px;
+  }
+
+  .calendarAssetIcon {
+    left: 12px;
+    font-size: 15px;
+  }
+
+  .dateInput {
+    padding-left: 36px;
+  }
+
+  .searchActionBtn {
+    height: 40px;
+    font-size: 13px;
+  }
+
+  .statsFloatingBadge {
+    left: 6px;
+    right: 6px;
+    width: auto;
+    padding: 6px;
+    border-radius: 8px;
+  }
+
+  .statsBadgeTitle {
+    font-size: 10px;
+  }
+
+  .statsBadgeSub {
+    font-size: 7px;
+  }
+
+  .verifiedFloatingBadge {
+    left: 6px;
+    top: 6px;
+    padding: 4px 6px;
+    border-radius: 6px;
+  }
+
+  .verifiedPercent {
+    font-size: 10px;
+  }
+
+  .verifiedText {
+    font-size: 6px;
+  }
+}

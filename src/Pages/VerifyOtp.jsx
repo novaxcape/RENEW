@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "../Styles/Login.css";
 import Image from "../components/Image";
-
+import {Link} from "react-router-dom"
 const VerifyOtp = () => {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
 
@@ -19,7 +19,7 @@ const VerifyOtp = () => {
   };
 
   return (
-    <div className="login-wrapper">
+    <div className="login-  wrapper">
       <div className="login-container">
         
     
@@ -54,10 +54,11 @@ const VerifyOtp = () => {
           <div className="resend-timer">
             We'll resend OTP in <span className="timer">59s</span>
           </div>
-
+            <Link to="/signin">
           <button type="button" className="signup-btn verify-btn">
             Verify
           </button>
+          </Link>
         </div>
       </div>
     </div>

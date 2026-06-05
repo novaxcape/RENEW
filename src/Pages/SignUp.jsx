@@ -1,15 +1,22 @@
 import React, { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useNavigate, Link } from "react-router-dom";
 import "../Styles/Signup.css";
 import Image from "../components/Image";
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Here you would normally handle API logic
+    navigate("/verify-email");
+  };
 
   return (
     <div className="signup-wrapper">
       <div className="signup-container">
-
         {/* LEFT SIDE */}
         <div className="left-panel">
           <Image />
@@ -18,30 +25,21 @@ const SignUp = () => {
         {/* RIGHT SIDE */}
         <div className="right-panel">
           <h2>Sign Up</h2>
-<p>Sign up to enjoy Unlimited booking with us</p>
-          <form>
+          <p>Sign up to enjoy Unlimited booking with us</p>
+          <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label>Last Name</label>
-              <input
-                type="text"
-                placeholder="Enter your Name"
-              />
+              <input type="text" placeholder="Enter your Name" />
             </div>
 
             <div className="form-group">
               <label>First Name</label>
-              <input
-                type="text"
-                placeholder="Enter your Name"
-              />
+              <input type="text" placeholder="Enter your Name" />
             </div>
 
             <div className="form-group">
               <label>Email</label>
-              <input
-                type="email"
-                placeholder="Enter your Email"
-              />
+              <input type="email" placeholder="Enter your Email" />
             </div>
 
             {/* PASSWORD FIELD */}
@@ -56,15 +54,9 @@ const SignUp = () => {
 
                 <span
                   className="eye-icon"
-                  onClick={() =>
-                    setShowPassword(!showPassword)
-                  }
+                  onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? (
-                    <FaEyeSlash />
-                  ) : (
-                    <FaEye />
-                  )}
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </span>
               </div>
 
@@ -80,25 +72,18 @@ const SignUp = () => {
 
             <div className="form-group">
               <label>Phone Number</label>
-              <input
-                type="tel"
-                placeholder="Input phone number"
-              />
+              <input type="tel" placeholder="Input phone number" />
             </div>
 
             <div className="terms">
               <input type="checkbox" />
 
               <span>
-                I agree to the terms and conditions &
-                privacy policy
+                I agree to the terms and conditions & privacy policy
               </span>
             </div>
 
-            <button
-              type="submit"
-              className="signup-btn"
-            >
+            <button type="submit" className="signup-btn">
               Sign Up
             </button>
           </form>
@@ -118,10 +103,9 @@ const SignUp = () => {
 
           <p className="signin-text">
             Have an account?
-            <a href="/signin"> Sign In</a>
+            <Link to="/signin"> Sign In</Link>
           </p>
         </div>
-
       </div>
     </div>
   );
