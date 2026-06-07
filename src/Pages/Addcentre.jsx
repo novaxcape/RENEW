@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer2 from '../components/Footer2';
 import Stepper from '../components/Stepper';
-
+import "../Styles/Addcenter.css";
 
 import BasicInfo from '../components/BasicInfo';
 import Facilities from '../components/Facilities';

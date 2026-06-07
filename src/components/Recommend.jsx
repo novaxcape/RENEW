@@ -1,51 +1,36 @@
-import React from "react";
 import "./css/Recommend.css";
 
-const Recommend = () => {
+const Recommendation = () => {
   return (
-    <div className="recommendSection">
-      <div className="recommendLeft">
-        <div className="imageCollage">
-          <div className="collageCard cardMain">
-            <img
-              src="/novaxcape/hot.png"
-              alt="Hot Air Balloon View"
-              className="collageImg"
-            />
-          </div>
-          <div className="collageCard cardBottom">
-            <img
-              src="/novaxcape/tree.png"
-              alt="Pink Stream Scenery"
-              className="collageImg"
-            />
-          </div>
-          <div className="collageCard cardTopRight">
-            <img
-              src="/novaxcape/dol.png"
-              alt="Dolphin Jumping"
-              className="collageImg"
-            />
-          </div>
+    <div className="recommend_wrapper">
+      <div className="recommend_body">
+
+        <div className="recommend_left">
+          <img
+            src="/novaxcape/Recommendbg.png"
+            alt="recommend"
+          />
         </div>
-      </div>
 
-      <div className="recommendRight">
-        <div className="sectionTagline">What we Recommend</div>
-
-        <h2 className="sectionHeading">
-          <span className="headingBold">We Recommend</span> <br />
-          <span className="headingLight">
-            Beautiful Destinations Every Month
+        <div className="recommend_right">
+          <span className="recommend_tag">
+            What we Recommend
           </span>
-        </h2>
 
-        <p className="sectionSubtext">
-          Let's choose your dream destinations here we provide many Locations
-          and we offer the best destination every week.
-        </p>
+          <h2>
+            We Recommend
+            <br />
+            Beautiful Destinations
+            Every Month
+          </h2>
 
-        <div className="statsRowGroup">
+          <p>
+            Let's choose your dream destinations here.
+            We provide many locations and the best
+            destination every week.
+          </p>
+
+              <div className="statsRowGroup">
           <div className="statBlockCard">
             <div className="statValueNumber">2000+</div>
             <div className="statValueLabel">Our Explorers</div>
@@ -60,10 +45,14 @@ const Recommend = () => {
             <div className="statValueNumber">20+</div>
             <div className="statValueLabel">Years Experience</div>
           </div>
+        
+
+          </div>
         </div>
+
       </div>
     </div>
   );
 };
 
-export default Recommend;
+export default Recommendation;

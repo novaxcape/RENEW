@@ -1,64 +1,100 @@
+import React, { useState } from "react";
+import Select from "react-select";
+import "./css/Hero.css";
+import { FaLocationDot } from "react-icons/fa6";
+import { FaCalendarAlt } from "react-icons/fa";
 
-import { LuCalendarDays } from 'react-icons/lu';
-import './css/Hero.css';
+const locations = [
+  { value: "lagos", label: "Lagos" },
+  { value: "ibadan", label: "Ibadan" },
+  { value: "abuja", label: "Abuja" },
+  { value: "portharcourt", label: "Port Harcourt" },
+  { value: "enugu", label: "Enugu" },
+  { value: "owerri", label: "Owerri" },
+  { value: "uyo", label: "Uyo" },
+  { value: "jos", label: "Jos" },
+  { value: "calabar", label: "Calabar" },
+  { value: "kaduna", label: "Kaduna" },
+];
 
 const Hero = () => {
+  const [location, setLocation] = useState(null);
+  const [travelDate, setTravelDate] = useState("");
+
+  const handleSearch = () => {
+    console.log({
+      location: location?.value,
+      travelDate,
+    });
+  };
+
   return (
-    <div className="heroSection">
-      <div className="heroLeft">
-        <div className="taglineRow">
-          <img src="/novaxcape/plane.png" alt="Plane Icon" className="planeAssetIcon" />
-          <span className="taglineText">Explore Nigeria's hidden gems</span>
-        </div>
-        
-        <div className="headingGroup">
-          <h1 className="headingLineOne">Explore Nigeria's Most</h1>
-          <h1 className="headingLineTwo">Stunning Places</h1>
-        </div>
-        
-        <p className="descriptionText">
-          Discover beautiful tourism centres across Nigeria, book tickets instantly, and create memories that matter.
-        </p>
-      </div>
+    <div className="hero_wrapper">
+      <div className="hero_body">
+        <div className="hero_left">
+          <div className="hero_badge">
+            <img src="/novaxcape/Explore.png" alt="Badge" />
+          </div>
 
-      <div className="heroRight">
-        <div className="imageGrid">
-          <div className="gridItem topLeftCell">
-            <div className="statsFloatingBadge">
-              <h3 className="statsBadgeTitle">100+Destinations</h3>
-              <p className="statsBadgeSub">More Than 100 Travelers use this platform</p>
+          <div className="hero_text">
+            <h1>
+              Explore Nigeria's Most
+              <span> Stunning Places</span>
+            </h1>
+
+            <p>
+              Discover beautiful tourist centres across Nigeria,
+              book tickets instantly, and create memories that matter.
+            </p>
+
+            {/* ===== EXACT SEARCH BAR ===== */}
+            <div className="hero_search">
+              
+              {/* Location Pill */}
+              <div className="search_pill search_pill_location">
+                <FaLocationDot className="pill_icon" />
+                <Select
+                  className="location_select"
+                  classNamePrefix="react-select"
+                  options={locations}
+                  value={location}
+                  onChange={setLocation}
+                  placeholder="Where to?"
+                  isSearchable
+                  isClearable
+                  menuPortalTarget={document.body}
+                  styles={{
+                    menuPortal: (base) => ({
+                      ...base,
+                      zIndex: 9999,
+                    }),
+                  }}
+                />
+              </div>
+
+              {/* Date Pill */}
+              <div className="search_pill search_pill_date">
+                <FaCalendarAlt className="pill_icon" />
+                <input
+                  type="date"
+                  className="date_input"
+                  value={travelDate}
+                  onChange={(e) => setTravelDate(e.target.value)}
+                  placeholder="When?"
+                />
+              </div>
+
+              {/* Search Button */}
+              <button className="search_btn" onClick={handleSearch}>
+                Search
+              </button>
+
             </div>
-            <img src="/novaxcape/photo1.png" alt="Hot Air Balloon" className="gridImage" />
-          </div>
-
-          <div className="gridItem topRightCell">
-            <div className="verifiedFloatingBadge">
-              <div className="verifiedPercent">100%</div>
-              <div className="verifiedText">Verified</div>
-            </div>
-            <img src="/novaxcape/photo2.png" alt="Clear Water" className="Image" />
-          </div>
-
-          <div className="gridItem bottomLeftCell">
-            <img src="/novaxcape/photo3.png" alt="House with Balloon" className="Image" />
-          </div>
-
-          <div className="gridItem bottomRightCell">
-            <img src="/novaxcape/photo4.png" alt="Pink Trees" className="gridImage" />
           </div>
         </div>
 
-        <div className="searchContainerBar">
-          <div className="searchFieldGroup">
-            <input type="text" placeholder="Where to?" className="searchInput" />
-          </div>
-          
-          <div className="searchFieldGroup dateWrapper">
-            <LuCalendarDays className="calendarAssetIcon" />
-            <input type="text" placeholder="When?" className="searchInput dateInput" />
-          </div>
-          
-          <button className="searchActionBtn">Search</button>
+        <div className="hero_right">
+          <img src="/novaxcape/Heros.png" alt="Hero" />
         </div>
       </div>
     </div>
