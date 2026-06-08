@@ -1,55 +1,57 @@
-@import url("https://googleapis.com");
+@import url('https://googleapis.com');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.profile-page-wrapper {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+}
 
 .profile-settings-container {
-  font-family: "Manrope", sans-serif;
-  font-weight: 600;
-  font-size: 18px;
-  line-height: 28px;
-  letter-spacing: 0%;
-  background-color: #ffffff;
-  max-width: 1050px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   width: 100%;
-  margin: 0 auto;
-  padding: 40px 48px;
-  color: #1a1a1a;
-  box-sizing: border-box;
+  background-color: #FFFFFF;
+  padding: 50px 70px;
 }
 
 .settings-header {
-  margin-bottom: 32px;
+  margin-bottom: 36px;
 }
 
 .settings-title {
-  font-family: "Manrope", sans-serif;
+  font-size: 26px;
   font-weight: 600;
-  font-size: 18px;
-  line-height: 28px;
-  color: #000000;
-  margin: 0 0 6px 0;
+  color: #111111;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
 }
 
 .settings-subtitle {
-  font-family: "Manrope", sans-serif;
-  font-weight: 600;
-  font-size: 18px;
-  line-height: 28px;
+  font-size: 13.5px;
   color: #666666;
-  margin: 0;
+  font-weight: 400;
 }
 
 .profile-photo-section {
   display: flex;
   align-items: center;
-  gap: 24px;
-  margin-bottom: 40px;
+  gap: 28px;
+  margin-bottom: 44px;
 }
 
 .avatar-wrapper {
-  width: 130px;
-  height: 130px;
-  border-radius: 50%;
+  width: 140px;
+  height: 140px;
+  border-radius: 30%;
   overflow: hidden;
-  background-color: #f3f3f3;
+  background-color: #F3F3F3;
 }
 
 .avatar-image {
@@ -61,15 +63,14 @@
 .photo-controls {
   display: flex;
   flex-direction: column;
+  justify-content: center;
 }
 
 .profile-label {
-  font-family: "Manrope", sans-serif;
+  font-size: 22px;
   font-weight: 600;
-  font-size: 18px;
-  line-height: 28px;
-  color: #000000;
-  margin: 0 0 12px 0;
+  color: #111111;
+  margin-bottom: 12px;
 }
 
 .photo-actions {
@@ -83,102 +84,98 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background-color: #00338d;
-  color: #ffffff;
+  background-color: #0A3B8B;
+  color: #FFFFFF;
   border: none;
-  border-radius: 20px;
-  padding: 6px 16px;
-  font-family: "Manrope", sans-serif;
-  font-weight: 600;
-  font-size: 14px;
+  border-radius: 24px;
+  padding: 10px 22px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.15s ease;
 }
 
 .btn-upload:hover {
   opacity: 0.9;
 }
 
-.icon-upload {
-  width: 14px;
-  height: 14px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://w3.org' viewBox='0 0 24 24' fill='none' stroke='%23FFFFFF' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12'/%3E%3C/svg%3E");
-  background-size: contain;
-  background-repeat: no-repeat;
+.react-icon {
+  font-size: 16px;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .btn-remove {
-  background-color: #ffffff;
-  color: #4a4a4a;
-  border: 1px solid #cccccc;
-  border-radius: 20px;
-  padding: 6px 16px;
-  font-family: "Manrope", sans-serif;
-  font-weight: 600;
-  font-size: 14px;
+  background-color: #FFFFFF;
+  color: #4A4A4A;
+  border: 1px solid #CCCCCC;
+  border-radius: 24px;
+  padding: 10px 24px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.15s ease;
 }
 
 .btn-remove:hover {
-  background-color: #f9f9f9;
+  background-color: #F9F9F9;
 }
 
 .photo-hint {
-  font-family: "Manrope", sans-serif;
-  font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   color: #666666;
-  margin: 0;
+  font-weight: 400;
 }
 
-/* =========================================================================
-   🧭 PIXEL PERFECT EXTRACTED TAB SEGMENT BAR (MATCHES IMAGE AT 500% ACCURACY)
-   ========================================================================= */
 .settings-tabs-wrapper {
-  border-bottom: 1px solid #e2e8f0; /* Clean thin underline frame baseline divider */
-  margin-bottom: 40px;
+  border-bottom: 1px solid #E5E5E5;
   padding-bottom: 14px;
   width: 100%;
+  margin-bottom: 50px;
 }
 
 .settings-tabs-nav {
   display: flex;
   background-color: transparent;
   width: 100%;
-  max-width: 900px;
-  gap: 12px;
+  max-width: 600px;
+  gap: 16px; /* Provides precise, flat spacing gap between items */
 }
 
-.tab-item {
-  flex: 1;
+.tab-pill-blue {
+  background-color: #0A3B8B;
+  color: #FFFFFF;
   border: none;
-  font-family: "Manrope", sans-serif;
-  font-weight: 600;
-  font-size: 15px;
-  height: 48px;
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 14px;
+  height: 44px;
+  flex: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 24px; /* Exact round pill capsule geometry */
+  border-radius: 22px;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-sizing: border-box;
+  box-shadow: 0px 4px 10px rgba(10, 59, 139, 0.1);
 }
 
-/* Selected Active Dark Blue State styling */
-.tab-item.active {
-  background-color: #003797; /* Exact flat dark blue color matching image */
-  color: #ffffff;
+.tab-pill-white {
+  background-color: #FFFFFF;
+  color: #555555;
+  border: 1px solid #CCCCCC; /* Restores high visibility edge outline boundary */
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 14px;
+  height: 44px;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 22px;
+  cursor: pointer;
 }
-
-/* Unselected Static White Background State styling */
-.tab-item.regular {
-  background-color: #fafafa; /* Subtle high-contrast white profile container layout */
-  color: #1a1a1a;
-}
-
-/* ========================================================================= */
 
 .settings-form {
   width: 100%;
@@ -187,22 +184,20 @@
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  column-gap: 40px;
-  row-gap: 24px;
-  margin-bottom: 32px;
+  column-gap: 48px;
+  row-gap: 28px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .form-group label {
-  font-family: "Manrope", sans-serif;
-  font-weight: 600;
-  font-size: 16px;
-  color: #1a1a1a;
+  font-size: 14px;
+  font-weight: 500;
+  color: #111111;
 }
 
 .input-wrapper {
@@ -214,26 +209,26 @@
 .input-wrapper select {
   width: 100%;
   height: 48px;
-  background-color: #ffffff;
-  border: 1px solid #cccccc;
+  background-color: #FFFFFF;
+  border: 1px solid #D9D9D9;
   border-radius: 24px;
-  padding: 0 20px;
-  font-family: "Manrope", sans-serif;
-  font-weight: 600;
-  font-size: 16px;
-  color: #1a1a1a;
+  padding: 0 22px;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: #111111;
   outline: none;
   box-sizing: border-box;
   transition: border-color 0.2s ease;
 }
 
 .input-wrapper input::placeholder {
-  color: #b3b3b3;
+  color: #B3B3B3;
+  font-weight: 400;
 }
 
 .input-wrapper input:focus,
 .input-wrapper select:focus {
-  border-color: #00338d;
+  border-color: #0A3B8B;
 }
 
 .select-wrapper select {
@@ -242,9 +237,9 @@
 }
 
 .select-wrapper::after {
-  content: "";
+  content: '';
   position: absolute;
-  right: 20px;
+  right: 22px;
   top: 50%;
   transform: translateY(-50%);
   width: 12px;
@@ -259,88 +254,54 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-top: 40px;
+  margin-top: 48px;
 }
 
 .btn-save {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background-color: #ff5a1f;
-  color: #ffffff;
+  background-color: #FF5A1F;
+  color: #FFFFFF;
   border: none;
   border-radius: 24px;
-  padding: 10px 24px;
-  font-family: "Manrope", sans-serif;
-  font-weight: 600;
-  font-size: 16px;
+  padding: 12px 26px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
   cursor: pointer;
   transition: opacity 0.2s ease;
 }
 
 .btn-save:hover {
-  opacity: 0.9;
-}
-
-.icon-save {
-  width: 16px;
-  height: 16px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://w3.org' viewBox='0 0 24 24' fill='none' stroke='%23FFFFFF' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8'/%3E%3C/svg%3E");
-  background-size: contain;
-  background-repeat: no-repeat;
+  opacity: 0.95;
 }
 
 .btn-delete {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background-color: #ffffff;
-  color: #4a4a4a;
-  border: 1px solid #cccccc;
+  background-color: #FFFFFF;
+  color: #4A4A4A;
+  border: 1px solid #CCCCCC;
   border-radius: 24px;
-  padding: 10px 24px;
-  font-family: "Manrope", sans-serif;
-  font-weight: 600;
-  font-size: 16px;
+  padding: 12px 26px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .btn-delete:hover {
-  background-color: #fff5f2;
-  border-color: #ff5a1f;
-  color: #ff5a1f;
-}
-
-.btn-delete:hover .icon-delete {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://w3.org' viewBox='0 0 24 24' fill='none' stroke='%23FF5A1F' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16'/%3E%3C/svg%3E");
-}
-
-.icon-delete {
-  width: 16px;
-  height: 16px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://w3.org' viewBox='0 0 24 24' fill='none' stroke='%234A4A4A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16'/%3E%3C/svg%3E");
-  background-size: contain;
-  background-repeat: no-repeat;
+  background-color: #FFF5F2;
+  border-color: #FF5A1F;
+  color: #FF5A1F;
 }
 
 @media (max-width: 768px) {
   .profile-settings-container {
-    padding: 24px 20px;
-  }
-
-  .profile-photo-section {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-
-  .settings-tabs-nav {
-    width: 100%;
-  }
-
-  .tab-item {
-    padding: 10px 16px;
+    padding: 30px 20px;
   }
 
   .form-grid {
@@ -353,9 +314,26 @@
     align-items: stretch;
   }
 
-  .btn-save,
-  .btn-delete {
+  .btn-save, .btn-delete {
     justify-content: center;
     width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .profile-photo-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  
+  .settings-tabs-nav {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .tab-pill-blue, .tab-pill-white {
+    width: 100%;
+    max-width: 100%;
   }
 }
