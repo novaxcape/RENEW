@@ -1,0 +1,250 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.success-section {
+  width: 100%;
+  background-color: #FFFFFF;
+  font-family: 'Manrope', sans-serif;
+  padding: 80px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.success-main-title {
+  font-size: 40px;
+  font-weight: 600;
+  font-family: 'Manrope', sans-serif;
+  line-height: 55px;
+  color: #000000;
+  text-align: center;
+  margin-bottom: 60px;
+  width: 100%;
+  font-style: semibold;
+}
+
+.success-grid-content {
+  position: relative;
+  width: 100%;
+  max-width: 1440px;
+  padding: 0 80px;
+  height: 600px;
+  overflow: hidden;
+}
+
+.success-info-panel {
+  position: absolute;
+  left: 80px;
+  top: 50px;
+  width: 520px;
+}
+
+.success-info-description {
+  font-size: 16px;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 600;
+  line-height: 24px;
+  font-style: semibold;
+
+  color: #555555;
+  margin-bottom: 44px;
+}
+
+.success-features-list-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 20px;
+  row-gap: 20px;
+}
+
+.feature-list-item {
+  display: flex;
+  font-family: 'Manrope', sans-serif;
+  font-style: extrabold;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color:  #555555;
+  line-height: 24px;
+  font-weight: 800;
+}
+
+.icon-success-check {
+  font-size: 18px;
+  color: #10B981;
+  flex-shrink: 0;
+}
+
+.success-pricing-card {
+  position: absolute;
+  top: 0;
+  right: 80px;
+  width: 360px;
+  background-color: #F6F6F6;
+  border: 2px solid #1A3F8F;
+  border-radius: 18px;
+  padding: 26px 28px 28px 28px;
+  display: flex;
+  flex-direction: column;
+}
+
+.pricing-card-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #000000;
+  margin-bottom: 18px;
+}
+
+.commission-stats-display-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  background-color: #E4E7EA;
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.stat-block-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: #666666;
+  font-weight: 500;
+}
+
+.stat-percentage {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.stat-percentage.blue-highlight {
+  color: #1A8FE3;
+}
+
+.stat-percentage.dark-highlight {
+  color: #111111;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.pricing-bullet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pricing-bullet-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #444444;
+  font-weight: 500;
+}
+
+.icon-pricing-check {
+  font-size: 18px;
+  color: #10B981;
+  flex-shrink: 0;
+}
+
+.success-portrait-center-container {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-46%);
+  width: 720px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  z-index: 1;
+}
+
+.portrait-model-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+@media (max-width: 1100px) {
+  .success-grid-content {
+    height: auto;
+    overflow: hidden;
+    padding-bottom: 340px;
+  }
+
+  .success-info-panel {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: 100%;
+    max-width: 520px;
+    margin-top: 40px;
+  }
+
+  .success-pricing-card {
+    right: 40px;
+    width: 300px;
+  }
+
+  .success-portrait-center-container {
+    width: 500px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 768px) {
+  .success-grid-content {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    padding: 0 24px 300px;
+  }
+
+  .success-info-panel {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: 100%;
+    margin-bottom: 40px;
+  }
+
+  .success-pricing-card {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: 100%;
+  }
+
+  .success-portrait-center-container {
+    width: 300px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 640px) {
+  .success-features-list-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .success-main-title {
+    font-size: 28px;
+  }
+}
