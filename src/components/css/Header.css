@@ -14,8 +14,9 @@
 }
 
 /* Style for the active state */
-.link ul li.active-link a {
-  color: #007bff; /* Change this to your brand color */
+.link ul li a.active-link,
+.overlay-links ul li a.active-link {
+  color: #246bff; /* active blue */
   font-weight: bold;
 }
 
@@ -118,4 +119,110 @@
     cursor: pointer;
   }
 
+}
+/* Add to your existing Header.css */
+
+/* ===== MOBILE OVERLAY ===== */
+.mobile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: #ffffff;
+  z-index: 9999;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.mobile-overlay.active {
+  transform: translateX(0);
+}
+
+.overlay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.overlay-logo img {
+  height: 40px;
+  object-fit: contain;
+}
+
+.close-btn {
+  background: #246bff;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: 0.3s ease;
+}
+
+.close-btn:hover {
+  background: #1a54cc;
+}
+
+.overlay-links {
+  margin-top: 40px;
+}
+
+.overlay-links ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.overlay-links ul li a {
+  text-decoration: none;
+  color: #333;
+  font-size: 18px;
+  font-weight: 500;
+  transition: 0.3s ease;
+  display: block;
+}
+
+.overlay-links ul li a:hover,
+.overlay-links ul li a.active-link {
+  color: #246bff;
+}
+
+/* Hide desktop links on mobile */
+@media (max-width: 768px) {
+  .desktop-links {
+    display: none;
+  }
+  
+  .mobile-icons {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .mobile-icons .hamburger {
+    cursor: pointer;
+    font-size: 20px;
+  }
+}
+
+/* Show desktop links on larger screens */
+@media (min-width: 769px) {
+  .mobile-overlay {
+    display: none !important;
+  }
+  .mobile-icons .hamburger {
+    display: none;
+  }
 }

@@ -1,15 +1,19 @@
 .recommend_wrapper {
   width: 100%;
-  display: flex;
-  justify-content: center;
-  margin-top: 80px;
+  padding: 30px 0;
 }
 
 .recommend_body {
   width: 95%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.recommend_content {
   display: flex;
-  justify-content: space-between;
+  flex-direction: row;
   align-items: center;
+  gap: 50px;
 }
 
 .recommend_left {
@@ -17,63 +21,165 @@
 }
 
 .recommend_left img {
-    background-color:white;
   width: 100%;
+  height: auto;
   object-fit: contain;
 }
 
 .recommend_right {
-  width: 45%;
+  width: 55%;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
 }
 
 .recommend_tag {
   color: #ff6b35;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 24px;
 }
 
 .recommend_right h2 {
-  font-size: 46px;
-  line-height: 1.2;
+  font-family: "Manrope", sans-serif;
+  font-size: 42px;
   font-weight: 700;
-  color: #222;
+  color: #1f1f1f;
+  line-height: 1.2;
 }
 
 .recommend_right p {
-  color: #777;
-  line-height: 28px;
+  font-size: 16px;
+  color: #7a7a7a;
+  line-height: 1.6;
 }
 
 .statsRowGroup {
   display: flex;
-  gap: 20px;
-  width: 100%;
-  max-width: 540px;
+  gap: 15px;
+  margin-top: 10px;
 }
 
 .statBlockCard {
-  flex: 1;
-  background: #f2f2f2;
-  border: 1px solid #dcdcdc;
-  border-radius: 18px;
-  padding: 16px 8px;
+  background: #f9f9f9;
+  border: 1px solid #e5e5e5;
+  border-radius: 20px;
+  padding: 15px 20px;
   text-align: center;
-  box-sizing: border-box;
+  flex: 1;
+  height:91px;
+  width: 186px;
 }
 
 .statValueNumber {
-  color: #231f20;
   font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 6px;
+  font-weight: 600;
+  color: #1f1f1f;
+  font-family: Manrope;
 }
 
 .statValueLabel {
-  color: #595959;
-  font-size: 14px;
-  font-weight: 500;
-  white-space: nowrap;
+  font-size: 20px;
+  color: #271A13;
+  margin-top: 4px;
+  font-weight: 400;
+
+}
+
+/* ===== IPHONE 13 & 14 SPECIFIC (max-width: 390px) ===== */
+@media (max-width: 390px) {
+  .recommend_wrapper {
+    padding: 16px 0;
+  }
+
+  .recommend_body {
+    padding: 0 14px;
+    width: 100%;
+  }
+
+  .recommend_content {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .recommend_left {
+    width: 100%;
+  }
+
+  .recommend_right {
+    width: 100%;
+    gap: 10px;
+  }
+
+  .recommend_tag {
+    font-size: 12px;
+  }
+
+  .recommend_right h2 {
+    font-size: 22px;
+    line-height: 1.3;
+  }
+
+  .recommend_right p {
+    font-size: 13px;
+    line-height: 22px;
+  }
+
+  .statsRowGroup {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .statBlockCard {
+    flex: 1 1 30%;
+    padding: 10px 8px;
+    border-radius: 10px;
+  }
+
+  .statValueNumber {
+    font-size: 14px;
+  }
+
+  .statValueLabel {
+    font-size: 10px;
+  }
+}
+
+/* ===== IPHONE 13/14 PRO MAX (391px - 430px) ===== */
+@media (min-width: 391px) and (max-width: 430px) {
+  .recommend_wrapper {
+    padding: 20px 0;
+  }
+
+  .recommend_body {
+    padding: 0 16px;
+  }
+
+  .recommend_content {
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .recommend_left {
+    width: 100%;
+  }
+
+  .recommend_right {
+    width: 100%;
+  }
+
+  .recommend_right h2 {
+    font-size: 24px;
+  }
+
+  .recommend_right p {
+    font-size: 14px;
+  }
+
+  .statBlockCard {
+    padding: 12px 10px;
+  }
+
+  .statValueNumber {
+    font-size: 15px;
+  }
 }

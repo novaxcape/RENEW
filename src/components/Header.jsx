@@ -1,15 +1,29 @@
+import React, { useState } from "react";
 import "../components/css/Header.css";
-import { FaHeart, FaUser, FaBars } from "react-icons/fa";
+import { FaHeart, FaUser, FaBars, FaTimes } from "react-icons/fa";
 import { Link, NavLink } from "react-router-dom";
 
 const Header = () => {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+    // Prevent scrolling when menu is open
+    document.body.style.overflow = menuOpen ? "auto" : "hidden";
+  };
+
+  const closeMenu = () => {
+    setMenuOpen(false);
+    document.body.style.overflow = "auto";
+  };
+
   return (
     <>
       <div className="header">
         <div className="header-body">
           {/* LOGO */}
           <div className="logo">
-            <Link to="/">
+            <Link to="/" onClick={closeMenu}>
               <img
                 src="/novaxcape/logo.png"
                 alt="Novaxcape"
@@ -18,8 +32,8 @@ const Header = () => {
             </Link>
           </div>
 
-          {/* NAV LINKS */}
-          <div className="link">
+          {/* NAV LINKS - Desktop */}
+          <div className="link desktop-links">
             <ul>
               <li>
                 <NavLink
@@ -30,7 +44,6 @@ const Header = () => {
                   Home
                 </NavLink>
               </li>
-
               <li>
                 <NavLink
                   to="/discover"
@@ -39,7 +52,6 @@ const Header = () => {
                   Discover
                 </NavLink>
               </li>
-
               <li>
                 <NavLink
                   to="/centres"
@@ -48,7 +60,6 @@ const Header = () => {
                   ForCenter
                 </NavLink>
               </li>
-
               <li>
                 <NavLink
                   to="/about"
@@ -57,7 +68,6 @@ const Header = () => {
                   About us
                 </NavLink>
               </li>
-
               <li>
                 <NavLink
                   to="/support"
@@ -75,7 +85,7 @@ const Header = () => {
             <div className="mobile-icons">
               <FaHeart />
               <FaUser />
-              <FaBars />
+              <FaBars className="hamburger" onClick={toggleMenu} />
             </div>
 
             {/* DESKTOP BUTTON */}
@@ -83,6 +93,58 @@ const Header = () => {
               <button className="signin">Sign Up</button>
             </Link>
           </div>
+        </div>
+      </div>
+
+      {/* ===== MOBILE OVERLAY MENU ===== */}
+      <div className={`mobile-overlay ${menuOpen ? "active" : ""}`}>
+        <div className="overlay-header">
+          <div className="overlay-logo">
+            <img src="/novaxcape/logo.png" alt="Novaxcape" />
+          </div>
+          <button className="close-btn" onClick={toggleMenu}>
+            <FaTimes />
+          </button>
+        </div>
+
+        <div className="overlay-links">
+          <ul>
+            <li>
+              <NavLink to="/" onClick={closeMenu} end>
+                Home
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/discover" onClick={closeMenu}>
+                Discover
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/my-bookings" onClick={closeMenu}>
+                My Bookings
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/centres" onClick={closeMenu}>
+                For Centres
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/about" onClick={closeMenu}>
+                About Us
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/support" onClick={closeMenu}>
+                Support
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/signup" onClick={closeMenu}>
+                Sign Up
+              </NavLink>
+            </li>
+          </ul>
         </div>
       </div>
     </>
