@@ -1,7 +1,7 @@
 import React from 'react'
 import { FiUpload, FiTrash2 } from 'react-icons/fi'
 import { LuSave } from 'react-icons/lu'
-import './css/profile.css'
+import './css/Profile.css'
 
 const Profile = () => {
   return (
