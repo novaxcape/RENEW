@@ -1,103 +1,35 @@
-import React, { useState } from "react";
-import Select from "react-select";
-import "./css/Hero.css";
-import { FaLocationDot } from "react-icons/fa6";
-import { FaCalendarAlt } from "react-icons/fa";
-
-const locations = [
-  { value: "lagos", label: "Lagos" },
-  { value: "ibadan", label: "Ibadan" },
-  { value: "abuja", label: "Abuja" },
-  { value: "portharcourt", label: "Port Harcourt" },
-  { value: "enugu", label: "Enugu" },
-  { value: "owerri", label: "Owerri" },
-  { value: "uyo", label: "Uyo" },
-  { value: "jos", label: "Jos" },
-  { value: "calabar", label: "Calabar" },
-  { value: "kaduna", label: "Kaduna" },
-];
-
+import React from "react";
+import "../components/css/Hero.css";
 const Hero = () => {
-  const [location, setLocation] = useState(null);
-  const [travelDate, setTravelDate] = useState("");
-
-  const handleSearch = () => {
-    console.log({
-      location: location?.value,
-      travelDate,
-    });
-  };
-
   return (
-    <div className="hero_wrapper">
-      <div className="hero_body">
-        <div className="hero_left">
-          <div className="hero_badge">
-            <img src="/novaxcape/Explore.png" alt="Badge" />
-          </div>
-
-          <div className="hero_text">
-            <h1>
-              Explore Nigeria's Most
-              <span> Stunning Places</span>
-            </h1>
-
-            <p>
-              Discover beautiful tourist centres across Nigeria,
-              book tickets instantly, and create memories that matter.
-            </p>
-
-            {/* ===== EXACT SEARCH BAR ===== */}
-            <div className="hero_search">
-              
-              {/* Location Pill */}
-              <div className="search_pill search_pill_location">
-                <FaLocationDot className="pill_icon" />
-                <Select
-                  className="location_select"
-                  classNamePrefix="react-select"
-                  options={locations}
-                  value={location}
-                  onChange={setLocation}
-                  placeholder="Where to?"
-                  isSearchable
-                  isClearable
-                  menuPortalTarget={document.body}
-                  styles={{
-                    menuPortal: (base) => ({
-                      ...base,
-                      zIndex: 9999,
-                    }),
-                  }}
-                />
-              </div>
-
-              {/* Date Pill */}
-              <div className="search_pill search_pill_date">
-                <FaCalendarAlt className="pill_icon" />
-                <input
-                  type="date"
-                  className="date_input"
-                  value={travelDate}
-                  onChange={(e) => setTravelDate(e.target.value)}
-                  placeholder="When?"
-                />
-              </div>
-
-              {/* Search Button */}
-              <button className="search_btn" onClick={handleSearch}>
-                Search
-              </button>
-
+    <>
+      <div className="hero_wrapper">
+        <div className="wrapper">
+        <div className="right">
+          <div className="left">
+            <div className="text">
+              <div className="text1"><img src="/novaxcape/Explore.png" alt="Explore" /></div>
+                <div className="text2"><h2>Explore Nigeria's Most</h2>
+                <span>Stunning Place</span>
+                </div>
+                  <div className="text3">
+                    <p>Discover beautiful tourism centres across Nigeria, book tickets instantly, and create memories that matter.</p>
+                  </div>
             </div>
+          <div className="box">
+            <input type="text" placeholder="Where to?" />
+            <input type="text"  placeholder="When?" />
+            <button>Search</button>
           </div>
+        
         </div>
-
-        <div className="hero_right">
-          <img src="/novaxcape/Heros.png" alt="Hero" />
-        </div>
+          <div className="img">
+            
+            <img src="/novaxcape/Heros.png" alt=""/>
+            
+            </div></div></div>
       </div>
-    </div>
+    </>
   );
 };
 

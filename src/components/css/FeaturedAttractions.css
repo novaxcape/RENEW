@@ -1,103 +1,81 @@
 .featured-section {
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
-    sans-serif;
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 40px 20px;
-  color: #1a1a1a;
-  background-color: #ffffff;
+  padding: 40px 0;
 }
 
 .section-header {
-  margin-bottom: 32px;
+  text-align: center;
+  margin-bottom: 30px;
 }
 
 .section-title {
-  font-size: 28px;
+  font-family: "Manrope", sans-serif;
+  font-size: 36px;
   font-weight: 700;
-  margin: 0 0 8px 0;
-  color: #111111;
+  color: #1f1f1f;
 }
 
 .section-subtitle {
-  font-size: 14px;
-  color: #666666;
-  margin: 0;
+  font-size: 16px;
+  color: #7a7a7a;
+  margin-top: 8px;
 }
 
 .attractions-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
 }
 
 .attraction-card {
-  background: #ffffff;
-  border-radius: 12px;
-  border: 1px solid #eaeaea;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  display: flex;
-  flex-direction: column;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  border: 1px solid #f0f0f0;
+  transition: 0.3s ease;
 }
 
 .attraction-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
 }
 
 .card-image-wrapper {
-  width: 100%;
-  background-color: #f0f0f0;
+  height: 200px;
+  overflow: hidden;
 }
 
 .card-image {
-  display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
   object-fit: cover;
 }
 
 .card-content {
   padding: 16px;
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
 }
 
 .card-title {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 600;
-  margin: 0 0 4px 0;
-  color: #222222;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: #1f1f1f;
+  margin-bottom: 4px;
 }
 
 .card-location {
-  font-size: 13px;
-  color: #555555;
-  margin: 0 0 16px 0;
+  font-size: 14px;
+  color: #7a7a7a;
+  margin-bottom: 10px;
 }
 
 .card-meta {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  gap: 8px;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
 }
 
 .rating-container {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .stars-wrapper {
@@ -106,127 +84,127 @@
 }
 
 .star-icon {
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .star-icon.filled {
-  color: #ffb400;
+  color: #f59e0b;
 }
 
 .star-icon.empty {
-  color: #cccccc;
+  color: #d1d5db;
 }
 
 .rating-text {
-  font-size: 11px;
-  font-weight: 600;
-  color: #333333;
+  font-size: 14px;
+  color: #7a7a7a;
 }
 
 .reviews-count {
-  color: #888888;
-  font-weight: 400;
+  font-size: 12px;
 }
 
 .time-container {
   display: flex;
   align-items: center;
-  gap: 4px;
-  color: #666666;
-}
-
-.time-icon {
-  font-size: 11px;
-  color: #888888;
-}
-
-.time-text {
-  font-size: 11px;
-  white-space: nowrap;
+  gap: 6px;
+  color: #7a7a7a;
+  font-size: 12px;
 }
 
 .card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: auto;
-  padding-top: 12px;
-  border-top: 1px solid #f5f5f5;
+  margin-top: 4px;
 }
 
 .price-container {
   display: flex;
-  flex-direction: column;
+  align-items: baseline;
+  gap: 4px;
 }
 
 .price-label {
-  font-size: 11px;
-  color: #777777;
-  line-height: 1;
-  margin-bottom: 2px;
+  font-size: 12px;
+  color: #7a7a7a;
 }
 
 .price-value {
-  font-size: 16px;
-  font-weight: 700;
-  color: #222222;
-}
-
-.price-value::before {
-  content: "₦";
-  margin-right: 2px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f1f1f;
 }
 
 .book-now-btn {
-  background-color: #ff6633;
-  color: #ffffff;
+  background: #ff6b35;
+  color: white;
   border: none;
-  padding: 8px 24px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition:
-    background-color 0.2s ease,
-    transform 0.1s ease;
+  transition: 0.3s ease;
 }
 
 .book-now-btn:hover {
-  background-color: #e65524;
+  background: #f25b21;
 }
 
-.book-now-btn:active {
-  transform: scale(0.97);
-}
-
-@media (max-width: 900px) {
-  .attractions-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+  .featured-section {
+    padding: 20px 0;
   }
 
   .section-title {
     font-size: 24px;
   }
-}
 
-@media (max-width: 600px) {
-  .featured-section {
-    padding: 24px 16px;
+  .section-subtitle {
+    font-size: 14px;
   }
 
   .attractions-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
-  .card-meta {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
+  .card-image-wrapper {
+    height: 140px;
   }
 
-  .time-container {
-    margin-top: 2px;
+  .card-content {
+    padding: 12px;
+  }
+
+  .card-title {
+    font-size: 14px;
+  }
+
+  .card-location {
+    font-size: 12px;
+  }
+
+  .price-value {
+    font-size: 14px;
+  }
+
+  .book-now-btn {
+    font-size: 12px;
+    padding: 6px 14px;
+  }
+
+  .stars-wrapper {
+    gap: 1px;
+  }
+
+  .star-icon {
+    font-size: 11px;
+  }
+
+  .rating-text {
+    font-size: 12px;
   }
 }
