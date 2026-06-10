@@ -232,6 +232,7 @@ const SignUp = () => {
                 and
                 <a href="#!"> Privacy Policy</a>
               </label>
+              
             </div>
 
             <button
