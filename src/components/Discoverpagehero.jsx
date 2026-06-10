@@ -2,7 +2,7 @@ import React from "react";
 import "../components/css/Discoverpagehero.css";
 import { IoLocationOutline } from "react-icons/io5";
 import { IoSearchOutline } from "react-icons/io5";
-import { IoFilterOutline } from "react-icons/io5";
+import { CiFilter } from "react-icons/ci";
 import { IoChevronDown } from "react-icons/io5";
 
 const Discoverpagehero = () => {
@@ -33,7 +33,7 @@ const Discoverpagehero = () => {
           </div>
 
           <button className="filter_btn">
-            <IoFilterOutline />
+            <CiFilter />
             Filter By
           </button>
         </div>

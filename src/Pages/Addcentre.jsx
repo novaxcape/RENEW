@@ -8,7 +8,7 @@ import "../Styles/Addcenter.css";
 import BasicInfo from '../components/BasicInfo';
 import Facilities from '../components/Facilities';
 import Pricing from '../components/Pricing';
-import Images from '../components/Images';
+// import Images from '../components/Images';
 import Hours from '../components/Hours';
 import Review from '../components/Review';
 
