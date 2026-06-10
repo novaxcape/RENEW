@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { z } from "zod";
-import Swal from "sweetalert2";
+// import Swal from "sweetalert2";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "../Styles/Login.css";
 import Image from "../components/Image";

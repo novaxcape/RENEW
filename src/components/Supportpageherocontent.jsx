@@ -1,5 +1,5 @@
 import React from "react";
-import "../components/css/Supportpageherocontent.css";
+import "../components/css/Supportpagehero.css";
 const supportpageherocontent = () => {
   return (
     <main className="support-section">

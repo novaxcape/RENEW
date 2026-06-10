@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { z } from "zod";
-import Swal from "sweetalert2";
+// import Swal from "sweetalert2";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "../Styles/Signup.css";
 
