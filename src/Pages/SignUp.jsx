@@ -1,110 +1,265 @@
+
 import React, { useState } from "react";
+import { z } from "zod";
+import Swal from "sweetalert2";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { useNavigate, Link } from "react-router-dom";
 import "../Styles/Signup.css";
-import Image from "../components/Image";
+
+const signUpSchema = z
+  .object({
+    firstName: z.string().min(2, "First name must be at least 2 characters"),
+
+    lastName: z.string().min(2, "Last name must be at least 2 characters"),
+
+    email: z.string().email("Please enter a valid email address"),
+
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_-])[A-Za-z\d@$!%*?&.#_-]{8,}$/,
+        "Password must contain uppercase, lowercase, number and special character"
+      ),
+
+    confirmPassword: z.string().min(8, "Confirm password is required"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Passwords do not match",
+  });
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleSubmit = (e) => {
+  const [loading, setLoading] = useState(false);
+
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const [errors, setErrors] = useState({});
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would normally handle API logic
-    navigate("/verify-email");
+
+    const result = signUpSchema.safeParse(formData);
+
+    if (!result.success) {
+      const fieldErrors = {};
+
+      result.error.issues.forEach((issue) => {
+        fieldErrors[issue.path[0]] = issue.message;
+      });
+
+      setErrors(fieldErrors);
+
+      Swal.fire({
+        icon: "error",
+        title: "Validation Error",
+        text: "Please fill all fields correctly.",
+        confirmButtonColor: "#ff6b35",
+      });
+
+      return;
+    }
+
+    setErrors({});
+    setLoading(true);
+
+    try {
+      // Replace with your API call
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: "Account created successfully.",
+        confirmButtonColor: "#ff6b35",
+      });
+
+      console.log("Valid Form:", formData);
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Something went wrong.",
+        confirmButtonColor: "#ff6b35",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="signup-wrapper">
-      <div className="signup-container">
-        {/* LEFT SIDE */}
-        <div className="left-panel">
-          <Image />
+    <div className="signup_wrapper">
+      <div className="signupBody">
+        <div className="signupLeft">
+          <img src="/novaxcape/img.png" alt="Signup" />
         </div>
 
-        {/* RIGHT SIDE */}
-        <div className="right-panel">
-          <h2>Sign Up</h2>
-          <p>Sign up to enjoy Unlimited booking with us</p>
+        <div className="signupRight">
           <form onSubmit={handleSubmit}>
-            <div className="form-group">
+            <h1 className="signupTitle">Sign Up</h1>
+
+            <div className="field">
               <label>Last Name</label>
-              <input type="text" placeholder="Enter your Name" />
+              <input
+                type="text"
+                name="lastName"
+                placeholder="Enter your last name"
+                value={formData.lastName}
+                onChange={handleChange}
+              />
+              {errors.lastName && (
+                <span className="error">{errors.lastName}</span>
+              )}
             </div>
 
-            <div className="form-group">
+            <div className="field">
               <label>First Name</label>
-              <input type="text" placeholder="Enter your Name" />
+              <input
+                type="text"
+                name="firstName"
+                placeholder="Enter your first name"
+                value={formData.firstName}
+                onChange={handleChange}
+              />
+              {errors.firstName && (
+                <span className="error">{errors.firstName}</span>
+              )}
             </div>
 
-            <div className="form-group">
+            <div className="field">
               <label>Email</label>
-              <input type="email" placeholder="Enter your Email" />
+              <input
+                type="email"
+                name="email"
+                placeholder="Enter your email"
+                value={formData.email}
+                onChange={handleChange}
+              />
+              {errors.email && (
+                <span className="error">{errors.email}</span>
+              )}
             </div>
 
-            {/* PASSWORD FIELD */}
-            <div className="form-group">
+            <div className="field">
               <label>Password</label>
 
-              <div className="password-input">
+              <div className="passwordWrapper">
                 <input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Input password"
+                  name="password"
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={handleChange}
                 />
 
                 <span
-                  className="eye-icon"
+                  className="eyeIcon"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </span>
               </div>
 
-              {/* <div className="forgot-password-row">
-                <a
-                  href="/forgot-password"
-                  className="forgot-link"
-                >
-                  Forgot Password?
-                </a>
-              </div> */}
+              {errors.password && (
+                <span className="error">{errors.password}</span>
+              )}
+
+              <p className="passwordHint">
+                Must contain uppercase, lowercase,
+                number and special character.
+              </p>
             </div>
 
-            <div className="form-group">
-              <label>Phone Number</label>
-              <input type="tel" placeholder="Input phone number" />
+            <div className="field">
+              <label>Confirm Password</label>
+
+              <div className="passwordWrapper">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  placeholder="Confirm your password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                />
+
+                <span
+                  className="eyeIcon"
+                  onClick={() =>
+                    setShowConfirmPassword(!showConfirmPassword)
+                  }
+                >
+                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
+
+              {errors.confirmPassword && (
+                <span className="error">
+                  {errors.confirmPassword}
+                </span>
+              )}
             </div>
 
             <div className="terms">
-              <input type="checkbox" />
+              <input type="checkbox" id="terms" />
 
-              <span>
-                I agree to the terms and conditions & privacy policy
-              </span>
+              <label htmlFor="terms">
+                I agree to the
+                <a href="#!"> Terms & Conditions </a>
+                and
+                <a href="#!"> Privacy Policy</a>
+              </label>
+              
             </div>
 
-            <button type="submit" className="signup-btn">
-              Sign Up
+            <button
+              type="submit"
+              className="signupBtn"
+              disabled={loading}
+            >
+              {loading ? "Creating Account..." : "Sign Up"}
             </button>
+
+            <div className="divider">
+              <span>Or Continue with</span>
+            </div>
+
+            <button type="button" className="googleBtn">
+              <img
+                src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg"
+                alt="Google"
+              />
+              Continue with Google
+            </button>
+
+            <p className="signinText">
+              Have an account?
+              <span> Sign In</span>
+            </p>
           </form>
-
-          <div className="divider">
-            <span>Or Continue with</span>
-          </div>
-
-          <button className="google-btn">
-            <img
-              className="google-icon"
-              src="/novaxcape/google.png"
-              alt="Google"
-            />
-            Google
-          </button>
-
-          <p className="signin-text">
-            Have an account?
-            <Link to="/signin"> Sign In</Link>
-          </p>
         </div>
       </div>
     </div>
