@@ -17,13 +17,14 @@ import WishList from "./Pages/WishList";
 import PaymentOptionPage from "./Pages/PaymentOptionPage";
 import MyBookingsPage from "./Pages/MyBookingsPage";
 import PaymentConfirmationPage from "./Pages/PaymentConfirmationPage";
-
+import SignUpScreen from "./Pages/SignUpScreen"
+import SignInScreen from "./Pages/SignInScreen"
 import DashboardLayout from "./components/DashboardLayout";
 import Dashboard from "./Pages/Dashboard";
 import RevenueTrendPage from "./Pages/RevenueTrendPage";
 import SettingsPage from "./Pages/SettingPage";
 import ProfileSettingPage from "./Pages/ProfileSettingPage";
-
+import SignUpVendor from "./Pages/SignUpVendor"
 import AddCentre from "./Pages/Addcentre";
 import Kyc from "./Pages/Kyc";
 
@@ -40,7 +41,10 @@ const App = () => {
 
         {/* Auth Routes */}
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/signin" element={<Login />} />
+        <Route path="/signupvendor"  element={<SignUpVendor />} />
+        <Route path="/signupscreen" element={<SignUpScreen />} />
+        <Route path="/signinscreen" element={<SignInScreen />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify-email" element={<VerifyOtp />} />
         <Route path="/reset-password" element={<ResetPassword />} />

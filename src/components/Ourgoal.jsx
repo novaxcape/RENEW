@@ -7,11 +7,10 @@ const Ourgoal = () => {
 
   const visionText = "To become Africa's most trusted and comprehensive tourism booking platform, inspiring millions to explore their local heritage and discover the beauty that surrounds them. We envision a future where every Nigerian has easy access to unforgettable experiences in their own backyard.";
   
-  const missionText = "To build a seamless digital ecosystem that connects travelers to Nigeria's rich culture and landmarks. By leveraging cutting-edge technology, secure payments, and reliable local partnerships, we aim to make tourism accessible, affordable, and deeply enriching for everyone.";
-
+  const missionText = "To make tourism accessible and affordable for all Nigerians by providing a seamless digital platform that connects people with amazing destinations. We're committed to supporting local tourism centres,  promoting cultural preservation, and creating memorable experiences for every visitor.";
   return (
     <div className="goals-container">
-      {/* Left Content Column */}
+      
       <div className="content-column">
         <header className="header-section">
           <h2 className="goal-title">Our Goal</h2>
@@ -28,7 +27,6 @@ const Ourgoal = () => {
           </p>
         </header>
 
-        {/* Tab Navigation */}
         <div className="tabs-wrapper">
           <div className="tabs-buttons">
             <button 
@@ -47,13 +45,11 @@ const Ourgoal = () => {
           <div className="tabs-divider"></div>
         </div>
 
-        {/* Tab Content Dynamic Area */}
         <div className="tab-content">
           <p>{activeTab === 'vision' ? visionText : missionText}</p>
         </div>
       </div>
 
-      {/* Right Image Column */}
       <div className="image-column">
         <div className="image-wrapper">
           <img 

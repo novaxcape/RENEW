@@ -1,4 +1,3 @@
-/* Base container layout */
 .goals-container {
   display: flex;
   flex-direction: row;
@@ -6,13 +5,11 @@
   align-items: stretch;
   gap: 40px;
   max-width: 1440px;
-  /* height: 500px; */
   margin: 0 auto;
   padding: 40px 20px;
   background-image: url('/public/novaxcape/goalbackground.png'); ;
 }
 
-/* Left Column Styling */
 .content-column {
   flex: 1;
   display: flex;
@@ -22,7 +19,7 @@
 }
 
 .goal-title {
-  color: #0d3880; /* Deep blue title color */
+  color: #0d3880; 
   font-size: 34px;
   font-weight: 600;
   margin-top: 0;
@@ -37,7 +34,6 @@
   margin-bottom: 16px;
 }
 
-/* Tab Component Styling */
 .tabs-wrapper {
   margin-top: 24px;
   margin-bottom: 24px;
@@ -60,17 +56,15 @@
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: center;
-  border-radius: 25px; /* Pill shape styling */
+  border-radius: 25px; 
   color: #333333;
 }
 
-/* Selected Active Tab State */
 .tab-btn.active {
-  background-color: #003b95; /* Vibrant corporate dark blue */
+  background-color: #003b95; 
   color: #ffffff;
 }
 
-/* Subtle dividing line matching image layout */
 .tabs-divider {
   height: 1px;
   background-color: #e0e0e0;
@@ -78,7 +72,6 @@
   width: 100%;
 }
 
-/* Dynamic Tab Content Text */
 .tab-content {
   color: #333333;
   font-size: 18px;
@@ -86,7 +79,6 @@
   line-height: 1.6;
 }
 
-/* Right Column & Image Frame Styling */
 .image-column {
   flex: 1;
   display: flex;
@@ -101,11 +93,12 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 24px; /* Smooth rounded corners */
+  border-radius: 24px;
   display: block;
 }
 
-/* Responsive breakpoint for tablets and mobile devices */
+
+
 @media (max-width: 768px) {
   .goals-container {
     flex-direction: column;
@@ -113,11 +106,21 @@
     gap: 32px;
   }
 
+  .image-column {
+    order: 1;
+  }
+
+  .content-column {
+    order: 2;
+  }
+
   .tab-btn {
     max-width: 50%;
   }
 
   .side-image {
+    width: 100%;
     max-height: 350px;
+    object-fit: cover;
   }
 }

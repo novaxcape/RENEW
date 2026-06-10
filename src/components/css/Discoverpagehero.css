@@ -25,15 +25,15 @@
 
 .hero_content h1 {
   color: white;
-  font-size: 80px;
-  font-weight: 700;
+  font-size: 48px;
+  font-weight: 600;
   margin-bottom: 20px;
 }
 
 .hero_content p {
   color: white;
-  font-size: 28px;
-  font-weight: 500;
+  font-size: 24px;
+  font-weight: 400;
   margin-bottom: 40px;
 }
 
@@ -45,7 +45,7 @@
   align-items: center;
   gap: 12px;
   background: white;
-  padding: 18px 25px;
+  padding: 10px 15px;
   border-radius: 50px;
   margin-bottom: 30px;
   cursor: pointer;
@@ -64,10 +64,10 @@
 /* Search Area */
 
 .search_container {
-  width: 850px;
+  width: 700px;
   background: white;
   border-radius: 50px;
-  padding: 12px;
+  padding: 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -83,18 +83,18 @@
 }
 
 .search_input svg {
-  width: 80px;
-  height: 60px;
+  width: 70px;
+  height: 40px;
   background: #8f8782;
   color: white;
-  padding: 15px;
+  padding: 12px;
 }
 
 .search_input input {
   border: none;
   outline: none;
   flex: 1;
-  padding: 0 20px;
+  padding: 0 10px;
   font-size: 20px;
 }
 
@@ -103,11 +103,11 @@
   border: 1px solid #d8d8d8;
   background: white;
   border-radius: 40px;
-  padding: 18px 30px;
+  padding: 5px 11px;
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 22px;
+  font-size: 18px;
   cursor: pointer;
 }
 
@@ -115,63 +115,116 @@
   font-size: 24px;
 }
 
-/* Tablet */
 
-@media (max-width: 1024px) {
-  .hero_content {
-    padding: 0 40px;
-  }
-
-  .hero_content h1 {
-    font-size: 60px;
-  }
-
-  .hero_content p {
-    font-size: 24px;
-  }
-
-  .search_container {
-    width: 100%;
-  }
-}
-
-/* Mobile */
+/* ================= MOBILE RESPONSIVENESS ================= */
 
 @media (max-width: 768px) {
   .hero {
-    height: 90vh;
+    min-height: 100vh;
+    height: auto;
+    padding: 120px 20px 60px;
+    justify-content: center;
+
+    /* Show more of the image */
+    background-size: contain;
+    background-position: top center;
+    background-color: #000;
   }
 
   .hero_content {
-    padding: 0 20px;
+    padding-left: 0;
+    width: 100%;
+    max-width: 100%;
+    text-align: center;
   }
 
   .hero_content h1 {
-    font-size: 42px;
+    font-size: 36px;
+    line-height: 1.2;
+    margin-bottom: 15px;
   }
 
   .hero_content p {
     font-size: 18px;
+    line-height: 1.5;
+    margin-bottom: 25px;
   }
 
   .destination_btn {
-    width: 100%;
-    justify-content: center;
+    margin: 0 auto 25px;
+  }
+
+  .destination_btn span {
+    font-size: 16px;
+  }
+
+  .destination_btn svg {
+    font-size: 22px;
   }
 
   .search_container {
-    flex-direction: column;
-    gap: 15px;
+    width: 100%;
     border-radius: 20px;
+    padding: 12px;
+    flex-direction: column;
+    gap: 12px;
   }
 
   .search_input {
     width: 100%;
   }
 
+  .search_input svg {
+    width: 55px;
+    height: 55px;
+  }
+
+  .search_input input {
+    font-size: 16px;
+  }
+
   .filter_btn {
     width: 100%;
-    justify-content: center;
     margin-left: 0;
+    justify-content: center;
+    padding: 14px;
+    font-size: 16px;
+  }
+}
+
+
+/* Small Phones */
+@media (max-width: 480px) {
+  .hero {
+    padding: 100px 15px 50px;
+  }
+
+  .hero_content h1 {
+    font-size: 28px;
+  }
+
+  .hero_content p {
+    font-size: 16px;
+  }
+
+  .destination_btn {
+    padding: 10px 14px;
+  }
+
+  .destination_btn span {
+    font-size: 14px;
+  }
+
+  .search_input svg {
+    width: 50px;
+    height: 50px;
+  }
+
+  .search_input input {
+    font-size: 15px;
+  }
+
+  .filter_btn {
+    font-size: 15px;
   }
 }
