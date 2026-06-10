@@ -1,11 +1,133 @@
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import Swal from "sweetalert2";
+import axios from "axios";
 import "../Styles/Login.css";
 import Image from "../components/Image";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://novaxcape.onrender.com/api/v1";
+
 const ResetPassword = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get email from navigation state (passed from ForgotPassword)
+  const email = location.state?.email || "";
+  
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
+  const [formData, setFormData] = useState({
+    password: "",
+    confirmPassword: "",
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    if (error) setError(null);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    const { password, confirmPassword } = formData;
+    
+    // Validation
+    if (!password || !confirmPassword) {
+      setError("Please fill in all fields");
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+    
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+    
+    if (!email) {
+      setError("Email is missing. Please go back and try again.");
+      return;
+    }
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // API CALL to reset password
+      const response = await axios.post(`${API_BASE_URL}/client/reset-password`, {
+        email: email,
+        password: password,
+      });
+      
+      console.log("Reset password response:", response.data);
+      
+      Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: "Password reset successful! Please login with your new password.",
+        confirmButtonColor: "#ff6b35",
+      });
+      
+      navigate("/signin");
+      
+    } catch (error) {
+      console.error("Reset password error:", error.response?.data);
+      const errorMessage = error.response?.data?.message || "Failed to reset password. Please try again.";
+      setError(errorMessage);
+      
+      Swal.fire({
+        icon: "error",
+        title: "Reset Failed",
+        text: errorMessage,
+        confirmButtonColor: "#ff6b35",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // If no email, show error and redirect option
+  if (!email) {
+    return (
+      <div className="login-wrapper">
+        <div className="login-container">
+          <div className="login-panel">
+            <Image />
+          </div>
+          <div className="rightLogin-panel">
+            <h2>Reset Password</h2>
+            <div className="error-message" style={{
+              color: "red",
+              textAlign: "center",
+              marginBottom: "15px",
+              padding: "10px",
+              backgroundColor: "#ffeeee",
+              borderRadius: "5px"
+            }}>
+              Invalid request. Email is missing. Please go back and try again.
+            </div>
+            <button 
+              onClick={() => navigate("/forgot-password")} 
+              className="signup-btn"
+            >
+              Go to Forgot Password
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="login-wrapper">
@@ -23,13 +145,32 @@ const ResetPassword = () => {
             Your password must be different than previous used passwords.
           </p>
 
-          <form>
+          {error && (
+            <div className="error-message" style={{
+              color: "red",
+              textAlign: "center",
+              marginBottom: "15px",
+              padding: "10px",
+              backgroundColor: "#ffeeee",
+              borderRadius: "5px",
+              fontSize: "14px"
+            }}>
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label>Password</label>
               <div className="password-input">
                 <input
                   type={showPassword ? "text" : "password"}
+                  name="password"
                   placeholder="Input password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  disabled={loading}
+                  required
                 />
                 <span
                   className="eye-icon"
@@ -45,7 +186,12 @@ const ResetPassword = () => {
               <div className="password-input">
                 <input
                   type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
                   placeholder="Input password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  disabled={loading}
+                  required
                 />
                 <span
                   className="eye-icon"
@@ -56,8 +202,13 @@ const ResetPassword = () => {
               </div>
             </div>
 
-            <button type="submit" className="signup-btn">
-              Reset Password
+            <button 
+              type="submit" 
+              className="signup-btn" 
+              disabled={loading}
+              style={{ opacity: loading ? 0.7 : 1 }}
+            >
+              {loading ? "Resetting..." : "Reset Password"}
             </button>
           </form>
         </div>
