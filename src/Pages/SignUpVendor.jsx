@@ -111,6 +111,7 @@ const SignUpVendor = () => {
         dispatch(setVendorDetails(response.data.user));
       }
       
+      
       localStorage.setItem("vendorEmail", formData.email);
       localStorage.setItem("vendorName", formData.centerName);
       

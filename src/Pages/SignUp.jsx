@@ -1,7 +1,7 @@
 // SignUp.jsx
 import React, { useState } from "react";
 import { z } from "zod";
-// import Swal from "sweetalert2";
+import Swal from "sweetalert2"; // UNCOMMENT THIS LINE
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +10,28 @@ import { setUserDetails, updateToken, setLoading, setError, clearError } from ".
 import "../Styles/Signup.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ;
+
+// MOVE INTERCEPTORS OUTSIDE THE COMPONENT - PLACE THEM HERE
+axios.interceptors.request.use(request => {
+  console.log('Starting Request:', request.url, request.data);
+  return request;
+});
+
+axios.interceptors.response.use(
+  response => {
+    console.log('Response:', response.status, response.data);
+    return response;
+  },
+  error => {
+    console.log('Full Error Object:', {
+      message: error.message,
+      response: error.response,
+      request: error.request,
+      config: error.config
+    });
+    return Promise.reject(error);
+  }
+);
 
 const signUpSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -84,7 +106,7 @@ const SignUp = () => {
     
     const userData = {
       firstName: formData.firstName,
-lastName:formData.lastName,
+      lastName: formData.lastName,
       email: formData.email,
       password: formData.password,
     };
@@ -113,8 +135,26 @@ lastName:formData.lastName,
       navigate("/verify-email", { state: { email: formData.email } });
       
     } catch (error) {
-      console.error("API Error:", error.response?.data);
-      const errorMessage = error.response?.data?.message || "Something went wrong. Please try again.";
+      console.error("Full error object:", error);
+      
+      // Better error handling
+      let errorMessage = "Something went wrong. Please try again.";
+      
+      if (error.response) {
+        // Server responded with error
+        console.error("Error response data:", error.response.data);
+        errorMessage = error.response.data?.message || 
+                      error.response.data?.error || 
+                      `Server error: ${error.response.status}`;
+      } else if (error.request) {
+        // Request made but no response
+        console.error("No response received:", error.request);
+        errorMessage = "Cannot connect to server. Please check your connection.";
+      } else {
+        // Other errors
+        errorMessage = error.message;
+      }
+      
       dispatch(setError(errorMessage));
       
       Swal.fire({
@@ -249,7 +289,7 @@ lastName:formData.lastName,
 
             <p className="signinText">
               Have an account?
-              <span onClick={() => navigate("/login")} style={{ cursor: "pointer" }}> Sign In</span>
+              <span onClick={() => navigate("/signin")} style={{ cursor: "pointer" }}> Sign In</span>
             </p>
           </form>
         </div>
