@@ -1,5 +1,6 @@
 import React from "react";
 import "../components/css/Hero.css";
+import { FaSearch, FaCalendarAlt } from "react-icons/fa";
 const Hero = () => {
   return (
     <>
@@ -21,7 +22,29 @@ const Hero = () => {
             <input type="text"  placeholder="When?" />
             <button>Search</button>
           </div>
-        
+<div className="box1">
+  <div className="input-wrapper">
+    <FaSearch className="icon" />
+    <input
+      type="text"
+      placeholder="Where to?"
+      className="input-field"
+    />
+  </div>
+
+
+
+  <div className="input-wrapper">
+    <FaCalendarAlt className="icon" />
+    <input
+      type="text"
+      placeholder="When?"
+      className="input-field"
+    />
+  </div>
+
+  <button>Search</button>
+</div>
         </div>
           <div className="img">
             
