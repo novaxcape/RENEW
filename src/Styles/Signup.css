@@ -7,7 +7,7 @@
 .signup_wrapper {
   width: 100%;
   min-height: 100vh;
-  background: #f8f8f8;
+  /* background: #f8f8f8; */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -17,7 +17,7 @@
 .signupBody {
   width: 1100px;
   min-height: 720px;
-  background: #fff;
+  /* background: #fff; */
   border-radius: 20px;
   padding: 20px;
   display: flex;
