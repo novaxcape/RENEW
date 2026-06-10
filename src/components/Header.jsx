@@ -89,7 +89,7 @@ const Header = () => {
             </div>
 
             {/* DESKTOP BUTTON */}
-            <Link to="/signup">
+            <Link to="/signupscreen">
               <button className="signin">Sign Up</button>
             </Link>
           </div>

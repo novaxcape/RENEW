@@ -1,10 +1,12 @@
 import React from "react";
 import "../Styles/SignInScreen.css";
-import {  FaCheckCircle } from "react-icons/fa";
 import { TbUser } from "react-icons/tb";
 import { HiMiniBuildingOffice2 } from "react-icons/hi2";
+import { useNavigate } from "react-router-dom";
 
-const SignInScreen = () => {
+const SignUpScreen = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="signup-page">
       <div className="signup-logo">
@@ -17,48 +19,44 @@ const SignInScreen = () => {
       </div>
 
       <div className="signup-cards">
-
-        <div className="signup-card">
+        {/* User Sign Up Card */}
+        <div 
+          className="signup-card" 
+          onClick={() => navigate("/signup")}
+          style={{ cursor: "pointer" }}
+        >
           <div className="icon-circle user-icon">
             <TbUser />
-
           </div>
-
           <h2>Sign Up as User</h2>
-
           <p className="card-description">
             Discover and book amazing tourism experiences across Nigeria
           </p>
-
-
-         <a href="/signup-user" className="user-btn">
-  Get Started →
-</a>
-
-
+          <span className="user-btn" style={{ cursor: "pointer" }}>
+            Get Started →
+          </span>
         </div>
 
-        <div className="signup-card-vendor">
+        {/* Vendor Sign Up Card */}
+        <div 
+          className="signup-card-vendor" 
+          onClick={() => navigate("/signupvendor")}
+          style={{ cursor: "pointer" }}
+        >
           <div className="icon-circle vendor-icon">
-                 <HiMiniBuildingOffice2 />
+            <HiMiniBuildingOffice2 />
           </div>
-
           <h2>Sign Up as Vendor</h2>
-
           <p className="vendor-card-description">
             List your tourism center and reach thousands of travelers
           </p>
-
-
-         <a href="/signup-user" className="vendor-btn">
-  Get Started →
-</a>
-
+          <span className="vendor-btn" style={{ cursor: "pointer" }}>
+            Get Started →
+          </span>
         </div>
-
       </div>
     </div>
   );
 };
 
-export default SignInScreen;
+export default SignUpScreen;
