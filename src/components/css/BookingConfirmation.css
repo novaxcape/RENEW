@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
+@import url('https://googleapis.com');
 
 .confirmation-page-wrapper {
   background-color: #fafafa;
@@ -7,8 +7,8 @@
   width: 100%;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  padding: 24px 16px;
+  align-items: center;
+  padding: 40px 20px;
   box-sizing: border-box;
 }
 
@@ -18,7 +18,7 @@
   border-radius: 16px;
   width: 100%;
   max-width: 580px;
-  padding: 36px 24px 32px;
+  padding: 50px 40px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -26,38 +26,31 @@
 }
 
 .success-badge-container {
-  margin-bottom: 16px;
+  margin-bottom: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .success-checkmark-img {
-  width: 64px;
-  height: 64px;
+  width: 80px;
+  height: 80px;
   object-fit: contain;
   display: block;
 }
 
 .confirmation-title {
-  font-size: 28px;
-  line-height: 1.3;
+  font-size: 26px;
   font-weight: 700;
-  letter-spacing: 0px;
-  font-family: 'Manrope', sans-serif;
   color: #111111;
-  margin: 0 0 6px 0;
+  margin: 0 0 8px 0;
   text-align: center;
 }
 
 .confirmation-subtitle {
-  line-height: 1.5;
-  font-weight: 500;
-  font-size: 15px;
-  letter-spacing: 0px;
-  font-family: 'Manrope', sans-serif;
-  color: #000000;
-  margin: 0 0 20px 0;
+  font-size: 14.5px;
+  color: #555555;
+  margin: 0 0 24px 0;
   text-align: center;
 }
 
@@ -66,32 +59,31 @@
   border: 1px solid #abc1dc;
   border-radius: 8px;
   width: 100%;
-  padding: 10px 14px;
+  padding: 10px 16px;
   box-sizing: border-box;
   display: flex;
   justify-content: flex-start;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 .email-left-content {
   display: flex;
   align-items: center;
-  gap: 10px;
-  width: 100%;
+  gap: 12px;
+  width: auto;
 }
 
 .email-toast-icon {
-  font-size: 16px;
+  font-size: 18px;
   color: #0060a3;
   flex-shrink: 0;
 }
 
 .email-toast-text {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: #0060a3;
-  line-height: 1.4;
-  white-space: normal;
+  white-space: nowrap;
 }
 
 .booking-details-box {
@@ -99,16 +91,16 @@
   border: 1px solid #f2f2f2;
   border-radius: 12px;
   width: 100%;
-  padding: 18px 16px;
+  padding: 24px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 24px;
+  margin-bottom: 30px;
 }
 
 .details-section-title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   color: #111111;
   margin: 0 0 4px 0;
@@ -117,11 +109,11 @@
 .detail-item-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .detail-meta-icon {
-  font-size: 20px;
+  font-size: 22px;
   color: #0060a3;
   flex-shrink: 0;
 }
@@ -129,7 +121,7 @@
 .detail-text-cell {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .detail-field-label {
@@ -139,7 +131,7 @@
 }
 
 .detail-field-value {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: #222222;
 }
@@ -149,12 +141,12 @@
   border: 1.5px solid #ff7643;
   border-radius: 14px;
   width: 100%;
-  padding: 22px 16px 20px;
+  padding: 28px 24px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 35px;
 }
 
 .passcode-header-row {
@@ -162,16 +154,16 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .passcode-shield-icon {
-  font-size: 16px;
+  font-size: 18px;
   color: #ff7643;
 }
 
 .passcode-main-heading {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   color: #222222;
   margin: 0;
@@ -180,30 +172,27 @@
 .passcode-sub-caption {
   font-size: 12px;
   color: #666666;
-  margin: 0 0 18px 0;
+  margin: 0 0 24px 0;
   text-align: center;
-  line-height: 1.4;
 }
 
 .passcode-display-block {
   background-color: #ffffff;
   border-radius: 10px;
-  padding: 12px 20px;
+  padding: 14px 30px;
   display: flex;
-  gap: 12px;
+  gap: 16px;
   justify-content: center;
   align-items: center;
-  width: 100%;
-  max-width: 260px;
-  box-sizing: border-box;
-  margin-bottom: 18px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  margin-bottom: 24px;
 }
 
 .passcode-digit {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
   color: #111111;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
 }
 
 .download-passcode-action-btn {
@@ -211,7 +200,8 @@
   border: 1px solid #a0a0a0;
   border-radius: 24px;
   width: 100%;
-  padding: 8px 20px;
+  max-width: 380px;
+  padding: 8px 16px;
   font-size: 13px;
   font-weight: 500;
   color: #333333;
@@ -220,7 +210,6 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-sizing: border-box;
 }
 
 .download-action-icon {
@@ -239,67 +228,22 @@
   border: none;
   border-radius: 24px;
   width: 100%;
+  max-width: 320px;
   padding: 14px 24px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  box-sizing: border-box;
 }
 
-/* Tablet and up */
-@media (min-width: 541px) {
-  .confirmation-page-wrapper {
-    align-items: center;
-    padding: 40px 20px;
-  }
-
+@media (max-width: 540px) {
   .confirmation-card {
-    padding: 50px 40px;
+    padding: 30px 20px;
   }
-
-  .confirmation-title {
-    font-size: 40px;
-    line-height: 55px;
-  }
-
-  .confirmation-subtitle {
-    font-size: 20px;
-  }
-
-  .success-checkmark-img {
-    width: 80px;
-    height: 80px;
-  }
-
-  .email-toast-text {
-    font-size: 14px;
-    white-space: nowrap;
-  }
-
-  .booking-details-box {
-    padding: 24px;
-    gap: 24px;
-  }
-
-  .passcode-container-card {
-    padding: 28px 24px;
-  }
-
   .passcode-display-block {
-    padding: 14px 30px;
-    gap: 16px;
-    max-width: none;
+    padding: 12px 20px;
+    gap: 10px;
   }
-
   .passcode-digit {
-    font-size: 26px;
-  }
-
-  .download-passcode-action-btn {
-    max-width: 380px;
-  }
-
-  .homepage-redirect-btn {
-    max-width: 320px;
+    font-size: 22px;
   }
 }

@@ -32,24 +32,16 @@
 }
 
 .main-title {
-  line-height: 55px;
-  font-size: 40px;
-  font-style: semibold;
-  font-weight: 600;
-  letter-spacing: 0px;
-  font-family: 'Manrope', sans-serif;
+  font-size: 34px;
+  font-weight: 700;
   margin: 0 0 12px 0;
-  color: #000000;
+  color: #111111;
   letter-spacing: -0.5px;
 }
 
 .main-subtitle {
-  line-height: 28px;
-  font-style: medium;
-  font-weight: 500;
-  letter-spacing: 0px;
-  font-family: 'Manrope', sans-serif;
-  color: #000000;
+  font-size: 15px;
+  color: #555555;
   margin: 0;
 }
 
@@ -81,36 +73,24 @@
 }
 
 .banner-title {
-  font-size: 28px;
-  font-family: 'Manrope', sans-serif;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 700;
   margin: 0 0 8px 0;
   color: #1a1a1a;
-  line-height: 32px;
-  letter-spacing: 0px;
-  font-style: semibold;
 }
 
 .banner-subtitle {
-  font-size: 16px;
-  font-family: 'Manrope', sans-serif;
-  font-weight: 400;
-  font-style: regular;
-  line-height: 30px;
-  letter-spacing: 0px;
+  font-size: 13.5px;
   color: #666666;
   margin: 0 0 18px 0;
 }
 
 .banner-badge {
   display: inline-block;
-  font-family: 'Manrope', sans-serif;
   background-color: #fff1ec;
   color: #ff6633;
-  font-size: 16px;
-  font-weight: 400;
-  letter-spacing: 0px;
-  font-style: regular;
+  font-size: 12px;
+  font-weight: 600;
   padding: 6px 16px;
   border-radius: 14px;
 }
@@ -134,12 +114,8 @@
 }
 
 .card-section-heading {
-  font-size: 24px;
-  font-family: 'Manrope', sans-serif;
-  font-weight: 500;
-  font-style: medium;
-  line-height: 24px;
-  letter-spacing: 0px;
+  font-size: 18px;
+  font-weight: 700;
   margin: 0 0 24px 0;
   color: #111111;
 }
@@ -172,21 +148,13 @@
 }
 
 .plan-duration-title {
-  font-size: 18px;
-  font-style: semibold;
-  line-height: 28px;
-  font-family: 'Manrope', sans-serif;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   color: #111111;
 }
 
 .plan-interval-subtitle {
-  font-size: 16px;
-  line-height: 30px;
-  font-style: regular;
-  font-weight: 400;
-  letter-spacing: 0px;
-  font-family: 'Manrope', sans-serif;
+  font-size: 12.5px;
   color: #666666;
 }
 
@@ -198,22 +166,13 @@
 }
 
 .plan-price-value {
-  font-size: 24px;
-  letter-spacing: 0px;
-  line-height: 24px;
-  font-style: medium;
-  font-family: 'Manrope', sans-serif;
-  font-weight: 500;
+  font-size: 17px;
+  font-weight: 700;
   color: #0060a3;
 }
 
 .plan-price-label {
-  font-size: 16px;
-  line-height: 30px;
-  font-style: regular;
-  font-weight: 400;
-  letter-spacing: 0px;
-  font-family: 'Manrope', sans-serif;
+  font-size: 11px;
   color: #666666;
 }
 
@@ -238,22 +197,14 @@
 }
 
 .info-alert-title {
-  font-size: 18px;
-  line-height: 28px;
-  font-style: regular;
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0px;
-  font-family: 'Manrope', sans-serif;
   color: #0060a3;
 }
 
 .info-alert-text {
-  font-size: 14px;
-  line-height: 24px;
-  font-style: regular;
-  font-weight: 400;
-  letter-spacing: 0px;
-  font-family: 'Manrope', sans-serif;
+  font-size: 12.5px;
+  line-height: 1.45;
   color: #0060a3;
   margin: 0;
 }
@@ -277,12 +228,8 @@
 }
 
 .summary-card-title {
-  font-size: 28px;
-  line-height: 32px;
-  font-style: semibold;
-  font-weight: 600;
-  letter-spacing: 0px;
-  font-family: 'Manrope', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
   margin: 0 0 28px 0;
   color: #111111;
 }
@@ -301,22 +248,13 @@
 }
 
 .summary-row-label {
- font-size: 18px;
-  line-height: 28px;
-  font-style: regular;
-  font-weight: 400;
-  letter-spacing: 0px;
-  font-family: 'Manrope', sans-serif;
+  font-size: 15px;
   color: #666666;
 }
 
 .summary-row-val {
-  font-size: 24px;
-  line-height: 24px;
-  font-style: regular;
+  font-size: 16px;
   font-weight: 500;
-  letter-spacing: 0px;
-  font-family: 'Manrope', sans-serif;
   color: #666666;
 }
 
@@ -338,33 +276,19 @@
 }
 
 .toast-label-txt {
-  font-size: 18px;
-  line-height: 28px;
-  font-style: regular;
-  font-weight: 400;
-  letter-spacing: 0px;
-  font-family: 'Manrope', sans-serif;
+  font-size: 15px;
   color: #666666;
-  
+  font-weight: 500;
 }
 
 .toast-val-price {
-  font-size: 24px;
-  line-height: 24px;
-  font-style: medium;
-  font-weight: 500;
-  letter-spacing: 0px;
-  font-family: 'Manrope', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
   color: #ea5425;
 }
 
 .toast-sub-caption {
-  font-size: 18px;
-  line-height: 28px;
-  font-style: regular;
-  font-weight: 400;
-  letter-spacing: 0px;
-  font-family: 'Manrope', sans-serif;
+  font-size: 13px;
   color: #666666;
   margin: 0;
 }
@@ -381,37 +305,25 @@
 }
 
 .due-main-heading {
-  font-size: 24px;
-  line-height: 24px;
-  font-style: medium;
-  font-weight: 500;
-  letter-spacing: 0px;
-  font-family: 'Manrope', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
   color: #111111;
 }
 
 .due-main-amount {
-  font-size: 24px;
-  line-height: 24px;
-  font-style: medium;
-  font-weight: 500;
-  letter-spacing: 0px;
-  font-family: 'Manrope', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
   color: #0060a3;
 }
 
 .checkout-submit-btn {
-  background-color: #ff6b35;
+  background-color: #ff6633;
   color: #ffffff;
   border: none;
   border-radius: 28px;
   padding: 16px 20px;
-  font-size: 18px;
-  line-height: 24px;
-  font-style: semibold;
+  font-size: 16px;
   font-weight: 600;
-  letter-spacing: 0px;
-  font-family: 'Manrope', sans-serif;
   cursor: pointer;
   margin-bottom: 16px;
   margin-left: 35px;
@@ -435,12 +347,8 @@
 }
 
 .security-notice-txt {
- font-size: 16px;
-line-height: 30px;
-  font-style: regular;
-  font-weight: 400;
-  letter-spacing: 0px;
-  font-family: 'Manrope', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 @media (max-width: 992px) {

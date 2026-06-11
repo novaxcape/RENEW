@@ -1,55 +1,85 @@
 import { NavLink } from "react-router-dom";
-import { useState } from "react";
 import {
-  FiGrid, FiCalendar, FiDollarSign,
-  FiSettings, FiHelpCircle, FiX,
+  FiGrid,
+  FiCalendar,
+  FiBarChart2,
+  FiSettings,
+  FiHelpCircle,
+  FiLogOut,
 } from "react-icons/fi";
 
-const Sidebar = ({ mobileOpen, onMobileClose }) => {
-  const [showExitModal, setShowExitModal] = useState(false);
-
+const Sidebar = () => {
   const menuItems = [
-    { icon: <FiGrid />, label: "Dashboard", path: "/dashboard" },
-    { icon: <FiCalendar />, label: "Bookings", path: "/dashboard/bookings" },
-    { icon: <FiDollarSign />, label: "Revenue Trend", path: "/dashboard/revenue" },
-    { icon: <FiSettings />, label: "Settings", path: "/dashboard/settings" },
-    { icon: <FiHelpCircle />, label: "Support", path: "/dashboard/support" },
+    {
+      icon: <FiGrid />,
+      label: "Dashboard",
+      path: "/dashboard",
+    },
+    {
+      icon: <FiCalendar />,
+      label: "Bookings",
+      path: "/dashboard/bookings",
+    },
+    {
+      icon: <FiBarChart2 />,
+      label: "Revenue Trend",
+      path: "/dashboard/revenue",
+    },
+    {
+      icon: <FiSettings />,
+      label: "Settings",
+      path: "/dashboard/settings",
+    },
+    {
+      icon: <FiHelpCircle />,
+      label: "Support",
+      path: "/dashboard/support",
+    },
   ];
 
   return (
-    <>
-      <aside className="sidebar">
-        <div className="sidebar-top">
-          <div className="logo-section">
-            <img src="/novaxcape/nova.png" alt="Novaxcape Logo" className="logo-img" />
-            <p className="admin-portal-text">Admin Portal</p>
-          </div>
-          <nav className="sidebar-nav">
-            {menuItems.map((item) => (
-              <NavLink
-                key={item.label}
-                to={item.path}                        
-                end={item.path === "/dashboard"}      
-                className={({ isActive }) =>         
-                  `nav-item ${isActive ? "active" : ""}`
-                }
-              >
-                <span className="nav-icon">{item.icon}</span>
-                <span>{item.label}</span>
-              </NavLink>
-            ))}
-          </nav>
-        </div>
-        <div className="sidebar-footer">
-          <p className="account-title">Accounts</p>
-          <div className="logout-btn" onClick={() => setShowExitModal(true)}>
-            <img src="/novaxcape/log.png" alt="exit" style={{ width: "20px", height: "20px" }} />
-            <span>Exit Patner Portal</span>
-          </div>
-        </div>
-      </aside>
+    <aside className="sidebar">
+      {/* Logo */}
+      <div>
+        <div className="logo-section">
+          <img
+            src="/novaxcape/logo.png"
+            alt="Novaxcape Logo"
+            className="logo"
+          />
 
-    </>
+          <p>Admin Portal</p>
+        </div>
+
+        {/* Navigation */}
+        <nav className="sidebar-nav">
+          {menuItems.map((item) => (
+            <NavLink
+              key={item.label}
+              to={item.path}
+              className={({ isActive }) =>
+                `nav-item ${isActive ? "active" : ""}`
+              }
+            >
+              <span className="nav-icon">{item.icon}</span>
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
+      </div>
+
+      {/* Footer */}
+      <div className="sidebar-footer">
+        <div className="account-section">
+          <p className="account-title">ACCOUNT</p>
+
+          <button className="logout-btn">
+            <FiLogOut />
+            <span>Exit Partner Portal</span>
+          </button>
+        </div>
+      </div>
+    </aside>
   );
 };
 
