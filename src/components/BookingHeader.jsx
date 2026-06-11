@@ -1,6 +1,6 @@
 import React from "react";
 import "./css/BookingHeader.css";
-import { FiHeart, FiUser } from "react-icons/fi";
+import { FiHeart, FiUser, FiMenu } from "react-icons/fi";
 
 const BookingHeader = () => {
   return (
@@ -15,24 +15,12 @@ const BookingHeader = () => {
         </div>
 
         <nav className="navbar-navigation-links">
-          <a href="#home" className="nav-item-link">
-            Home
-          </a>
-          <a href="#discover" className="nav-item-link">
-            Discover
-          </a>
-          <a href="#bookings" className="nav-item-link active">
-            My Bookings
-          </a>
-          <a href="#centres" className="nav-item-link">
-            For Centres
-          </a>
-          <a href="#about" className="nav-item-link">
-            About us
-          </a>
-          <a href="#support" className="nav-item-link">
-            Support
-          </a>
+          <a href="#home" className="nav-item-link">Home</a>
+          <a href="#discover" className="nav-item-link">Discover</a>
+          <a href="#bookings" className="nav-item-link active">My Bookings</a>
+          <a href="#centres" className="nav-item-link">For Centres</a>
+          <a href="#about" className="nav-item-link">About us</a>
+          <a href="#support" className="nav-item-link">Support</a>
         </nav>
 
         <div className="navbar-actions-wrapper">
@@ -41,6 +29,10 @@ const BookingHeader = () => {
           </button>
           <button className="navbar-action-btn" aria-label="Profile">
             <FiUser size={22} strokeWidth={1.8} />
+          </button>
+          {/* Hamburger — only visible on mobile via CSS */}
+          <button className="navbar-hamburger-btn" aria-label="Menu">
+            <FiMenu size={22} strokeWidth={1.8} />
           </button>
         </div>
       </div>

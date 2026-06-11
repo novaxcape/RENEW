@@ -76,20 +76,39 @@
   color: #0060a3;
 }
 
-@media (max-width: 1240px) {
-  .navbar-inner-container {
-    padding: 0 20px;
-  }
-}
 
-@media (max-width: 992px) {
-  .navbar-navigation-links {
-    gap: 20px;
-  }
+
+.navbar-hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  padding: 0;
+  color: #333333;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
 }
 
 @media (max-width: 768px) {
+  .navbar-inner-container {
+    padding: 0 16px;
+    height: 64px;
+  }
+
   .navbar-navigation-links {
-    display: none; 
+    display: none;
+  }
+
+  /* Show hamburger icon */
+  .navbar-hamburger-btn {
+    display: flex;
+  }
+
+  .navbar-brand-logo {
+    height: 26px;
+  }
+
+  .navbar-actions-wrapper {
+    gap: 16px;
   }
 }
