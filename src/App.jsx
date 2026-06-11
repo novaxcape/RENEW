@@ -31,7 +31,7 @@ import RevenueTrendPage from "./Pages/RevenueTrendPage";
 import SettingsPage from "./Pages/SettingPage";
 import ProfileSettingPage from "./Pages/ProfileSettingPage";
 import AddCentre from "./Pages/Addcentre";
-import Kyc from "./Pages/Kyc";
+import KycPage from "./Pages/KycPage";
 
 // Selection Pages
 import SignUpScreen from "./Pages/SignUpScreen";
@@ -208,7 +208,7 @@ const App = () => {
       <Route 
         path="/vendor/change-password" 
         element={
-          <PrivateRoute>
+          <PrivateRoute role="vendor">
             <VendorChangePassword />
           </PrivateRoute>
         } 
@@ -218,7 +218,7 @@ const App = () => {
       {/* <Route 
         path="/vendor/dashboard" 
         element={
-          <PrivateRoute>
+          <PrivateRoute role="vendor">
             <VendorDashboard />
           </PrivateRoute>
         } 
@@ -253,7 +253,7 @@ const App = () => {
         path="/kyc" 
         element={
           <PrivateRoute>
-            <Kyc />
+            <KycPage />
           </PrivateRoute>
         } 
       />

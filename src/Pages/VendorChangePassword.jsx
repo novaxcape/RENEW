@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { logout, setLoading, setError, clearError } from '../redox/authSlice';
+import { vendorLogout, setLoading, setError, clearError } from '../redox/authSlice';
 import "../Styles/SignUpVendor.css"
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "https://novaxcape.onrender.com/api/v1";
@@ -72,7 +72,7 @@ const VendorChangePassword = () => {
         confirmButtonColor: "#ff6b35",
       });
       
-      dispatch(logout());
+      dispatch(vendorLogout());
       navigate("/vendor/login");
       
     } catch (error) {
