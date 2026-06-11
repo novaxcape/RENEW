@@ -63,9 +63,9 @@ const VendorLogin = () => {
         title: "Login Successful",
         text: "Welcome back!",
         confirmButtonColor: "#ff6b35",
+      }).then(() => {
+        navigate("/add-centre", { replace: true });
       });
-      
-      navigate("/dashboard");
       
     } catch (error) {
       console.error("Vendor login error:", error.response?.data);

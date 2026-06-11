@@ -92,8 +92,8 @@ const SignUpVendor = () => {
     
     // Prepare data for API
     const vendorData = {
-      email: formData.email,
       centerName: formData.centerName,
+      email: formData.email,
       phoneNumber: formData.phone,
       password: formData.password
     };
@@ -110,7 +110,7 @@ const SignUpVendor = () => {
       if (response.data.user) {
         dispatch(setVendorDetails(response.data.user));
       }
-      
+
       
       localStorage.setItem("vendorEmail", formData.email);
       localStorage.setItem("vendorName", formData.centerName);
