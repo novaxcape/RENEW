@@ -30,7 +30,7 @@ const BookingHeader = () => {
           <button className="navbar-action-btn" aria-label="Profile">
             <FiUser size={22} strokeWidth={1.8} />
           </button>
-          {/* Hamburger — only visible on mobile via CSS */}
+          
           <button className="navbar-hamburger-btn" aria-label="Menu">
             <FiMenu size={22} strokeWidth={1.8} />
           </button>
