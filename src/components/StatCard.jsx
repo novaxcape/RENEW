@@ -1,44 +1,33 @@
-import {
-  FiCreditCard,
-  FiDollarSign,
-  FiBookOpen,
-  FiStar
-} from "react-icons/fi";
-// import "./css/StatCard.css";
 const icons = {
-  ticket: <FiCreditCard />,
-  revenue: <FiDollarSign />,
-  booking: <FiBookOpen />,
-  rating: <FiStar />
+  ticket: "/novaxcape/box.png",
+  revenue: "/novaxcape/dollar.png",
+  booking: "/novaxcape/rotate.png",
+  rating: "/novaxcape/star.png"
 };
 
-const StatCard = ({
-  title,
-  value,
-  previous,
-  type
-}) => {
+const StatCard = ({ title, value, percent, previous, type }) => {
+  const isOrange = type === "revenue";
+
   return (
     <div className="stat-card">
-
-      <div className="stat-icon">
-        {icons[type]}
+      <div className="stat-header">
+        <span className="stat-title">{title}</span>
+        <img
+          src={icons[type]}
+          alt={type}
+          className="stat-icon-img"
+        />
       </div>
 
-      <h4>{title}</h4>
+      <div className="stat-value-row">
+        <h2 className="stat-value">{value}</h2>
+        <span className={`stat-percent${isOrange ? " orange" : ""}`}>
+          <span className="stat-arrow">↑</span>
+          {percent}
+        </span>
+      </div>
 
-<div className="stat-value-row">
-  <h2>{value}</h2>
-
-  <span className="stat-percent">
-    +1.8%
-  </span>
-</div>
-
-<p>{previous}</p>
-
-      <p>{previous}</p>
-
+      <p className="stat-previous">{previous}</p>
     </div>
   );
 };

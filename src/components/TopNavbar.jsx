@@ -1,9 +1,28 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { FiBell, FiChevronDown, FiSearch, FiMenu } from "react-icons/fi";
 import "../Styles/Dashboard.css";
 
-const TopNavbar = () => {
+const notifications = [
+  { id: 1, title: "New booking for lekki conservation centre", time: "3 hours ago" },
+  { id: 2, title: "Payment received – #15,000", time: "2 hours ago" },
+  { id: 3, title: "Review posted by customer", time: "1 hour ago" },
+];
+
+const TopNavbar = ({ onMenuOpen }) => {
+  const [showNotifications, setShowNotifications] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const notifRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setShowNotifications(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <div className="top-navbar">
@@ -11,31 +30,59 @@ const TopNavbar = () => {
         <h2 className="analytics-title">Analytics</h2>
       </div>
 
+      <div className="navbar-mobile1-logo">
+        <img src="/novaxcape/logo.png" alt="Novaxcape" />
+      </div>
+
       <div className="search-bar">
-        <i className="fas fa-search"></i>
-        <input 
-          type="text" 
-          placeholder="Search reports..." 
+        <FiSearch size={15} color="#1e293b" />
+        <input
+          type="text"
+          placeholder="Search reports..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
-      
+
       <div className="top-right">
-        <div className="location-selector">
-          <i className="fas fa-map-marker-alt"></i>
-          <span>Lekki CC</span>
-          <i className="fas fa-chevron-down" style={{ fontSize: "12px" }}></i>
+        <div className="bell-wrapper" ref={notifRef}>
+          <div className="bell-icon" onClick={() => setShowNotifications(!showNotifications)}>
+            <FiBell size={20} color="#334155" />
+            <span className="bell-dot"></span>
+          </div>
+
+          {showNotifications && (
+            <div className="notification-dropdown">
+              <div className="notification-header">
+                <p className="notification-title">Notification</p>
+                <span className="notification-badge">1 new</span>
+              </div>
+              {notifications.map((n) => (
+                <div className="notification-item" key={n.id}>
+                  <p className="notification-item-title">{n.title}</p>
+                  <p className="notification-item-time">{n.time}</p>
+                </div>
+              ))}
+              <button className="notification-view-all">View all notifications</button>
+            </div>
+          )}
         </div>
-        
+
         <div className="profile" onClick={() => setShowDropdown(!showDropdown)}>
-          <img src="https://i.pravatar.cc/150?img=7" alt="Admin" />
-          <span>Admin</span>
-          <i className="fas fa-chevron-down" style={{ fontSize: "12px" }}></i>
+          <img src="/novaxcape/profile.png" alt="Admin" />
+          <div className="profile-info">
+            <span className="profile-name">
+              Lekki CC <FiChevronDown size={13} color="#334155" />
+            </span>
+            <span className="profile-role">Admin</span>
+          </div>
         </div>
+
+        <button className="hamburger-btn" onClick={onMenuOpen}>
+          <FiMenu size={24} />
+        </button>
       </div>
-      
-      {/* Dropdown Menu */}
+
       {showDropdown && (
         <div className="profile-dropdown show">
           <a href="#profile">
