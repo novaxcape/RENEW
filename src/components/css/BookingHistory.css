@@ -325,78 +325,93 @@
   padding: 0 4px;
 }
 
-@media (max-width: 1024px) {
-  .history-page-wrapper {
-    padding: 40px 30px;
-  }
-}
-
 @media (max-width: 768px) {
+  .history-page-wrapper {
+    padding: 24px 16px 60px 16px;
+  }
+
+  .history-header-row {
+    margin-bottom: 20px;
+  }
+
+  .history-main-title {
+    font-size: 24px;
+  }
+
+
   .history-toolbar-card {
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin-bottom: 16px;
     flex-direction: column;
     align-items: stretch;
-    gap: 16px;
-    padding: 20px;
+    gap: 0;
   }
-  
+
   .search-input-wrapper {
     width: 100%;
   }
-  
+
+
   .filter-dropdown-trigger-btn {
-    justify-content: center;
+    display: none;
   }
 
+  
+  .table-overflow-container {
+    overflow-x: auto;
+    border-radius: 12px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .history-data-table {
+    min-width: 520px; 
+  }
+
+  .history-data-table th,
+  .history-data-table td {
+    padding: 14px 12px;
+    font-size: 14px !important;
+    line-height: 20px !important;
+    white-space: nowrap;
+  }
+
+  .status-badge {
+    font-size: 13px !important;
+    padding: 4px 10px !important;
+  }
+
+
   .history-table-footer-row {
-    flex-direction: column;
-    gap: 16px;
+    flex-direction: row;
+    justify-content: space-between;
     align-items: center;
+    margin-top: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .pagination-count-summary-txt {
+    font-size: 13px;
+  }
+
+  .pag-nav-btn {
+    padding: 0 10px;
+    height: 34px;
+    font-size: 13px !important;
+  }
+
+  .pag-num-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 13px !important;
   }
 }
 
 @media (max-width: 600px) {
   .history-page-wrapper {
-    padding: 30px 16px;
-  }
-
-  .history-main-title {
-    font-size: 26px;
-  }
-
-  .back-home-redirect-btn {
-    padding: 10px 20px;
-    font-size: 13.5px;
-  }
-
-  .history-data-table th {
-    padding: 14px 12px;
-    font-size: 13px;
-  }
-
-  .history-data-table td,
-  .ticket-id-txt,
-  .ticket-type-txt,
-  .date-txt,
-  .amount-txt,
-  .status-badge {
-    font-size: 14px !important;
-    line-height: 20px !important;
-    padding: 14px 12px;
-  }
-  
-  .status-badge {
-    padding: 4px 10px !important;
-  }
-  
-  .pag-nav-btn {
-    padding: 0 10px;
-  }
-  
-  .pag-num-btn, .pag-nav-btn {
-    height: 34px;
-  }
-  
-  .pag-num-btn {
-    width: 34px;
+    padding: 24px 16px 60px 16px;
   }
 }

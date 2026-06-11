@@ -1,7 +1,7 @@
 .payment-navbar-header {
   width: 100%;
   background-color: #ffffff;
-  border-bottom: 2px solid #3b5998; 
+  border-bottom: 2px solid #3b5998;
   box-sizing: border-box;
 }
 
@@ -22,7 +22,7 @@
 }
 
 .navbar-brand-logo {
-  height: 32px; 
+  height: 32px;
   width: auto;
   display: block;
 }
@@ -36,10 +36,8 @@
 .nav-item-link {
   font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
   font-weight: 500;
-  font-style: normal;
   font-size: 18px;
   line-height: 28px;
-  letter-spacing: 0%;
   color: #333333;
   text-decoration: none;
   transition: color 0.2s ease;
@@ -47,12 +45,6 @@
 
 .nav-item-link:hover {
   color: #0060a3;
-}
-
-.navbar-actions-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 24px;
 }
 
 .navbar-action-btn {
@@ -71,6 +63,18 @@
   color: #0060a3;
 }
 
+/* Desktop: show user only */
+.navbar-desktop-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+/* Mobile: hidden by default */
+.navbar-mobile-actions {
+  display: none;
+}
+
 @media (max-width: 1240px) {
   .navbar-inner-container {
     padding: 0 20px;
@@ -85,6 +89,16 @@
 
 @media (max-width: 768px) {
   .navbar-navigation-links {
-    display: none; 
+    display: none;
+  }
+
+  .navbar-desktop-actions {
+    display: none;
+  }
+
+  .navbar-mobile-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
   }
 }
