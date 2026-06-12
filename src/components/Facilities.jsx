@@ -1,4 +1,3 @@
-import React from 'react';
 import { IconWifi, IconCar, IconImage } from './Icon';
 
 // Add IconUtensils if not in Icons.js
@@ -10,29 +9,36 @@ const IconUtensils = () => (
   </svg>
 );
 
-const Facilities = () => {
+const facilityOptions = [
+  { label: 'Free WiFi', icon: <IconWifi /> },
+  { label: 'Parking', icon: <IconCar /> },
+  { label: 'Restaurant', icon: <IconUtensils /> },
+  { label: 'Photography Allowed', icon: <IconImage /> },
+];
+
+const Facilities = ({ selectedFacilities, onToggle }) => {
   return (
     <div className="step-content">
       <div className="card-title">Facilities & Amenities</div>
       <p className="card-subtitle">Select all the facilities and amenities available at your centre</p>
       
       <div className="facilities-grid">
-        <div className="facility-card">
-          <IconWifi />
-          <span>Free WiFi</span>
-        </div>
-        <div className="facility-card">
-          <IconCar />
-          <span>Parking</span>
-        </div>
-        <div className="facility-card">
-          <IconUtensils />
-          <span>Restaurant</span>
-        </div>
-        <div className="facility-card">
-          <IconImage />
-          <span>Photography Allowed</span>
-        </div>
+        {facilityOptions.map((facility) => {
+          const isSelected = selectedFacilities.includes(facility.label);
+
+          return (
+            <button
+              key={facility.label}
+              type="button"
+              className={`facility-card ${isSelected ? 'selected' : ''}`}
+              onClick={() => onToggle(facility.label)}
+              aria-pressed={isSelected}
+            >
+              {facility.icon}
+              <span>{facility.label}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

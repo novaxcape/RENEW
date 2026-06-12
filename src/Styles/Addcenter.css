@@ -379,6 +379,15 @@ h1 {
   font-weight: 500;
 }
 
+.facility-card.selected {
+  border-color: #ff6b35;
+  background: #fff4ee;
+}
+
+.facility-card.selected span {
+  color: #ff6b35;
+}
+
 /* ============================================
    UPLOAD BOXES (IMAGES)
    ============================================ */
