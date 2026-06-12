@@ -46,7 +46,7 @@ const signUpSchema = z.object({
   message: "Passwords do not match",
 });
 
-const SignUp = () => {
+const SignUpVendor = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { loading: reduxLoading, error } = useSelector((state) => state.auth);
@@ -285,9 +285,9 @@ const SignUp = () => {
             </p>
           </form>
         </div>
-      </div>
+      </div> 
     </div>
   );
 };
 
-export default SignUp;
+export default SignUpVendor;

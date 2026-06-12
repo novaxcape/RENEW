@@ -11,6 +11,7 @@ import {
   REGISTER,
 } from "redux-persist";
 import authReducer from "./authSlice";
+import apiReducer from "./apiSlice";
 
 const customStorage = {
   getItem: (key) => {
@@ -53,6 +54,7 @@ const persistedReducer = persistReducer(persistConfig, authReducer);
 export const store = configureStore({
   reducer: {
     auth: persistedReducer,
+    api: apiReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
