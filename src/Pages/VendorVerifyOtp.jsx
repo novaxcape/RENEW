@@ -108,7 +108,7 @@ const VendorVerifyOtp = () => {
         confirmButtonColor: "#ff6b35",
       });
       
-      navigate("/vendor/login");
+      navigate("/add-centre");
       
     } catch (error) {
       console.error("Verification error:", error.response?.data);
