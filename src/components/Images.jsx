@@ -1,42 +1,55 @@
 // src/components/Images.js
-import React, { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { IconUpload } from "./Icon";
 import {
-  handleImagePaste,
   handleImageDrop,
   handleImageFileInput,
+  handleImagePaste,
 } from "../utils/imageUpload";
 
-const Images = () => {
-  const [uploadedImages, setUploadedImages] = useState({});
+const Images = ({ uploadedImages, documents, onImagesChange, onDocumentsChange }) => {
+  const [localImages, setLocalImages] = useState(uploadedImages || {});
   const [errors, setErrors] = useState({});
   const fileInputsRef = useRef({});
+
+  const updateImages = (updater) => {
+    setLocalImages((prev) => {
+      const next = typeof updater === "function" ? updater(prev) : updater;
+      onImagesChange(next);
+      return next;
+    });
+  };
+
+  const setImage = (boxId, imageData) => {
+    updateImages((prev) => ({
+      ...prev,
+      [boxId]: imageData,
+    }));
+    setErrors((prev) => ({
+      ...prev,
+      [boxId]: "",
+    }));
+  };
+
+  const setImageError = (boxId, message) => {
+    setErrors((prev) => ({
+      ...prev,
+      [boxId]: message,
+    }));
+  };
 
   const handlePaste = (event, boxId) => {
     try {
       const imageData = handleImagePaste(event);
 
       if (imageData) {
-        setUploadedImages((prev) => ({
-          ...prev,
-          [boxId]: imageData,
-        }));
-        setErrors((prev) => ({
-          ...prev,
-          [boxId]: "",
-        }));
+        setImage(boxId, imageData);
       } else {
-        setErrors((prev) => ({
-          ...prev,
-          [boxId]: "Please paste a valid image file (PNG, JPG, GIF)",
-        }));
+        setImageError(boxId, "Please paste a valid image file (PNG, JPG, GIF)");
       }
     } catch (error) {
       console.error("Paste error:", error);
-      setErrors((prev) => ({
-        ...prev,
-        [boxId]: "Error processing pasted image",
-      }));
+      setImageError(boxId, "Error processing pasted image");
     }
   };
 
@@ -45,26 +58,13 @@ const Images = () => {
       const imageData = handleImageDrop(event);
 
       if (imageData) {
-        setUploadedImages((prev) => ({
-          ...prev,
-          [boxId]: imageData,
-        }));
-        setErrors((prev) => ({
-          ...prev,
-          [boxId]: "",
-        }));
+        setImage(boxId, imageData);
       } else {
-        setErrors((prev) => ({
-          ...prev,
-          [boxId]: "Please drop a valid image file (PNG, JPG, GIF)",
-        }));
+        setImageError(boxId, "Please drop a valid image file (PNG, JPG, GIF)");
       }
     } catch (error) {
       console.error("Drop error:", error);
-      setErrors((prev) => ({
-        ...prev,
-        [boxId]: "Error processing dropped image",
-      }));
+      setImageError(boxId, "Error processing dropped image");
     }
   };
 
@@ -73,21 +73,11 @@ const Images = () => {
       const imageData = handleImageFileInput(event);
 
       if (imageData) {
-        setUploadedImages((prev) => ({
-          ...prev,
-          [boxId]: imageData,
-        }));
-        setErrors((prev) => ({
-          ...prev,
-          [boxId]: "",
-        }));
+        setImage(boxId, imageData);
       }
     } catch (error) {
       console.error("File select error:", error);
-      setErrors((prev) => ({
-        ...prev,
-        [boxId]: "Error processing selected image",
-      }));
+      setImageError(boxId, "Error processing selected image");
     }
   };
 
@@ -97,7 +87,7 @@ const Images = () => {
   };
 
   const handleRemoveImage = (boxId) => {
-    setUploadedImages((prev) => {
+    updateImages((prev) => {
       const updated = { ...prev };
       if (updated[boxId]?.previewUrl) {
         URL.revokeObjectURL(updated[boxId].previewUrl);
@@ -111,16 +101,22 @@ const Images = () => {
     }));
   };
 
+  const handleDocumentSelect = (event, field) => {
+    onDocumentsChange({
+      ...documents,
+      [field]: event.target.files?.[0] || null,
+    });
+  };
+
   return (
     <div className="step-content">
       <div className="card-title">Images & Media</div>
       <p className="card-subtitle">
-        Upload high-quality images of your tourism centre (minimum 3 images
-        recommended)
+        Upload high-quality images of your tourism centre (minimum 3 images recommended)
       </p>
 
       {[1, 2, 3, 4, 5].map((i) => {
-        const imageData = uploadedImages[i];
+        const imageData = localImages[i];
 
         return (
           <div
@@ -152,7 +148,7 @@ const Images = () => {
                   onClick={() => handleRemoveImage(i)}
                   aria-label={`Remove image ${i}`}
                 >
-                  ✕
+                  x
                 </button>
               </div>
             ) : (
@@ -160,9 +156,7 @@ const Images = () => {
                 <div className="upload-icon">
                   <IconUpload />
                 </div>
-                <div className="upload-text">
-                  Click to upload or drag and drop
-                </div>
+                <div className="upload-text">Click to upload or drag and drop</div>
                 <div className="upload-sub">
                   PNG, JPG, GIF up to 10MB (Recommended: 1920x1080)
                 </div>
@@ -172,7 +166,6 @@ const Images = () => {
                   accept="image/png,image/jpeg,image/jpg,image/gif"
                   onChange={(e) => handleFileSelect(e, i)}
                   style={{ display: "none" }}
-                //   aria-hidden="true"
                 />
                 <button
                   type="button"
@@ -185,7 +178,6 @@ const Images = () => {
                     opacity: 0,
                     cursor: "pointer",
                   }}
-                //   aria-hidden="true"
                 />
               </>
             )}
@@ -193,6 +185,26 @@ const Images = () => {
           </div>
         );
       })}
+
+      <div className="row">
+        {[
+          { field: "termsAndCondition", label: "Terms and Conditions *" },
+          { field: "privacyPolicy", label: "Privacy Policy *" },
+        ].map((document) => (
+          <div className="form-group half" key={document.field}>
+            <label>{document.label}</label>
+            <input
+              type="file"
+              accept=".pdf,.doc,.docx,image/png,image/jpeg,image/jpg"
+              className="input-field"
+              onChange={(event) => handleDocumentSelect(event, document.field)}
+            />
+            {documents[document.field] && (
+              <p className="upload-sub">{documents[document.field].name}</p>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
