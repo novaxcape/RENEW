@@ -1,58 +1,269 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "../components/css/Hero.css";
-import { FaSearch, FaCalendarAlt } from "react-icons/fa";
-const Hero = () => {
+import { FaCalendarAlt } from "react-icons/fa";
+
+const ROTATING_TEXTS = [
+  "Stunning Places",
+  "Hidden Gems",
+  "Iconic Spots",
+  "Beautiful Destination",
+];
+
+const LOCATIONS = [
+  "Lagos", "Abuja", "Port Harcourt", "Calabar",
+  "Kastina", "Enugu", "Ibadan", "Ogun",
+];
+
+const CalendarPicker = ({ onSelect, selectedDate }) => {
+  const today = new Date();
+  const [viewYear, setViewYear] = useState(today.getFullYear());
+  const [viewMonth, setViewMonth] = useState(today.getMonth());
+
+  const monthNames = [
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December",
+  ];
+  const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const prevDays = new Date(viewYear, viewMonth, 0).getDate();
+
+  const cells = [];
+  for (let i = firstDay - 1; i >= 0; i--) cells.push({ day: prevDays - i, type: "prev" });
+  for (let d = 1; d <= daysInMonth; d++) cells.push({ day: d, type: "current" });
+  const remaining = 42 - cells.length;
+  for (let d = 1; d <= remaining; d++) cells.push({ day: d, type: "next" });
+
+  const isToday = (day, type) =>
+    type === "current" &&
+    day === today.getDate() &&
+    viewMonth === today.getMonth() &&
+    viewYear === today.getFullYear();
+
+  const isSelected = (day, type) =>
+    selectedDate &&
+    type === "current" &&
+    selectedDate.getDate() === day &&
+    selectedDate.getMonth() === viewMonth &&
+    selectedDate.getFullYear() === viewYear;
+
+  const handlePrev = () => {
+    if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
+    else setViewMonth(m => m - 1);
+  };
+  const handleNext = () => {
+    if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); }
+    else setViewMonth(m => m + 1);
+  };
+
   return (
-    <>
-      <div className="hero_wrapper">
-        <div className="wrapper">
-        <div className="right">
-          <div className="left">
-            <div className="text">
-              <div className="text1"><img src="/novaxcape/Explore.png" alt="Explore" /></div>
-                <div className="text2"><h2>Explore Nigeria's Most</h2>
-                <span>Stunning Place</span>
-                </div>
-                  <div className="text3">
-                    <p>Discover beautiful tourism centres across Nigeria, book tickets instantly, and create memories that matter.</p>
-                  </div>
-            </div>
-          <div className="box">
-            <input type="text" placeholder="Where to?" />
-            <input type="text"  placeholder="When?" />
-            <button>Search</button>
-          </div>
-<div className="box1">
-  <div className="input-wrapper">
-    <FaSearch className="icon" />
-    <input
-      type="text"
-      placeholder="Where to?"
-      className="input-field"
-    />
-  </div>
-
-
-
-  <div className="input-wrapper">
-    <FaCalendarAlt className="icon" />
-    <input
-      type="text"
-      placeholder="When?"
-      className="input-field"
-    />
-  </div>
-
-  <button>Search</button>
-</div>
-        </div>
-          <div className="img">
-            
-            <img src="/novaxcape/Heros.png" alt=""/>
-            
-            </div></div></div>
+    <div className="cal-picker">
+      <div className="cal-header">
+        <button className="cal-nav" onClick={handlePrev}>&#8249;</button>
+        <span className="cal-month-label">{monthNames[viewMonth]} {viewYear}</span>
+        <button className="cal-nav" onClick={handleNext}>&#8250;</button>
       </div>
-    </>
+      <div className="cal-grid">
+        {dayNames.map(d => (
+          <div key={d} className="cal-day-name">{d}</div>
+        ))}
+        {cells.map((cell, i) => (
+          <div
+            key={i}
+            className={[
+              "cal-cell",
+              cell.type !== "current" ? "cal-cell--other" : "",
+              isToday(cell.day, cell.type) ? "cal-cell--today" : "",
+              isSelected(cell.day, cell.type) ? "cal-cell--selected" : "",
+            ].join(" ").trim()}
+            onClick={() => {
+              if (cell.type === "current") onSelect(new Date(viewYear, viewMonth, cell.day));
+            }}
+          >
+            {cell.day}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const Hero = () => {
+  const [textIndex, setTextIndex] = useState(0);
+  const [fade, setFade] = useState(true);
+  const [locationOpen, setLocationOpen] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [calOpen, setCalOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
+
+  // Desktop refs
+  const locationRef = useRef(null);
+  const calRef = useRef(null);
+
+  // Mobile refs
+  const locationMobileRef = useRef(null);
+  const calMobileRef = useRef(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFade(false);
+      setTimeout(() => {
+        setTextIndex(i => (i + 1) % ROTATING_TEXTS.length);
+        setFade(true);
+      }, 400);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (locationRef.current && !locationRef.current.contains(e.target)) setLocationOpen(false);
+      if (calRef.current && !calRef.current.contains(e.target)) setCalOpen(false);
+      if (locationMobileRef.current && !locationMobileRef.current.contains(e.target)) setLocationOpen(false);
+      if (calMobileRef.current && !calMobileRef.current.contains(e.target)) setCalOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const formatDate = (date) =>
+    date
+      ? date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+      : null;
+
+  return (
+    <div className="hero_wrapper">
+      <div className="hero_inner">
+
+        {/* LEFT */}
+        <div className="hero_left">
+
+          <div className="hero_tagline">
+            <img src="/novaxcape/Explore.png" alt="Explore Nigeria's hidden gems" />
+          </div>
+
+          <div className="hero_headline">
+            <h2 className="hero_headline_static">Explore Nigeria's Most</h2>
+            <span className={`hero_headline_rotating ${fade ? "fade-in" : "fade-out"}`}>
+              {ROTATING_TEXTS[textIndex]}
+            </span>
+          </div>
+
+          <p className="hero_description">
+            Discover beautiful tourism centres across Nigeria, book tickets instantly,
+            and create memories that matter.
+          </p>
+
+          {/* DESKTOP SEARCH */}
+          <div className="search_row">
+            <div className="search_glass">
+
+              <div className="search_pill_wrapper" ref={locationRef}>
+                <button
+                  className="search_pill search_pill--grey"
+                  onClick={() => { setLocationOpen(o => !o); setCalOpen(false); }}
+                >
+                  <span>{selectedLocation || "Where to?"}</span>
+                </button>
+                {locationOpen && (
+                  <div className="dropdown_list">
+                    {LOCATIONS.map(loc => (
+                      <div
+                        key={loc}
+                        className="dropdown_item"
+                        onClick={() => { setSelectedLocation(loc); setLocationOpen(false); }}
+                      >
+                        {loc}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="search_pill_wrapper" ref={calRef}>
+                <button
+                  className="search_pill search_pill--grey"
+                  onClick={() => { setCalOpen(o => !o); setLocationOpen(false); }}
+                >
+                  <FaCalendarAlt className="search_pill_icon" />
+                  <span>{selectedDate ? formatDate(selectedDate) : "When?"}</span>
+                </button>
+                {calOpen && (
+                  <CalendarPicker
+                    selectedDate={selectedDate}
+                    onSelect={(d) => { setSelectedDate(d); setCalOpen(false); }}
+                  />
+                )}
+              </div>
+
+              <button className="search_btn_orange">Search</button>
+
+            </div>
+          </div>
+
+        </div>
+
+        {/* RIGHT */}
+        <div className="hero_right">
+          <img src="/novaxcape/Heros.png" alt="Nigeria destinations" />
+        </div>
+
+      </div>
+
+      {/* MOBILE SEARCH — above the image */}
+      <div className="search_mobile">
+
+        <div className="search_mobile_pill_wrapper" ref={locationMobileRef}>
+          <button
+            className="search_mobile_pill"
+            onClick={() => { setLocationOpen(o => !o); setCalOpen(false); }}
+          >
+            <span>{selectedLocation || "Where to?"}</span>
+          </button>
+          {locationOpen && (
+            <div className="dropdown_list dropdown_list--mobile">
+              {LOCATIONS.map(loc => (
+                <div
+                  key={loc}
+                  className="dropdown_item"
+                  onClick={() => { setSelectedLocation(loc); setLocationOpen(false); }}
+                >
+                  {loc}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="search_mobile_pill_wrapper" ref={calMobileRef}>
+          <button
+            className="search_mobile_pill"
+            onClick={() => { setCalOpen(o => !o); setLocationOpen(false); }}
+          >
+            <FaCalendarAlt className="search_mobile_icon" />
+            <span>{selectedDate ? formatDate(selectedDate) : "When?"}</span>
+          </button>
+          {calOpen && (
+            <CalendarPicker
+              selectedDate={selectedDate}
+              onSelect={(d) => { setSelectedDate(d); setCalOpen(false); }}
+            />
+          )}
+        </div>
+
+        <button className="search_mobile_pill search_mobile_pill--orange">
+          Search
+        </button>
+
+      </div>
+
+      {/* MOBILE IMAGE — below search */}
+      <div className="hero_right_mobile">
+        <img src="/novaxcape/Heros.png" alt="Nigeria destinations" />
+      </div>
+
+    </div>
   );
 };
 

@@ -44,7 +44,7 @@ const Recommend = () => {
 
               <div className="statBlockCard">
                 <div className="statValueNumber">20+</div>
-                <div className="statValueLabel">Years Experience</div>
+                <div className="statValueLabel"> Years Experience</div>
               </div>
             </div>
           </div>
