@@ -6,17 +6,18 @@
   display: flex;
   justify-content: center;
 }
+
 /* Style the links inside the list items */
 .link ul li a {
   text-decoration: none;
-  color: #333; /* Your default link color */
+  color: #333;
   transition: color 0.3s ease;
 }
 
 /* Style for the active state */
 .link ul li a.active-link,
 .overlay-links ul li a.active-link {
-  color: #246bff; /* active blue */
+  color: #246bff;
   font-weight: bold;
 }
 
@@ -63,8 +64,32 @@
   align-items: center;
 }
 
-.signin {
-  width: 162px;
+/* Desktop Buttons Container */
+.desktop-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* New Transparent Sign In Button */
+.signin-btn {
+  width: 120px;
+  height: 44px;
+  border: 1px solid #FF5000;
+  border-radius: 20px;
+  background: transparent;
+  color: #FF6B35;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+
+
+/* Sign Up Button (renamed class from .signin to reflect function) */
+.signup-btn {
+  width: 120px;
   height: 44px;
   border: none;
   border-radius: 20px;
@@ -79,48 +104,6 @@
 .mobile-icons {
   display: none;
 }
-
-/* =========================
-   MOBILE RESPONSIVE
-========================= */
-
-@media (max-width: 400px) {
-
-  .header {
-    height: 60px;
-    border-bottom: 1px solid #01388C;
-  }
-
-  .header-body {
-    width: 95%;
-  }
-
-  .header-logo-img {
-    width: 120px;
-  }
-
-  /* HIDE NAVIGATION */
-  .link {
-    display: none;
-  }
-
-  /* HIDE BUTTON */
-  .signin {
-    display: none;
-  }
-
-  /* SHOW ICONS */
-  .mobile-icons {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    font-size: 18px;
-    color: #000;
-    cursor: pointer;
-  }
-
-}
-/* Add to your existing Header.css */
 
 /* ===== MOBILE OVERLAY ===== */
 .mobile-overlay {
@@ -199,9 +182,41 @@
   color: #246bff;
 }
 
-/* Hide desktop links on mobile */
+/* Mobile Auth Link Formatting inside the Sidebar Menu */
+.mobile-auth-links {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.mobile-auth-links .mobile-signin {
+  text-align: center;
+  border: 2px solid #FF6B35 !important;
+  color: #FF6B35 !important;
+  padding: 10px;
+  border-radius: 20px;
+}
+
+.mobile-auth-links .mobile-signup {
+  text-align: center;
+  background: #FF6B35;
+  color: #fff !important;
+  padding: 10px;
+  border-radius: 20px;
+}
+
+/* =========================================
+   MEDIA QUERIES (Mobile Responsiveness)
+========================================= */
+
+/* Tablets and Mobile layout */
 @media (max-width: 768px) {
   .desktop-links {
+    display: none;
+  }
+  
+  .desktop-buttons {
     display: none;
   }
   
@@ -217,7 +232,29 @@
   }
 }
 
-/* Show desktop links on larger screens */
+/* Small screen optimization */
+@media (max-width: 400px) {
+  .header {
+    height: 60px;
+    border-bottom: 1px solid #01388C;
+  }
+
+  .header-body {
+    width: 95%;
+  }
+
+  .header-logo-img {
+    width: 120px;
+  }
+
+  .mobile-icons {
+    gap: 14px;
+    font-size: 18px;
+    color: #000;
+  }
+}
+
+/* Safety Reset for Desktop view window resizing */
 @media (min-width: 769px) {
   .mobile-overlay {
     display: none !important;
