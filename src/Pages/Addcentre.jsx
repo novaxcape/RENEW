@@ -211,12 +211,26 @@ const AddCentre = () => {
       .map((image) => image?.file)
       .filter(Boolean);
 
+    // Convert facilities array to comma-separated string
+    const facilitiesString = selectedFacilities.join(', ');
+
+    // Convert opening hours object to readable string format
+    const hoursString = Object.entries(openingHours)
+      .map(([day, times]) => {
+        const dayName = day.charAt(0).toUpperCase() + day.slice(1);
+        if (times.isOpen) {
+          return `${dayName}: ${times.openTime} - ${times.closeTime}`;
+        }
+        return `${dayName}: Closed`;
+      })
+      .join(' | ');
+
     const payload = {
       ...centreData,
-      facilitiesAndAmenities: JSON.stringify(selectedFacilities),
+      facilitiesAndAmenities: facilitiesString,
       dailySlotCapacity: Number(pricingData.dailySlotCapacity),
       installmentPayment: pricingData.installmentPayment,
-      openingHours: JSON.stringify(openingHours),
+      openingHours: hoursString,
       images: imageFiles,
       termsAndCondition: documents.termsAndCondition,
       privacyPolicy: documents.privacyPolicy,
