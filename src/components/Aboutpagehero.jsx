@@ -31,7 +31,7 @@ const Aboutpagehero = () => {
         <h2>About Us</h2>
 
         <p>
-          We are Novaxcape—a platform dedicated to simplifying the discovery and
+          We are Novaxcape — A platform dedicated to simplifying the discovery and
           booking of <br />
           tourism centres across Nigeria, so every traveler can enjoy
           seamless and memorable experiences

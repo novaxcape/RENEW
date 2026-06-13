@@ -116,115 +116,135 @@
 }
 
 
-/* ================= MOBILE RESPONSIVENESS ================= */
 
 @media (max-width: 768px) {
   .hero {
-    min-height: 100vh;
-    height: auto;
-    padding: 120px 20px 60px;
-    justify-content: center;
+    width: 100%;
+    height: 60vh; 
+    min-height: 470px; 
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    
+    background-size: cover; 
+    background-position: 50% 20%; 
+    background-repeat: no-repeat;
+  }
 
-    /* Show more of the image */
-    background-size: contain;
-    background-position: top center;
-    background-color: #000;
+  .hero_overlay {
+    background: rgba(0, 0, 0, 0.35);
   }
 
   .hero_content {
     padding-left: 0;
     width: 100%;
-    max-width: 100%;
-    text-align: center;
+    max-width: 460px;
+    text-align: left;
+    position: relative;
+    z-index: 5;
   }
 
   .hero_content h1 {
-    font-size: 36px;
+    font-size: 34px;
+    font-weight: 700;
     line-height: 1.2;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
+    color: #ffffff;
+    letter-spacing: -0.5px;
   }
 
   .hero_content p {
-    font-size: 18px;
-    line-height: 1.5;
-    margin-bottom: 25px;
+    font-size: 26px; 
+    line-height: 1.4;
+    margin-bottom: 26px;
+    color: #ffffff;
+    font-weight: 500;
   }
 
   .destination_btn {
-    margin: 0 auto 25px;
+    margin: 0 0 20px 0;
+    padding: 6px 14px;
+    gap: 8px;
+    background: #ffffff;
   }
 
   .destination_btn span {
-    font-size: 16px;
+    font-size: 15px;
+    color: #2b2b2b;
   }
 
   .destination_btn svg {
-    font-size: 22px;
+    font-size: 18px;
+    color: #2b2b2b;
   }
 
   .search_container {
     width: 100%;
-    border-radius: 20px;
-    padding: 12px;
-    flex-direction: column;
-    gap: 12px;
+    max-width: 430px;
+    border-radius: 50px;
+    padding: 5px;
+    display: flex; 
+    flex-direction: row; 
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.15);
   }
 
   .search_input {
-    width: 100%;
+    border-radius: 40px;
+    border: none;
+    background: transparent;
   }
 
   .search_input svg {
-    width: 55px;
-    height: 55px;
+    width: 36px;
+    height: 32px;
+    padding: 8px;
+    margin-left: 2px;
+    background: #8f8782;
+    color: #ffffff;
+    border-radius: 50%;
   }
 
   .search_input input {
-    font-size: 16px;
+    font-size: 15px;
+    padding: 0 8px;
+    width: 100%;
+    background: transparent;
   }
 
+  
   .filter_btn {
-    width: 100%;
     margin-left: 0;
-    justify-content: center;
-    padding: 14px;
-    font-size: 16px;
+    padding: 8px 16px;
+    font-size: 15px;
+    font-weight: 500;
+    white-space: nowrap;
+    border: 1px solid #d8d8d8;
+    background: #ffffff;
+    color: #2b2b2b;
+  }
+  
+  .filter_btn svg {
+    font-size: 20px;
   }
 }
 
-
-/* Small Phones */
-@media (max-width: 480px) {
+/* Extra small adjustments for narrow mobile widths */
+@media (max-width: 420px) {
   .hero {
-    padding: 100px 15px 50px;
+    height: 60vh;
+    min-height: 440px;
+    background-position: 55% 20%; 
   }
 
   .hero_content h1 {
-    font-size: 28px;
+    font-size: 30px;
   }
-
+  
   .hero_content p {
-    font-size: 16px;
-  }
-
-  .destination_btn {
-    padding: 10px 14px;
-  }
-
-  .destination_btn span {
-    font-size: 14px;
-  }
-
-  .search_input svg {
-    width: 50px;
-    height: 50px;
-  }
-
-  .search_input input {
-    font-size: 15px;
-  }
-
-  .filter_btn {
-    font-size: 15px;
+    font-size: 20px; 
   }
 }

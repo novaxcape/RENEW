@@ -1,73 +1,85 @@
-// Pages/Vendor/SignUpVendor.jsx
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import { z } from 'zod';
-import axios from 'axios';
-import Swal from 'sweetalert2';
-import { setVendorDetails, updateVendorToken, setLoading, setError, clearError } from '../redox/authSlice';
+// SignUp.jsx
+import React, { useState } from "react";
+import { z } from "zod";
+import Swal from "sweetalert2"; // UNCOMMENT THIS LINE
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { setUserDetails, updateToken, setLoading, setError, clearError } from "../redox/authSlice";
 import "../Styles/SignUpVendor.css";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://novaxcape.onrender.com/api/v1";
+const API_BASE_URL = import.meta.env.VITE_API_URL ;
 
-// ========== ZOD VALIDATION SCHEMA ==========
-const vendorSignUpSchema = z.object({
-  email: z.string()
-    .min(1, "Email is required")
-    .email("Please enter a valid email address"),
-  centerName: z.string()
-    .min(2, "Centre name must be at least 2 characters")
-    .max(100, "Centre name is too long"),
-  phone: z.string()
-    .min(1, "Phone number is required")
-    .regex(/^[0-9]{10,15}$/, "Please enter a valid phone number (10-15 digits)"),
-  password: z.string()
-    .min(6, "Password must be at least 6 characters")
-    .regex(/^(?=.*[a-z])/, "Password must contain at least one lowercase letter")
-    .regex(/^(?=.*[A-Z])/, "Password must contain at least one uppercase letter")
-    .regex(/^(?=.*\d)/, "Password must contain at least one number")
-    .regex(/^(?=.*[@$!%*?&])/, "Password must contain at least one special character"),
-  agreed: z.boolean()
-    .refine(val => val === true, "You must agree to the terms and conditions")
+// MOVE INTERCEPTORS OUTSIDE THE COMPONENT - PLACE THEM HERE
+axios.interceptors.request.use(request => {
+  console.log('Starting Request:', request.url, request.data);
+  return request;
+});
+
+axios.interceptors.response.use(
+  response => {
+    console.log('Response:', response.status, response.data);
+    return response;
+  },
+  error => {
+    console.log('Full Error Object:', {
+      message: error.message,
+      response: error.response,
+      request: error.request,
+      config: error.config
+    });
+    return Promise.reject(error);
+  }
+);
+
+const signUpSchema = z.object({
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters")
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_-])[A-Za-z\d@$!%*?&.#_-]{8,}$/, 
+      "Password must contain uppercase, lowercase, number and special character"),
+  confirmPassword: z.string().min(8, "Confirm password is required"),
+}).refine((data) => data.password === data.confirmPassword, {
+  path: ["confirmPassword"],
+  message: "Passwords do not match",
 });
 
 const SignUpVendor = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { loading: reduxLoading } = useSelector((state) => state.auth);
+  const { loading: reduxLoading, error } = useSelector((state) => state.auth);
   
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoadingState] = useState(false);
-  
+
   const [formData, setFormData] = useState({
-    email: '',
-    centerName: '',
-    phoneNumber: '',
-    password: '',
-    agreed: false
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
 
   const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-    // Clear error for this field when user starts typing
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: undefined }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
-    dispatch(clearError());
+    if (error) {
+      dispatch(clearError());
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Zod validation
-    const result = vendorSignUpSchema.safeParse(formData);
+    const result = signUpSchema.safeParse(formData);
     
     if (!result.success) {
       const fieldErrors = {};
@@ -75,11 +87,10 @@ const SignUpVendor = () => {
         fieldErrors[issue.path[0]] = issue.message;
       });
       setErrors(fieldErrors);
-      
       Swal.fire({
         icon: "error",
         title: "Validation Error",
-        text: "Please check all fields and try again.",
+        text: "Please fill all fields correctly.",
         confirmButtonColor: "#ff6b35",
       });
       return;
@@ -90,48 +101,65 @@ const SignUpVendor = () => {
     dispatch(setLoading(true));
     dispatch(clearError());
     
-    // Prepare data for API
-    const vendorData = {
-      centerName: formData.centerName,
+    // Save to localStorage
+    localStorage.setItem("Name", formData.email);
+    
+    const userData = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
       email: formData.email,
-      phoneNumber: formData.phone,
-      password: formData.password
+      password: formData.password,
     };
     
     try {
-      const response = await axios.post(`${API_BASE_URL}/vendor/register`, vendorData);
+      // API CALL DIRECTLY IN COMPONENT
+      const response = await axios.post(`${API_BASE_URL}/client/register`, userData);
       
-      console.log("Vendor registration response:", response.data);
+      console.log("API Response:", response.data);
       
       if (response.data.token) {
-        dispatch(updateVendorToken(response.data.token));
+        dispatch(updateToken(response.data.token));
       }
       
       if (response.data.user) {
-        dispatch(setVendorDetails(response.data.user));
+        dispatch(setUserDetails(response.data.user));
       }
-
-      
-      localStorage.setItem("vendorEmail", formData.email);
-      localStorage.setItem("vendorName", formData.centerName);
       
       Swal.fire({
         icon: "success",
-        title: "Registration Successful!",
-        text: "Please verify your email with the OTP sent.",
+        title: "Success!",
+        text: "Account created successfully. Please verify your email.",
         confirmButtonColor: "#ff6b35",
       });
       
-      navigate("/vendor/verify-otp", { state: { email: formData.email } });
+      navigate("/verify-email", { state: { email: formData.email } });
       
     } catch (error) {
-      console.error("Vendor registration error:", error.response?.data);
-      const errorMessage = error.response?.data?.message || "Registration failed. Please try again.";
+      console.error("Full error object:", error);
+      
+      // Better error handling
+      let errorMessage = "Something went wrong. Please try again.";
+      
+      if (error.response) {
+        // Server responded with error
+        console.error("Error response data:", error.response.data);
+        errorMessage = error.response.data?.message || 
+                      error.response.data?.error || 
+                      `Server error: ${error.response.status}`;
+      } else if (error.request) {
+        // Request made but no response
+        console.error("No response received:", error.request);
+        errorMessage = "Cannot connect to server. Please check your connection.";
+      } else {
+        // Other errors
+        errorMessage = error.message;
+      }
+      
       dispatch(setError(errorMessage));
       
       Swal.fire({
         icon: "error",
-        title: "Registration Failed",
+        title: "Signup Failed",
         text: errorMessage,
         confirmButtonColor: "#ff6b35",
       });
@@ -142,139 +170,123 @@ const SignUpVendor = () => {
   };
 
   return (
-    <main className='signupvendor_container'>
-      <section className='signupvendor_wrapper'>
-        <div className="signup-image-section">
-          <div className="image-overlay">
-            <h1>Create Your Vendor Account</h1>
-            <p>Join NovaXcape as a vendor. List your tourism centre and reach thousands of travelers.</p>
-          </div>
+    <div className="signup_wrapper">
+      <div className="signupBody">
+        <div className="signupLeft">
+          <img src="/novaxcape/img.png" alt="Signup" />
         </div>
 
-        <div className="signup-form-section">
-          <div className="form-wrapper">
-            <h2>Vendor Sign Up</h2>
-            
-            {/* API Error Message */}
-            {reduxLoading && (
-              <div className="error-message" style={{ color: "orange", textAlign: "center", marginBottom: "15px" }}>
-                Processing...
+        <div className="signupRight">
+          <form onSubmit={handleSubmit}>
+            <h1 className="signupTitle">Sign Up</h1>
+
+            {error && (
+              <div className="error-message" style={{
+                color: "red",
+                textAlign: "center",
+                marginBottom: "15px",
+                padding: "10px",
+                backgroundColor: "#ffeeee",
+                borderRadius: "5px",
+                fontSize: "14px"
+              }}>
+                {error}
               </div>
             )}
+
+            <div className="field">
+              <label>Center Email</label>
+              <input
+                type="text"
+                name="lastName"
+                placeholder="Enter your center email"
+                value={formData.lastName}
+                onChange={handleChange}
+              />
+              {errors.lastName && <span className="error">{errors.lastName}</span>}
+            </div>
+
+            <div className="field">
+              <label>Center Name</label>
+              <input
+                type="text"
+                name="firstName"
+                placeholder="Enter your center name"
+                value={formData.firstName}
+                onChange={handleChange}
+              />
+              {errors.firstName && <span className="error">{errors.firstName}</span>}
+            </div>
+
+            <div className="field">
+              <label>Center Phone Number</label>
+              <input
+                type="email"
+                name="email"
+                placeholder="Input Phone Number"
+                value={formData.email}
+                onChange={handleChange}
+              />
+              {errors.email && <span className="error">{errors.email}</span>}
+            </div>
+
+            <div className="field">
+              <label>Center Password</label>
+              <div className="passwordWrapper">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Input password"
+                  value={formData.password}
+                  onChange={handleChange}
+                />
+                <span className="eyeIcon" onClick={() => setShowPassword(!showPassword)}>
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
+              {errors.password && <span className="error">{errors.password}</span>}
+              <p className="passwordHint">
+                Must contain uppercase, lowercase, number and special character.
+              </p>
+            </div>
+
+            {/* <div className="field">
+              <label>Confirm Password</label>
+              <div className="passwordWrapper">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  placeholder="Confirm your password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                />
+                <span className="eyeIcon" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
+              {errors.confirmPassword && <span className="error">{errors.confirmPassword}</span>}
+            </div> */}
+
+            <div className="terms">
+              <input type="checkbox" id="terms" />
+              <label htmlFor="terms">
+                I agree to the <a href="#!"> Terms & Conditions </a> and <a href="#!"> Privacy Policy</a>
+              </label>
+            </div>
+
+            <button type="submit" className="signupBtn" disabled={loading || reduxLoading}>
+              {loading || reduxLoading ? "Creating Account..." : "Sign Up"}
+            </button>
+
             
-            <form onSubmit={handleSubmit}>
-              {/* Email Field */}
-              <div className="form-group">
-                <label htmlFor="email">Centre Email</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  placeholder="Enter your Email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  disabled={loading || reduxLoading}
-                  className={errors.email ? "error-input" : ""}
-                  style={errors.email ? { borderColor: "red" } : {}}
-                />
-                {errors.email && <span className="error-text" style={{ color: "red", fontSize: "12px", marginTop: "5px", display: "block" }}>{errors.email}</span>}
-              </div>
-
-              {/* Centre Name Field */}
-              <div className="form-group">
-                <label htmlFor="centerName">Centre Name</label>
-                <input
-                  type="text"
-                  id="centerName"
-                  name="centerName"
-                  placeholder="Enter your centre name"
-                  value={formData.centerName}
-                  onChange={handleChange}
-                  disabled={loading || reduxLoading}
-                  className={errors.centerName ? "error-input" : ""}
-                  style={errors.centerName ? { borderColor: "red" } : {}}
-                />
-                {errors.centerName && <span className="error-text" style={{ color: "red", fontSize: "12px", marginTop: "5px", display: "block" }}>{errors.centerName}</span>}
-              </div>
-
-              {/* Phone Field */}
-              <div className="form-group">
-                <label htmlFor="phone">Centre Phone Number</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  placeholder="Input phone number"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  disabled={loading || reduxLoading}
-                  className={errors.phone ? "error-input" : ""}
-                  style={errors.phone ? { borderColor: "red" } : {}}
-                />
-                {errors.phone && <span className="error-text" style={{ color: "red", fontSize: "12px", marginTop: "5px", display: "block" }}>{errors.phone}</span>}
-              </div>
-
-              {/* Password Field */}
-              <div className="form-group">
-                <label htmlFor="password">Centre Password</label>
-                <div className="password-input-wrapper">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    id="password"
-                    name="password"
-                    placeholder="Input password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    disabled={loading || reduxLoading}
-                    className={errors.password ? "error-input" : ""}
-                    style={errors.password ? { borderColor: "red" } : {}}
-                  />
-                  <span 
-                    className="password-toggle"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <FaEyeSlash /> : <FaEye />}
-                  </span>
-                </div>
-                {errors.password && <span className="error-text" style={{ color: "red", fontSize: "12px", marginTop: "5px", display: "block" }}>{errors.password}</span>}
-                <small style={{ fontSize: "12px", color: "#666", display: "block", marginTop: "5px" }}>
-                  Password must be at least 6 characters with uppercase, lowercase, number and special character
-                </small>
-              </div>
-
-              {/* Checkbox Field */}
-              <div className="checkbox-group">
-                <input
-                  type="checkbox"
-                  id="agreed"
-                  name="agreed"
-                  checked={formData.agreed}
-                  onChange={handleChange}
-                  disabled={loading || reduxLoading}
-                />
-                <label htmlFor="agreed">
-                  I agree to the <a href="#terms">terms and condition</a> & <a href="#privacy">privacy policy</a>
-                </label>
-              </div>
-              {errors.agreed && <span className="error-text" style={{ color: "red", fontSize: "12px", display: "block", marginTop: "-10px", marginBottom: "10px" }}>{errors.agreed}</span>}
-
-              {/* Submit Button */}
-              <button 
-                type="submit" 
-                className="signup-button"
-                disabled={loading || reduxLoading}
-              >
-                {loading || reduxLoading ? "Creating Account..." : "Sign Up"}
-              </button>
-            </form>
-            
-            <p className="signin-link">
-              Have an account? <Link to="/vendor/login">Sign in</Link>
+            <p className="signinText">
+              Have an account?
+              <span onClick={() => navigate("/signin")} style={{ cursor: "pointer" }}> Sign In</span>
             </p>
-          </div>
+          </form>
         </div>
-      </section>
-    </main>
+      </div> 
+    </div>
   );
 };
 

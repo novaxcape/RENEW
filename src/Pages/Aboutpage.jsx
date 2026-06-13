@@ -1,5 +1,5 @@
 import React from "react";
-import Header from "../components/Header";
+import PaymentHeader from "../components/PaymentHeader"
 import Aboutpagehero from "../components/Aboutpagehero";
 import Aboutsection from "../components/Aboutsection";
 import Ourgoal from "../components/Ourgoal";
@@ -9,7 +9,7 @@ import Footer from "../components/Footer";
 const Aboutpage = () => {
   return (
     <section>
-      <Header />
+      <PaymentHeader />
       <Aboutpagehero />
       <Aboutsection />
       <Ourgoal />
