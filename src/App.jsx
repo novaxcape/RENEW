@@ -219,11 +219,11 @@ const App = () => {
       />
 
       {/* Vendor Dashboard - Your existing dashboard */}
-      {/* <Route 
+      /* <Route 
         path="/vendor/dashboard" 
         element={
           <PrivateRoute role="vendor">
-            <VendorDashboard />
+            <Dashboard />
           </PrivateRoute>
         } 
       /> */
