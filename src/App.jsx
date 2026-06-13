@@ -59,7 +59,6 @@ const App = () => {
       <Route path="/support" element={<Supportpage />} />
       <Route path="/discover" element={<Discoverpage />} />
       <Route path="/product" element={<ProductDetails />} />
-
       {/* ========== SELECTION ROUTES ========== */}
       <Route
         path="/signupscreen"
@@ -69,7 +68,6 @@ const App = () => {
           </PublicRoute>
         }
       />
-
       {/* ========== CLIENT AUTH ROUTES ========== */}
       <Route
         path="/signup"
@@ -111,12 +109,11 @@ const App = () => {
           </PublicRoute>
         }
       />
-
       {/* ========== VENDOR AUTH ROUTES (Public) ========== */}
       <Route
         path="/signupvendor"
         element={
-          <PublicRoute>
+          <PublicRoute role="vendor">
             <SignUpVendor />
           </PublicRoute>
         }
@@ -124,7 +121,7 @@ const App = () => {
       <Route
         path="/vendor/verify-otp"
         element={
-          <PublicRoute>
+          <PublicRoute role="vendor">
             <VendorVerifyOtp />
           </PublicRoute>
         }
@@ -132,7 +129,7 @@ const App = () => {
       <Route
         path="/vendor/login"
         element={
-          <PublicRoute>
+          <PublicRoute role="vendor">
             <VendorLogin />
           </PublicRoute>
         }
@@ -140,7 +137,7 @@ const App = () => {
       <Route
         path="/vendor/forgot-password"
         element={
-          <PublicRoute>
+          <PublicRoute role="vendor">
             <VendorForgotPassword />
           </PublicRoute>
         }
@@ -148,12 +145,11 @@ const App = () => {
       <Route
         path="/vendor/reset-password"
         element={
-          <PublicRoute>
+          <PublicRoute role="vendor">
             <VendorResetPassword />
           </PublicRoute>
         }
       />
-
       {/* ========== CLIENT PROTECTED ROUTES (Require login) ========== */}
       <Route
         path="/wishlist"
@@ -187,7 +183,6 @@ const App = () => {
           </PrivateRoute>
         }
       />
-
       {/* ========== VENDOR DASHBOARD ROUTES (Protected) ========== */}
       <Route
         path="/vendor/dashboard"
@@ -207,7 +202,6 @@ const App = () => {
         path="/dashboard"
         element={<Navigate to="/vendor/dashboard" replace />}
       />
-
       {/* ========== VENDOR PROTECTED ROUTES (Require login) ========== */}
       <Route
         path="/vendor/change-password"
@@ -217,17 +211,17 @@ const App = () => {
           </PrivateRoute>
         }
       />
-
       {/* Vendor Dashboard - Your existing dashboard */}
-      /* <Route 
-        path="/vendor/dashboard" 
+      /*{" "}
+      <Route
+        path="/vendor/dashboard"
         element={
           <PrivateRoute role="vendor">
             <Dashboard />
           </PrivateRoute>
-        } 
-      /> */
-
+        }
+      />{" "}
+      */
       {/* ========== STANDALONE PROTECTED PAGES ========== */}
       <Route
         path="/settings"
@@ -248,9 +242,9 @@ const App = () => {
       <Route
         path="/add-centre"
         element={
-          // <PrivateRoute role="vendor">
+          <PrivateRoute role="vendor">
             <AddCentre />
-          // </PrivateRoute>
+          </PrivateRoute>
         }
       />
       <Route
@@ -261,7 +255,6 @@ const App = () => {
           </PrivateRoute>
         }
       />
-
       {/* ========== FALLBACK for 404 ========== */}
       <Route
         path="*"

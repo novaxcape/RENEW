@@ -14,7 +14,7 @@ const initialFormData = {
   centreEmail: "",
   yearEstablished: "",
   centreType: "",
-  phoneNumber: "",
+  phoneNumber: "", // Changed back to phoneNumber
   postal: "",
   city: "",
   state: "",
@@ -58,6 +58,8 @@ const KycForm = () => {
     getEntityId(location.state?.centreData) ||
     null;
 
+  console.log("Tourist ID being used:", touristId);
+
   // Pre-fill centre name if available from navigation state
   useEffect(() => {
     if (location.state?.centreName) {
@@ -78,7 +80,7 @@ const KycForm = () => {
       "lankmark",
       "CAC",
       "yearEstablished",
-      "phoneNumber",
+      "phoneNumber", // Changed to phoneNumber
       "centreType",
       "postal",
       "state",
@@ -96,7 +98,7 @@ const KycForm = () => {
         lankmark: "Landmark",
         CAC: "CAC Registration Number",
         yearEstablished: "Year Established",
-        phoneNumber: "Phone Number",
+        phoneNumber: "Centre Phone Number",
         centreType: "Centre Type",
         postal: "Postal Code",
         state: "State",
@@ -151,19 +153,23 @@ const KycForm = () => {
       return;
     }
 
+    // Debug: Log form data before processing
+    console.log("Raw form data:", formData);
+    console.log("phoneNumber raw:", formData.phoneNumber);
+
     const kycData = {
       lankmark: formData.lankmark,
       CAC: formData.CAC,
       yearEstablished: Number(formData.yearEstablished),
-      phoneNumber: numericValue(formData.phoneNumber),
+      phoneNumber: String(formData.phoneNumber), // Changed to phoneNumber as string
       centreType: formData.centreType,
       postal: formData.postal,
       state: formData.state,
       directorFullName: formData.directorFullName,
       directorEmail: formData.directorEmail,
-      directorPhoneNumber: numericValue(formData.directorPhoneNumber),
+      directorPhoneNumber: String(formData.directorPhoneNumber),
       bankName: formData.bankName,
-      accountNumber: numericValue(formData.accountNumber),
+      accountNumber: String(formData.accountNumber),
       accountName: formData.accountName,
       bankCode: formData.bankCode || "",
       // Include optional fields if they have values
@@ -172,6 +178,10 @@ const KycForm = () => {
       ...(formData.city && { city: formData.city }),
       ...(formData.streetAddress && { streetAddress: formData.streetAddress }),
     };
+
+    console.log("Final KYC data being sent:", JSON.stringify(kycData, null, 2));
+    console.log("Does phoneNumber exist?", kycData.hasOwnProperty("phoneNumber"));
+    console.log("phoneNumber value:", kycData.phoneNumber);
 
     try {
       const response = await dispatch(
@@ -193,13 +203,19 @@ const KycForm = () => {
       });
     } catch (error) {
       console.error("KYC submission error:", error);
+      console.error("Error response data:", error.response?.data);
+      
+      // Show detailed error from backend
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error ||
+                          typeof error === "string"
+                            ? error
+                            : error?.message || "Unable to submit KYC. Please try again.";
+      
       Swal.fire({
         icon: "error",
         title: "KYC Submission Failed",
-        text:
-          typeof error === "string"
-            ? error
-            : error?.message || "Unable to submit KYC. Please try again.",
+        text: errorMessage,
         confirmButtonColor: "#ff6b35",
       });
     }
@@ -332,7 +348,7 @@ const KycForm = () => {
                     onChange={handleChange}
                     type="tel"
                     className="form-text-input"
-                    placeholder="+234 800 000 0000"
+                    placeholder="08012345678"
                     required
                   />
                 </div>
@@ -434,7 +450,7 @@ const KycForm = () => {
                     onChange={handleChange}
                     type="tel"
                     className="form-text-input"
-                    placeholder="+234 800 000 0000"
+                    placeholder="08012345678"
                     required
                   />
                 </div>

@@ -16,43 +16,55 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
+
   // Get data from Redux state
   const { vendorDetails } = useSelector((state) => state.auth);
   const { vendorCentres, loading } = useSelector((state) => state.api);
-  
+
   // Check for recently added centre
   const [recentCentre, setRecentCentre] = useState(null);
-  
+
   // Calculate stats
-  const pendingCentres = vendorCentres?.filter(centre => 
-    centre.kycStatus === 'pending' || !centre.kycStatus
-  ) || [];
-  
-  const approvedCentres = vendorCentres?.filter(centre => 
-    centre.kycStatus === 'approved'
-  ) || [];
+  const pendingCentres =
+    vendorCentres?.filter(
+      (centre) => centre.kycStatus === "pending" || !centre.kycStatus,
+    ) || [];
+
+  const approvedCentres =
+    vendorCentres?.filter((centre) => centre.kycStatus === "approved") || [];
+
+  const [vendorCentresFetched, setVendorCentresFetched] = useState(false);
 
   // Fetch vendor data on mount
   useEffect(() => {
-    const vendorId = vendorDetails?.id || localStorage.getItem('vendorId');
-    
+    const vendorId = vendorDetails?.id || localStorage.getItem("vendorId");
+
     if (vendorId) {
-      dispatch(getVendorTouristCenters(vendorId));
+      setVendorCentresFetched(false);
+      dispatch(getVendorTouristCenters(vendorId))
+        .unwrap()
+        .catch(() => {})
+        .finally(() => setVendorCentresFetched(true));
     }
-    
+
     // Check for recently added centre from localStorage
-    const lastAdded = localStorage.getItem('lastAddedCentre');
+    const lastAdded = localStorage.getItem("lastAddedCentre");
     if (lastAdded) {
       setRecentCentre(JSON.parse(lastAdded));
       setTimeout(() => {
-        localStorage.removeItem('lastAddedCentre');
+        localStorage.removeItem("lastAddedCentre");
       }, 5000);
     }
   }, [dispatch, vendorDetails]);
 
+  useEffect(() => {
+    if (vendorCentresFetched && vendorCentres?.length === 0) {
+      navigate("/add-centre", { replace: true });
+    }
+  }, [vendorCentresFetched, vendorCentres, navigate]);
+
   const handleAddCentre = () => {
-    navigate('/addcentre');
+    navigate("/addcentre");
   };
 
   const handleViewCentre = (centreId) => {
@@ -60,7 +72,7 @@ const Dashboard = () => {
   };
 
   const handleKycStatus = () => {
-    navigate('/kyc-status');
+    navigate("/kyc-status");
   };
 
   // If loading, show loading state
@@ -90,9 +102,17 @@ const Dashboard = () => {
           <div className="success-icon">✅</div>
           <div className="success-message">
             <strong>Centre Submitted Successfully!</strong>
-            <p>"{recentCentre.centreName}" has been submitted for KYC verification.</p>
+            <p>
+              "{recentCentre.centreName}" has been submitted for KYC
+              verification.
+            </p>
           </div>
-          <button className="close-banner" onClick={() => setRecentCentre(null)}>×</button>
+          <button
+            className="close-banner"
+            onClick={() => setRecentCentre(null)}
+          >
+            ×
+          </button>
         </div>
       )}
 
@@ -102,7 +122,10 @@ const Dashboard = () => {
           <div className="banner-icon">⏳</div>
           <div className="banner-content">
             <strong>KYC Verification In Progress</strong>
-            <p>You have {pendingCentres.length} centre(s) waiting for verification.</p>
+            <p>
+              You have {pendingCentres.length} centre(s) waiting for
+              verification.
+            </p>
             <button onClick={handleKycStatus} className="kyc-status-link">
               Check Status →
             </button>
@@ -110,39 +133,41 @@ const Dashboard = () => {
         </div>
       )}
 
-      <WelcomeSection 
-        vendorName={vendorDetails?.centreName || vendorDetails?.name || "Vendor"}
+      <WelcomeSection
+        vendorName={
+          vendorDetails?.centreName || vendorDetails?.name || "Vendor"
+        }
         centreCount={vendorCentres?.length || 0}
       />
 
       <div className="stats-grid">
-        <StatCard 
-          title="Total Centres" 
-          value={vendorCentres?.length || "0"} 
+        <StatCard
+          title="Total Centres"
+          value={vendorCentres?.length || "0"}
           percent={`${approvedCentres.length} Active`}
-          previous={`${pendingCentres.length} Pending`} 
-          type="ticket" 
+          previous={`${pendingCentres.length} Pending`}
+          type="ticket"
         />
-        <StatCard 
-          title="Total Revenue" 
-          value="₦0" 
-          percent="0%" 
-          previous="This month" 
-          type="revenue" 
+        <StatCard
+          title="Total Revenue"
+          value="₦0"
+          percent="0%"
+          previous="This month"
+          type="revenue"
         />
-        <StatCard 
-          title="Total Bookings" 
-          value="0" 
-          percent="0%" 
-          previous="All time" 
-          type="booking" 
+        <StatCard
+          title="Total Bookings"
+          value="0"
+          percent="0%"
+          previous="All time"
+          type="booking"
         />
-        <StatCard 
-          title="Average Rating" 
-          value="0.0" 
-          percent="0" 
-          previous="⭐ 0 reviews" 
-          type="rating" 
+        <StatCard
+          title="Average Rating"
+          value="0.0"
+          percent="0"
+          previous="⭐ 0 reviews"
+          type="rating"
         />
       </div>
 
@@ -163,15 +188,24 @@ const Dashboard = () => {
                 <div className="centre-header">
                   <h3>{centre.centreName || centre.name}</h3>
                   {/* ✅ FIXED: changed from 'status-badge' to 'centre-status-badge' */}
-                  <span className={`centre-status-badge ${centre.kycStatus === 'approved' ? 'approved' : 'pending'}`}>
-                    {centre.kycStatus === 'approved' ? '✅ Active' : '⏳ Pending'}
+                  <span
+                    className={`centre-status-badge ${centre.kycStatus === "approved" ? "approved" : "pending"}`}
+                  >
+                    {centre.kycStatus === "approved"
+                      ? "✅ Active"
+                      : "⏳ Pending"}
                   </span>
                 </div>
                 <div className="centre-details">
-                  <p>📍 {centre.city}, {centre.state}</p>
-                  <p>📅 Created: {new Date(centre.createdAt).toLocaleDateString()}</p>
+                  <p>
+                    📍 {centre.city}, {centre.state}
+                  </p>
+                  <p>
+                    📅 Created:{" "}
+                    {new Date(centre.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
-                <button 
+                <button
                   className="view-centre-btn"
                   onClick={() => handleViewCentre(centre.id || centre._id)}
                 >
