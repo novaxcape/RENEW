@@ -79,7 +79,7 @@ const Header = () => {
             </ul>
           </div>
 
-          {/* RIGHT SIDE */}
+          {/* RIGHT SIDE / BUTTONS */}
           <div className="button">
             {/* MOBILE ICONS */}
             <div className="mobile-icons">
@@ -88,10 +88,15 @@ const Header = () => {
               <FaBars className="hamburger" onClick={toggleMenu} />
             </div>
 
-            {/* DESKTOP BUTTON */}
-            <Link to="/signupscreen">
-              <button className="signin">Sign Up</button>
-            </Link>
+            {/* DESKTOP BUTTONS */}
+            <div className="desktop-buttons">
+              <Link to="/loginscreen">
+                <button className="signin-btn">Sign In</button>
+              </Link>
+              <Link to="/signupscreen">
+                <button className="signup-btn">Sign Up</button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -139,9 +144,14 @@ const Header = () => {
                 Support
               </NavLink>
             </li>
-            <li>
-              <NavLink to="/signup" onClick={closeMenu}>
+            {/* MOBILE AUTH LINKS */}
+            <li className="mobile-auth-links">
+              <NavLink to="/signup" onClick={closeMenu} className="mobile-signup">
                 Sign Up
+              </NavLink>
+
+              <NavLink to="/Login" onClick={closeMenu} className="mobile-signin">
+                Sign In
               </NavLink>
             </li>
           </ul>
