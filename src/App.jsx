@@ -226,7 +226,7 @@ const App = () => {
             <VendorDashboard />
           </PrivateRoute>
         } 
-      /> */}
+      /> */
 
       {/* ========== STANDALONE PROTECTED PAGES ========== */}
       <Route
