@@ -40,6 +40,7 @@ import KycPage from "./Pages/KycPage";
 
 // Selection Pages
 import SignUpScreen from "./Pages/SignUpScreen";
+import SignInScreen from "./Pages/SignInScreen"
 
 // ========== VENDOR PAGES ==========
 // Vendor Auth Pages (Public - no login required)
@@ -49,7 +50,8 @@ import VendorLogin from "./Pages/VendorLogin";
 import VendorForgotPassword from "./Pages/VendorForgotPassword";
 import VendorResetPassword from "./Pages/VendorResetPassword";
 import VendorChangePassword from "./Pages/VendorChangePassword";
-
+import DashboardPackageActive from "./Pages/DashboardPackageActive"
+import DashboardPackageInactive from "./Pages/DashboardPackageInactive"
 
 // Shared layout configuration to render Fixed Header automatically 
 const MainLayout = () => {
@@ -159,6 +161,15 @@ const App = () => {
       />
 
       <Route
+        path="/signinscreen"
+        element={
+          <PublicRoute>
+            <SignInScreen />
+          </PublicRoute>
+        }
+      />
+
+      <Route
         path="/signup"
         element={
           <PublicRoute>
@@ -241,6 +252,27 @@ const App = () => {
           </PublicRoute>
         }
       />
+
+       <Route
+        path="DashboardPackageActive"
+        element={
+          <PublicRoute role="DashboardPackageActive">
+            <DashboardPackageActive />
+          </PublicRoute>
+        }
+      />
+
+       <Route
+        path="DashboardPackageInactive"
+        element={
+          <PublicRoute role="DashboardPackageInactive">
+            <DashboardPackageInactive />
+          </PublicRoute>
+        }
+      />
+
+
+
 
 {/* 
       <Route

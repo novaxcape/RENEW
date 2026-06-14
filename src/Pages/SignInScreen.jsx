@@ -22,13 +22,13 @@ const SignUpScreen = () => {
         {/* User Sign Up Card */}
         <div 
           className="signup-card" 
-          onClick={() => navigate("/signup")}
+          onClick={() => navigate("/signin")}
           style={{ cursor: "pointer" }}
         >
           <div className="icon-circle user-icon">
             <TbUser />
           </div>
-          <h2>Sign Up as User</h2>
+          <h2>Sign In as User</h2>
           <p className="card-description">
             Discover and book amazing tourism experiences across Nigeria
           </p>
@@ -46,7 +46,7 @@ const SignUpScreen = () => {
           <div className="icon-circle vendor-icon">
             <HiMiniBuildingOffice2 />
           </div>
-          <h2>Sign Up as Vendor</h2>
+          <h2>Sign In as Vendor</h2>
           <p className="vendor-card-description">
             List your tourism center and reach thousands of travelers
           </p>
