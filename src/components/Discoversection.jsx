@@ -1,7 +1,9 @@
-import React, { useState } from "react";
-import "../components/css/Discoversection.css";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { FaStar, FaRegClock } from "react-icons/fa";
+import "../components/css/Discoversection.css";
 
+// Static images
 import lekki from "/novaxcape/lekki.png";
 import olumo from "/novaxcape/olumo.png";
 import mapo from "/novaxcape/mapo.png";
@@ -13,6 +15,7 @@ import nikeGallery from "/novaxcape/nikeGallery.png";
 import agodi from "/novaxcape/agodi.png";
 
 const categories = [
+  "All",
   "Park & Recreation",
   "Art Gallery",
   "Beach",
@@ -21,7 +24,8 @@ const categories = [
   "Museum",
 ];
 
-const attractions = [
+// Static fallback data (used when no search is performed)
+const staticAttractions = [
   {
     id: 1,
     image: lekki,
@@ -30,7 +34,7 @@ const attractions = [
     rating: 5.0,
     reviews: 567,
     time: "8:30 AM - 5:00 PM",
-    price: 2500,
+    price: "₦2,500",
   },
   {
     id: 2,
@@ -40,7 +44,7 @@ const attractions = [
     rating: 4.0,
     reviews: 66,
     time: "9:00 AM - 6:00 PM",
-    price: 2000,
+    price: "₦2,000",
   },
   {
     id: 3,
@@ -50,7 +54,7 @@ const attractions = [
     rating: 4.9,
     reviews: 70,
     time: "8:30 AM - 5:00 PM",
-    price: 1500,
+    price: "₦1,500",
   },
   {
     id: 4,
@@ -60,7 +64,7 @@ const attractions = [
     rating: 4.0,
     reviews: 434,
     time: "8:30 AM - 10:00 PM",
-    price: 1500,
+    price: "₦1,500",
   },
   {
     id: 5,
@@ -70,7 +74,7 @@ const attractions = [
     rating: 5.0,
     reviews: 70,
     time: "8:30 AM - 7:00 PM",
-    price: 2000,
+    price: "₦2,000",
   },
   {
     id: 6,
@@ -80,7 +84,7 @@ const attractions = [
     rating: 5.0,
     reviews: 90,
     time: "10:30 AM - 5:00 PM",
-    price: 3000,
+    price: "₦3,000",
   },
   {
     id: 7,
@@ -90,7 +94,7 @@ const attractions = [
     rating: 5.0,
     reviews: 643,
     time: "8:30 AM - 8:30 PM",
-    price: 2500,
+    price: "₦2,500",
   },
   {
     id: 8,
@@ -100,7 +104,7 @@ const attractions = [
     rating: 3.0,
     reviews: 567,
     time: "8:30 AM - 6:00 PM",
-    price: 1500,
+    price: "₦1,500",
   },
   {
     id: 9,
@@ -110,50 +114,102 @@ const attractions = [
     rating: 5.0,
     reviews: 567,
     time: "8:00 AM - 5:00 PM",
-    price: 1500,
+    price: "₦1,500",
   },
 ];
 
-const Discoversection = ({
-  searchState,
-  searchSubmitted,
-  touristCentres,
-  loading,
-  error,
-}) => {
-  const [activeCategory, setActiveCategory] = useState("Park & Recreation");
+const Discoversection = () => {
+  const navigate = useNavigate();
+  
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [searchState, setSearchState] = useState("");
+  const [searchSubmitted, setSearchSubmitted] = useState(false);
+  const [touristCentres, setTouristCentres] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const renderPlace = (place) => {
-    const imageSrc = place.image || lekki;
-    const title =
-      place.centreName || place.name || place.title || "Tourist Centre";
-    const location =
-      [place.city, place.state].filter(Boolean).join(", ") ||
-      place.location ||
-      "Unknown location";
-    const rating = place.rating || place.averageRating || 4.0;
-    const reviews = place.reviews || place.reviewCount || 0;
-    const time = place.openingHours || place.time || "8:30 AM - 5:00 PM";
-    const price = place.price || place.ticketPrice || "Contact";
+  // Get search params from URL on component mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const stateParam = params.get("state");
+    
+    if (stateParam) {
+      setSearchState(stateParam);
+      setSearchSubmitted(true);
+    }
+  }, []);
+
+  const handleBookNow = (centre) => {
+    navigate(`/centre/${centre.id || centre._id}`, {
+      state: { centre }
+    });
+  };
+
+  const formatPrice = (price) => {
+    if (!price) return "Contact";
+    if (typeof price === "number") {
+      return `₦${price.toLocaleString()}`;
+    }
+    return price;
+  };
+
+  const filterByCategory = (centers) => {
+    if (activeCategory === "All") return centers;
+    
+    return centers.filter((center) => {
+      const centreType = (center.centreType || center.type || "").toLowerCase();
+      const category = activeCategory.toLowerCase();
+      
+      return centreType.includes(category) || category.includes(centreType);
+    });
+  };
+
+  const renderPlace = (place, isStatic = false) => {
+    const imageSrc = isStatic 
+      ? place.image 
+      : place.images?.[0] || place.image || "/novaxcape/placeholder.jpg";
+    
+    const title = isStatic 
+      ? place.title 
+      : place.centreName || place.name || "Tourist Centre";
+    
+    const location = isStatic
+      ? place.location
+      : [place.city, place.state].filter(Boolean).join(", ") || "Location not specified";
+    
+    const rating = isStatic
+      ? place.rating
+      : place.rating || place.averageRating || 4.0;
+    
+    const reviews = isStatic
+      ? place.reviews
+      : place.reviews || place.reviewCount || 0;
+    
+    const time = isStatic
+      ? place.time
+      : place.openingHours || "Hours not specified";
+    
+    const price = isStatic
+      ? place.price
+      : formatPrice(place.adultPrice || place.ticketPrice || place.price);
 
     return (
-      <div className="attraction_card" key={place.id || place._id || title}>
-        <img src={imageSrc} alt={title} />
+      <div className="attraction_card" key={isStatic ? place.id : place.id || place._id}>
+        <img src={imageSrc} alt={title} onError={(e) => {
+          e.target.src = "/novaxcape/placeholder.jpg";
+        }} />
 
         <div className="card_content">
           <h3>{title}</h3>
-
           <h4>{location}</h4>
 
           <div className="card_details">
             <div className="rating">
               {[...Array(5)].map((_, i) => (
-                <FaStar key={i} />
+                <FaStar key={i} color={i < Math.floor(rating) ? "#ff6b35" : "#ddd"} />
               ))}
-
               <span>{rating}</span>
-
-              <small>({reviews})</small>
+              <small>({reviews} reviews)</small>
             </div>
 
             <div className="time">
@@ -168,20 +224,22 @@ const Discoversection = ({
               <h2>{price}</h2>
             </div>
 
-            <button>Book Now</button>
+            <button onClick={() => handleBookNow(place)}>
+              Book Now
+            </button>
           </div>
         </div>
       </div>
     );
   };
 
-  const showApiResults = searchSubmitted;
-  const results = Array.isArray(touristCentres) ? touristCentres : [];
+  const displayCenters = searchSubmitted ? touristCentres : staticAttractions;
+  const filteredCenters = filterByCategory(displayCenters);
+  const hasActiveSearch = searchSubmitted && searchState;
 
   return (
     <section className="attractions">
       {/* Categories */}
-
       <div className="category_container">
         {categories.map((category, index) => (
           <button
@@ -196,26 +254,70 @@ const Discoversection = ({
         ))}
       </div>
 
-      {showApiResults && (
+      {/* Search Results Header */}
+      {hasActiveSearch && (
         <div className="search-results-header">
-          <h2>Search results for "{searchState}"</h2>
-          {loading && <p>Loading centres...</p>}
-          {error && <p className="error-text">{error}</p>}
-          {!loading && !error && results.length === 0 && (
-            <p className="no-results-text">
-              No centres found in "{searchState}". Try a different state.
-            </p>
+          <h2>
+            {loading 
+              ? `Searching for "${searchState}"...` 
+              : `Search results for "${searchState}"`}
+          </h2>
+          {!loading && !error && (
+            <p>{filteredCenters.length} centre(s) found</p>
           )}
         </div>
       )}
 
-      {/* Cards */}
+      {/* Error Message */}
+      {error && (
+        <div className="error-container">
+          <p className="error-text">{error}</p>
+          <button 
+            className="try-again-btn"
+            onClick={() => {
+              setSearchSubmitted(false);
+              setError(null);
+            }}
+          >
+            Browse All Centres
+          </button>
+        </div>
+      )}
 
-      <div className="attractions_grid">
-        {showApiResults
-          ? results.map((place) => renderPlace(place))
-          : attractions.map((place) => renderPlace(place))}
-      </div>
+      {/* Loading State */}
+      {loading && (
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p>Loading amazing destinations...</p>
+        </div>
+      )}
+
+      {/* No Results */}
+      {!loading && hasActiveSearch && !error && filteredCenters.length === 0 && (
+        <div className="no-results-container">
+          <p className="no-results-text">
+            No centres found in "{searchState}". Try a different state or check back later.
+          </p>
+          <button 
+            className="browse-all-btn"
+            onClick={() => {
+              setSearchSubmitted(false);
+              setSearchState("");
+            }}
+          >
+            Browse All Centres
+          </button>
+        </div>
+      )}
+
+      {/* Cards Grid */}
+      {!loading && !error && (
+        <div className="attractions_grid">
+          {filteredCenters.map((place) => 
+            renderPlace(place, !searchSubmitted)
+          )}
+        </div>
+      )}
     </section>
   );
 };
