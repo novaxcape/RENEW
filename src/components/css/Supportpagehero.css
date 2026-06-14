@@ -10,7 +10,7 @@
   display: flex;
   align-items: center;
   padding: 0 60px;
-  background-color: #D0CACC;
+  background-color: #D0C8C7;
 }
 
 .support-text {
@@ -22,18 +22,21 @@
   font-weight: 700;
   line-height: 1.1;
   color: #231815;
+  text-align: left;
   margin-bottom: 24px;
 }
 
 .support-text p {
   font-size: 16px;
   line-height: 1.8;
-  color: #271A13;
+  color: #271A13 !important;
   max-width: 620px;
+  text-align: left;
+  
 }
 
 .support-content-image {
-  width: 50%;
+  width: 60%;
   min-height: 80vh;
 }
 
@@ -50,13 +53,54 @@
 }
 
 @media (max-width: 768px) {
-  .support-content {
-    width: 55%;
-    padding: 15px;
+  /* 1. Stack the columns vertically */
+  .support-section {
+    display: flex;
+    flex-direction: column; /* Stacks items vertically */
+    width: 100%;
+    min-height: auto;
+
   }
 
+  /* 2. Content column goes first */
+  .support-content {
+    width: 100%; /* Spans full width of the mobile screen */
+    min-height: auto;
+    padding: 30px 20px; /* Adjusted padding for a clean look */
+    order: 1; /* Forces text to the top, even if image is first in HTML */
+    background-color: #CDBEB9;
+  }
+
+  /* Moderate font sizes for mobile */
+  .support-text h1 {
+    font-size: 28px; /* Balanced size for mobile headers */
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+
+  .support-text p {
+    font-size: 15px; /* Easy to read on mobile screens */
+    line-height: 1.6;
+  }
+
+  /* 3. Image column goes second */
   .support-content-image {
-    width: 45%;
+    width: 100%; /* Spans full width */
+    min-height: auto;
+    order: 2; /* Forces image below the text */
+  }
+
+  .support-image {
+    width: 100%;
+    height: auto;
+  }
+
+  /* 4. Keeps the image from zooming or squeezing */
+  .support-image img {
+    width: 100%;
+    height: auto; /* Lets height scale naturally based on width */
+    object-fit: contain; /* Guarantees no cropping, zooming, or distortion */
+    display: block;
   }
 }
 
