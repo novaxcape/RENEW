@@ -14,7 +14,8 @@ const initialFormData = {
   centreEmail: "",
   yearEstablished: "",
   centreType: "",
-  phoneNumber: "", // Changed back to phoneNumber
+  phoneNumber: "",
+  centrePhoneNumber: "", // Add both fields
   postal: "",
   city: "",
   state: "",
@@ -39,11 +40,6 @@ const getEntityId = (value) =>
   value?.touristCenter?.id ||
   value?.touristCenter?._id;
 
-const numericValue = (value) => {
-  const digits = String(value || "").replace(/\D/g, "");
-  return digits ? Number(digits) : "";
-};
-
 const KycForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -51,16 +47,12 @@ const KycForm = () => {
   const { kycLoading } = useSelector((state) => state.api);
   const [formData, setFormData] = useState(initialFormData);
 
-  // Get touristId from multiple sources
   const touristId =
     location.state?.touristId ||
     localStorage.getItem("latestTouristId") ||
     getEntityId(location.state?.centreData) ||
     null;
 
-  console.log("Tourist ID being used:", touristId);
-
-  // Pre-fill centre name if available from navigation state
   useEffect(() => {
     if (location.state?.centreName) {
       setFormData((prev) => ({
@@ -80,7 +72,7 @@ const KycForm = () => {
       "lankmark",
       "CAC",
       "yearEstablished",
-      "phoneNumber", // Changed to phoneNumber
+      "phoneNumber",
       "centreType",
       "postal",
       "state",
@@ -112,24 +104,16 @@ const KycForm = () => {
       return `Please complete the required field: ${fieldNames[missingField] || missingField}`;
     }
 
-    // Additional validations
+    if (formData.directorEmail && !/\S+@\S+\.\S+/.test(formData.directorEmail)) {
+      return "Please enter a valid email address for the director";
+    }
+
     if (
       formData.yearEstablished &&
       (formData.yearEstablished < 1800 ||
         formData.yearEstablished > new Date().getFullYear())
     ) {
       return "Please enter a valid year established (between 1800 and current year)";
-    }
-
-    if (formData.centreEmail && !/\S+@\S+\.\S+/.test(formData.centreEmail)) {
-      return "Please enter a valid email address for the centre";
-    }
-
-    if (
-      formData.directorEmail &&
-      !/\S+@\S+\.\S+/.test(formData.directorEmail)
-    ) {
-      return "Please enter a valid email address for the director";
     }
 
     if (!touristId) {
@@ -153,15 +137,14 @@ const KycForm = () => {
       return;
     }
 
-    // Debug: Log form data before processing
-    console.log("Raw form data:", formData);
-    console.log("phoneNumber raw:", formData.phoneNumber);
-
+    // Send BOTH phoneNumber and centrePhoneNumber to satisfy backend
     const kycData = {
       lankmark: formData.lankmark,
       CAC: formData.CAC,
       yearEstablished: Number(formData.yearEstablished),
-      phoneNumber: String(formData.phoneNumber), // Changed to phoneNumber as string
+      phoneNumber: String(formData.phoneNumber),
+      centrePhoneNumber: String(formData.phoneNumber), // Send same value as centrePhoneNumber
+      centreEmail: formData.centreEmail,
       centreType: formData.centreType,
       postal: formData.postal,
       state: formData.state,
@@ -172,23 +155,23 @@ const KycForm = () => {
       accountNumber: String(formData.accountNumber),
       accountName: formData.accountName,
       bankCode: formData.bankCode || "",
-      // Include optional fields if they have values
+      // Optional fields
       ...(formData.centreName && { centreName: formData.centreName }),
-      ...(formData.centreEmail && { centreEmail: formData.centreEmail }),
       ...(formData.city && { city: formData.city }),
       ...(formData.streetAddress && { streetAddress: formData.streetAddress }),
     };
 
-    console.log("Final KYC data being sent:", JSON.stringify(kycData, null, 2));
-    console.log("Does phoneNumber exist?", kycData.hasOwnProperty("phoneNumber"));
-    console.log("phoneNumber value:", kycData.phoneNumber);
+    console.log("=== SENDING BOTH PHONE FIELDS ===");
+    console.log("Submitting KYC data:", JSON.stringify(kycData, null, 2));
+    console.log("Tourist ID:", touristId);
+    console.log("Has phoneNumber:", kycData.hasOwnProperty("phoneNumber"));
+    console.log("Has centrePhoneNumber:", kycData.hasOwnProperty("centrePhoneNumber"));
 
     try {
       const response = await dispatch(
-        createKyc({ touristId, kycData }),
+        createKyc({ touristId, kycData })
       ).unwrap();
 
-      // Clear the stored touristId after successful submission
       localStorage.removeItem("latestTouristId");
 
       Swal.fire({
@@ -204,13 +187,21 @@ const KycForm = () => {
     } catch (error) {
       console.error("KYC submission error:", error);
       console.error("Error response data:", error.response?.data);
+      console.error("Error response status:", error.response?.status);
       
-      // Show detailed error from backend
-      const errorMessage = error.response?.data?.message || 
-                          error.response?.data?.error ||
-                          typeof error === "string"
-                            ? error
-                            : error?.message || "Unable to submit KYC. Please try again.";
+      // Try to get the actual error message from backend
+      let errorMessage = "Unable to submit KYC. Please try again.";
+      if (error.response?.data) {
+        if (typeof error.response.data === 'string') {
+          errorMessage = error.response.data;
+        } else if (error.response.data.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response.data.error) {
+          errorMessage = error.response.data.error;
+        } else {
+          errorMessage = JSON.stringify(error.response.data);
+        }
+      }
       
       Swal.fire({
         icon: "error",
@@ -251,6 +242,7 @@ const KycForm = () => {
           </div>
 
           <form className="kyc-multi-block-form" onSubmit={handleSubmit}>
+            {/* Business Information Section */}
             <section className="kyc-form-card">
               <div className="card-header-row">
                 <LuBuilding2 className="card-header-icon" />
@@ -268,9 +260,7 @@ const KycForm = () => {
                     className="form-text-input"
                     placeholder="e.g., Lekki Tourism Limited"
                   />
-                  <small className="field-hint">
-                    Optional - can be updated later
-                  </small>
+                  <small className="field-hint">Optional</small>
                 </div>
 
                 <div className="form-input-group">
@@ -287,9 +277,7 @@ const KycForm = () => {
                 </div>
 
                 <div className="form-input-group">
-                  <label className="form-field-label">
-                    CAC Registration Number *
-                  </label>
+                  <label className="form-field-label">CAC Registration Number *</label>
                   <input
                     name="CAC"
                     value={formData.CAC}
@@ -393,7 +381,7 @@ const KycForm = () => {
                 </div>
 
                 <div className="form-input-group full-width-field">
-                  <label className="form-field-label">Street address</label>
+                  <label className="form-field-label">Street Address</label>
                   <input
                     name="streetAddress"
                     value={formData.streetAddress}
@@ -407,12 +395,11 @@ const KycForm = () => {
               </div>
             </section>
 
+            {/* Owner/Director Information Section */}
             <section className="kyc-form-card">
               <div className="card-header-row">
                 <LuUser className="card-header-icon" />
-                <h2 className="card-section-title">
-                  Owner/Director Information
-                </h2>
+                <h2 className="card-section-title">Owner/Director Information</h2>
               </div>
 
               <div className="form-grid-layout">
@@ -437,7 +424,7 @@ const KycForm = () => {
                     onChange={handleChange}
                     type="email"
                     className="form-text-input"
-                    placeholder="owner@email.com"
+                    placeholder="director@example.com"
                     required
                   />
                 </div>
@@ -457,6 +444,7 @@ const KycForm = () => {
               </div>
             </section>
 
+            {/* Bank Account Details Section */}
             <section className="kyc-form-card">
               <div className="card-header-row">
                 <LuCreditCard className="card-header-icon" />
@@ -472,7 +460,7 @@ const KycForm = () => {
                     onChange={handleChange}
                     type="text"
                     className="form-text-input"
-                    placeholder="e.g., First Bank of Nigeria"
+                    placeholder="e.g., Access Bank"
                     required
                   />
                 </div>
@@ -511,11 +499,9 @@ const KycForm = () => {
                     onChange={handleChange}
                     type="text"
                     className="form-text-input"
-                    placeholder="e.g., 011 (optional)"
+                    placeholder="e.g., 044"
                   />
-                  <small className="field-hint">
-                    Optional - for faster verification
-                  </small>
+                  <small className="field-hint">Optional</small>
                 </div>
               </div>
             </section>
