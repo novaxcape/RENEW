@@ -50,8 +50,8 @@ import VendorLogin from "./Pages/VendorLogin";
 import VendorForgotPassword from "./Pages/VendorForgotPassword";
 import VendorResetPassword from "./Pages/VendorResetPassword";
 import VendorChangePassword from "./Pages/VendorChangePassword";
-import Dashboardpackageactive from "./Pages/Dashboardpackageactive"
-
+import DashboardPackageActive from "./Pages/DashboardPackageActive"
+import DashboardPackageInactive from "./Pages/DashboardPackageInactive"
 
 // Shared layout configuration to render Fixed Header automatically 
 const MainLayout = () => {
@@ -254,13 +254,23 @@ const App = () => {
       />
 
        <Route
-        path="dashboardpackageactive"
+        path="DashboardPackageActive"
         element={
-          <PublicRoute role="dashboardpackageactive">
-            <Dashboardpackageactive />
+          <PublicRoute role="DashboardPackageActive">
+            <DashboardPackageActive />
           </PublicRoute>
         }
       />
+
+       <Route
+        path="DashboardPackageInactive"
+        element={
+          <PublicRoute role="DashboardPackageInactive">
+            <DashboardPackageInactive />
+          </PublicRoute>
+        }
+      />
+
 
 
 
