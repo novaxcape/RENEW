@@ -1,6 +1,7 @@
 .recommend_wrapper {
   width: 100%;
-  padding: 30px 0;
+  padding: 48px 60px;
+  box-sizing: border-box;
 }
 
 .recommend_body {
@@ -13,7 +14,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 50px;
+  gap: 190px;
 }
 
 .recommend_left {
@@ -21,8 +22,9 @@
 }
 
 .recommend_left img {
-  width: 100%;
+  width: 600px;
   height: auto;
+  margin-left: 0px;
   object-fit: contain;
 }
 
@@ -60,54 +62,75 @@
 }
 
 .statBlockCard {
-  background: #f9f9f9;
-  border: 1px solid #e5e5e5;
-  border-radius: 20px;
-  padding: 15px 20px;
+  background: #f0f0f0;
+  border: 1px solid;
+  border-radius: 16px;
+  padding: 18px 19px;
   text-align: center;
   flex: 1;
-  height:91px;
-  width: 186px;
+  min-height: unset;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .statValueNumber {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1f1f1f;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
   font-family: Manrope;
 }
 
 .statValueLabel {
-  font-size: 20px;
-  color: #271A13;
-  margin-top: 4px;
+  font-size: 14px;
+  color: #1a1a1a;
   font-weight: 400;
-
+  margin-top: 0;
 }
 
-/* ===== IPHONE 13 & 14 SPECIFIC (max-width: 390px) ===== */
-@media (max-width: 390px) {
+/* ===== MOBILE (max-width: 430px) ===== */
+@media (max-width: 430px) {
   .recommend_wrapper {
-    padding: 16px 0;
+    padding: 20px 0;
+    overflow-x: hidden;        /* prevent horizontal scroll */
   }
 
   .recommend_body {
-    padding: 0 14px;
+    padding: 0 16px;
     width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   .recommend_content {
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .recommend_left {
+    flex-direction: column;    /* text on top, image below */
+    gap: 20px;
     width: 100%;
   }
 
+  /* TEXT FIRST */
   .recommend_right {
+    order: 1;
     width: 100%;
     gap: 10px;
+  }
+
+  /* IMAGE SECOND */
+  .recommend_left {
+    order: 2;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .recommend_left img {
+    width: 100%;              /* constrain to screen */
+    max-width: 100%;
+    height: auto;
+    margin-left: 0;
+    display: block;
   }
 
   .recommend_tag {
@@ -121,65 +144,29 @@
 
   .recommend_right p {
     font-size: 13px;
-    line-height: 22px;
+    line-height: 1.6;
   }
 
   .statsRowGroup {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 8px;
+    width: 100%;
   }
 
   .statBlockCard {
-    flex: 1 1 30%;
-    padding: 10px 8px;
-    border-radius: 10px;
+    flex: 1;
+    min-height: unset;
+    padding: 12px 6px;
+    border-radius: 12px;
+    border: 1px solid #e5e5e5;
   }
 
   .statValueNumber {
     font-size: 14px;
+    font-weight: 700;
   }
 
   .statValueLabel {
     font-size: 10px;
-  }
-}
-
-/* ===== IPHONE 13/14 PRO MAX (391px - 430px) ===== */
-@media (min-width: 391px) and (max-width: 430px) {
-  .recommend_wrapper {
-    padding: 20px 0;
-  }
-
-  .recommend_body {
-    padding: 0 16px;
-  }
-
-  .recommend_content {
-    flex-direction: column;
-    gap: 18px;
-  }
-
-  .recommend_left {
-    width: 100%;
-  }
-
-  .recommend_right {
-    width: 100%;
-  }
-
-  .recommend_right h2 {
-    font-size: 24px;
-  }
-
-  .recommend_right p {
-    font-size: 14px;
-  }
-
-  .statBlockCard {
-    padding: 12px 10px;
-  }
-
-  .statValueNumber {
-    font-size: 15px;
   }
 }

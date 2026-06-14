@@ -1,79 +1,34 @@
 import React from "react";
-import { IoLocationOutline } from "react-icons/io5";
 import "./css/PopularDestinations.css";
 
 const PopularDestinations = () => {
   return (
-    <div className="destinationsSection">
-      <div className="destinationsHeader">
-        <div className="sectionMainTitle">Popular Destination</div>
-        <div className="sectionSubDescription">
-          Explore Top Cities with the most attractions
-        </div>
+    <section className="popular-destination">
+      <div className="popular-destination__header">
+        <h2 className="popular-destination__title">Popular Destination</h2>
+        <p className="popular-destination__subtitle">Explore Top Cities with the most attractions</p>
       </div>
 
-      <div className="destinationsGrid">
-        <div className="destinationCard">
-          <img
-            src="/novaxcape/lagos.png"
-            alt="Lagos"
-            className="cardDisplayImage"
-          />
-          <div className="cardTextOverlay">
-            <div className="locationLabelRow">
-              <IoLocationOutline className="locationPinIcon" />
-              <div className="cityNameText">Lagos</div>
-            </div>
-            <div className="attractionCountText">45 Attractions</div>
-          </div>
+      <div className="popular-destination__grid">
+
+        <div className="popular-destination__card">
+          <img src="/novaxcape/lagos.png" alt="Lagos" className="popular-destination__image" />
         </div>
 
-        <div className="destinationCard">
-          <img
-            src="/novaxcape/ibadan.png"
-            alt="Ibadan"
-            className="cardDisplayImage"
-          />
-          <div className="cardTextOverlay">
-            <div className="locationLabelRow">
-              <IoLocationOutline className="locationPinIcon" />
-              <div className="cityNameText">Ibadan</div>
-            </div>
-            <div className="attractionCountText">20 Attractions</div>
-          </div>
+        <div className="popular-destination__card">
+          <img src="/novaxcape/ibadan.png" alt="Ibadan" className="popular-destination__image" />
         </div>
 
-        <div className="destinationCard">
-          <img
-            src="/novaxcape/abuja.png"
-            alt="Abuja"
-            className="cardDisplayImage"
-          />
-          <div className="cardTextOverlay">
-            <div className="locationLabelRow">
-              <IoLocationOutline className="locationPinIcon" />
-              <div className="cityNameText">Abuja</div>
-            </div>
-            <div className="attractionCountText">27 Attractions</div>
-          </div>
+        <div className="popular-destination__card">
+          <img src="/novaxcape/abuja.png" alt="Abuja" className="popular-destination__image" />
         </div>
 
-        <div className="destinationCard">
-          <img
-            src="/novaxcape/port.png"
-            alt="Port Harcourt"
-            className="cardDisplayImage"
-          />
-          <div className="cardTextOverlay">
-            <div className="locationLabelRow">
-              <IoLocationOutline className="locationPinIcon" />
-              <div className="cityNameText">Port Harcourt</div>
-            </div>
-            <div className="attractionCountText">16 Attractions</div>
-          </div>
+        <div className="popular-destination__card">
+          <img src="/novaxcape/port.png" alt="Port Harcourt" className="popular-destination__image" />
         </div>
+
       </div>
-    </div>
+    </section>
   );
 };
 
