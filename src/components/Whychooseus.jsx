@@ -1,6 +1,6 @@
 import React from "react";
 import "../components/css/Chooseus.css";
-import chooseimg from "/novaxcape/chooseimg.png";
+import chooseimage from "/novaxcape/chooseimage.png";
 import { BsCheck2Circle } from "react-icons/bs";
 
 
@@ -16,7 +16,7 @@ const Whychooseus = () => {
           </div> */}
 
           <img
-            src={chooseimg}
+            src={chooseimage}
             alt="Why Choose Us"
             className="whyChoose-image"
           /> 
@@ -29,7 +29,7 @@ const Whychooseus = () => {
           <h2>Why Choose us?</h2>
 
           <p>
-            We make discovering and booking tourism centres across Nigeria
+            We make discovering and booking tourism centres across  Nigeria
             simple, reliable, and stress-free. Our platform is designed to
             eliminate long queues, on-site ticket hassles, and unnecessary
             uncertainty so you can focus on enjoying memorable experiences.
