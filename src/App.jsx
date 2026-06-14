@@ -147,9 +147,8 @@ const App = () => {
       </Route>
 
 
-      {/* ========================================================
-          2. SELECTION & AUTH PAGES (No Header - Full Screen Design)
-         ======================================================== */}
+       
+
       <Route
         path="/signupscreen"
         element={
@@ -159,7 +158,6 @@ const App = () => {
         }
       />
 
-      {/* Client Auth */}
       <Route
         path="/signup"
         element={
@@ -202,10 +200,11 @@ const App = () => {
       />
 
       {/* Vendor Auth */}
+      {/* ========== VENDOR AUTH ROUTES (Public) ========== */}
       <Route
         path="/signupvendor"
         element={
-          <PublicRoute>
+          <PublicRoute role="vendor">
             <SignUpVendor />
           </PublicRoute>
         }
@@ -213,7 +212,7 @@ const App = () => {
       <Route
         path="/vendor/verify-otp"
         element={
-          <PublicRoute>
+          <PublicRoute role="vendor">
             <VendorVerifyOtp />
           </PublicRoute>
         }
@@ -221,7 +220,7 @@ const App = () => {
       <Route
         path="/vendor/login"
         element={
-          <PublicRoute>
+          <PublicRoute role="vendor">
             <VendorLogin />
           </PublicRoute>
         }
@@ -229,7 +228,7 @@ const App = () => {
       <Route
         path="/vendor/forgot-password"
         element={
-          <PublicRoute>
+          <PublicRoute role="vendor">
             <VendorForgotPassword />
           </PublicRoute>
         }
@@ -237,16 +236,46 @@ const App = () => {
       <Route
         path="/vendor/reset-password"
         element={
-          <PublicRoute>
+          <PublicRoute role="vendor">
             <VendorResetPassword />
           </PublicRoute>
         }
       />
 
-
-      {/* ========================================================
-          3. VENDOR SYSTEM PAGES (Uses Dashboard Layout Instead)
-         ======================================================== */}
+{/* 
+      <Route
+        path="/wishlist"
+        element={
+          <PrivateRoute>
+            <WishList />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/payment"
+        element={
+          <PrivateRoute>
+            <PaymentOptionPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/my-bookings"
+        element={
+          <PrivateRoute>
+            <MyBookingsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/payment-confirmation"
+        element={
+          <PrivateRoute>
+            <PaymentConfirmationPage />
+          </PrivateRoute>
+        }
+      /> */}
+      {/* ========== VENDOR DASHBOARD ROUTES (Protected) ========== */}
       <Route
         path="/vendor/dashboard"
         element={
@@ -267,6 +296,7 @@ const App = () => {
         element={<Navigate to="/vendor/dashboard" replace />}
       />
 
+      {/* ========== VENDOR PROTECTED ROUTES (Require login) ========== */}
       <Route
         path="/vendor/change-password"
         element={
@@ -276,12 +306,30 @@ const App = () => {
         }
       />
 
+
+      {/* ========== STANDALONE PROTECTED PAGES ========== */}
+      {/* <Route
+        path="/settings"
+        element={
+          <PrivateRoute>
+            <SettingsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/profile-settings"
+        element={
+          <PrivateRoute>
+            <ProfileSettingPage />
+          </PrivateRoute>
+        }
+      />
       <Route
         path="/add-centre"
         element={
-          // <PrivateRoute role="vendor">
+          <PrivateRoute role="vendor">
             <AddCentre />
-          // </PrivateRoute>
+          </PrivateRoute>
         }
       />
       <Route
@@ -291,10 +339,12 @@ const App = () => {
             <KycPage />
           </PrivateRoute>
         }
-      />
+      /> */}
 
 
       {/* Fallback 404 */}
+
+      {/* ========== FALLBACK for 404 ========== */}
       <Route
         path="*"
         element={
