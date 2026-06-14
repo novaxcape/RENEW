@@ -1,168 +1,147 @@
-.support-ban {
-  width: 100%;
-  height: 90vh;
-  justify-content: center;
-  display: flex;
-  align-items: center;
+/* Container styling with modern font stack and precise background color */
+.support-banner-container {
+  position: relative;
+  background: linear-gradient(135deg, #ff7242, #ff6333); /* Vibrant orange gradient */
+  border-radius: 24px;
+  
+  /* Increased Height & Width Settings */
+  padding: 80px 24px; /* Increased vertical padding to make the container taller */
+  max-width: 1200px; 
+  width: 95%;
+  
+  margin: 40px auto;
+  overflow: hidden; /* Keeps background circles inside the card bounds */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  box-shadow: 0 10px 30px rgba(255, 99, 51, 0.15);
 }
 
-.support-banner {
+/* Centralizing content layout */
+.support-banner-content {
   position: relative;
-  width: 90%;
-  min-height: 450px;
-  background: #ff6b35;
-  border-radius: 12px;
-  overflow: hidden;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  padding: 40px 20px;
-}
-
-/* Content */
-.support-content {
-  position: relative;
-  z-index: 2;
+  z-index: 5; /* Ensures text stays above background shapes */
   text-align: center;
-  max-width: 650px;
-  color: #fff;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px; /* Slightly increased gap for better breathing room in taller layout */
+}
+
+/* "Still Need Help?" pill badge */
+.badge-wrapper {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 8px 39px;
+  border-radius: 100px;
+  margin-bottom: 8px;
 }
 
 .support-badge {
-  display: inline-block;
-  padding: 6px 18px;
-  border-radius: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-
-  font-size: 12px;
-  font-weight: 500;
-
-  margin-bottom: 18px;
+  font-size: 24px;
+  font-weight: 400;
+  opacity: 0.9;
+  letter-spacing: -0.2px;
 }
 
-.support-content h2 {
-  font-size: 40px;
+/* Primary message */
+.support-heading {
+  font-size: 2.5rem; /* Slightly upscaled to match the grander scale */
   font-weight: 600;
-  margin-bottom: 12px;
+  margin: 0;
+  letter-spacing: -0.5px;
 }
 
-.support-content p {
-  font-size: 18px;
-  font-weight: 500;
+/* Subtext description */
+.support-description {
+  font-size: 1rem; /* Slightly upscaled */
   line-height: 1.6;
-  max-width: 500px;
-  margin: 0 auto 24px;
-  color: rgba(255, 255, 255, 0.9);
+  max-width: 540px;
+  margin: 0 0 16px 0;
+  opacity: 0.85;
 }
 
-.support-btn {
+/* White CTA Button */
+.support-button {
+  background-color: #ffffff;
+  color: #1e293b; /* Dark charcoal/slate tone for sleek contrast */
   border: none;
-  outline: none;
-  cursor: pointer;
-
-  background: #fff;
-  color: #222;
-
-  padding: 12px 28px;
-  border-radius: 50px;
-
-  font-size: 14px;
+  border-radius: 100px;
+  padding: 14px 36px; /* Enhanced button size to balance container height */
+  font-size: 1rem;
   font-weight: 600;
-
-  transition: all 0.3s ease;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
 }
 
-.support-btn:hover {
+.support-button:hover {
   transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  background-color: #f8fafc;
 }
 
-/* Decorative Circles */
-.support-banner::before,
-.support-banner::after {
-  content: "";
+.support-button:active {
+  transform: translateY(0);
+}
+
+/* --- Decorative Corner Circles (CSS Artwork) --- */
+.shape {
   position: absolute;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.07); /* Semi-transparent white overlays */
+  pointer-events: none; /* Prevents circles from blocking mouse interactions */
 }
 
-.support-banner::before {
+/* Top Left Configurations (Scaled up to match new height) */
+.top-left-1 {
   width: 180px;
   height: 180px;
-  top: -90px;
-  left: -90px;
-
-  box-shadow:
-    40px 40px 0 rgba(255, 255, 255, 0.08),
-    80px 80px 0 rgba(255, 255, 255, 0.05);
+  top: -50px;
+  left: -50px;
 }
 
-.support-banner::after {
-  width: 180px;
-  height: 180px;
-  bottom: -90px;
-  right: -90px;
-
-  box-shadow:
-    -40px -40px 0 rgba(255, 255, 255, 0.08),
-    -80px -80px 0 rgba(255, 255, 255, 0.05);
+.top-left-2 {
+  width: 320px;
+  height: 320px;
+  top: -120px;
+  left: -120px;
 }
 
-/* Tablet */
-@media (max-width: 768px) {
-  .support-banner {
-    min-height: 200px;
-    padding: 35px 20px;
-  }
-
-  .support-content h2 {
-    font-size: 26px;
-  }
-
-  .support-content p {
-    font-size: 13px;
-  }
-
-  .support-btn {
-    padding: 10px 24px;
-  }
+/* Bottom Right Configurations (Scaled up to match new height) */
+.bottom-right-1 {
+  width: 220px;
+  height: 220px;
+  bottom: -50px;
+  right: -50px;
 }
 
-/* Mobile */
-@media (max-width: 480px) {
-  .support-banner {
-    min-height: auto;
-    padding: 30px 16px;
-  }
+.bottom-right-2 {
+  width: 420px;
+  height: 420px;
+  bottom: -130px;
+  right: -130px;
+}
 
-  .support-content h2 {
-    font-size: 22px;
-    line-height: 1.3;
-  }
+.bottom-right-3 {
+  width: 600px;
+  height: 600px;
+  bottom: -200px;
+  right: -200px;
+}
 
-  .support-content p {
-    font-size: 12px;
-    margin-bottom: 20px;
+/* Responsive Scaling for smaller displays */
+@media (max-width: 640px) {
+  .support-banner-container {
+    padding: 60px 16px; /* Responsive safe height reduction for mobile screen real estate */
+    margin: 20px 12px;
+    border-radius: 16px;
+    width: auto;
   }
-
-  .support-btn {
-    width: 100%;
-    max-width: 220px;
-    padding: 12px;
+  
+  .support-heading {
+    font-size: 1.85rem;
   }
-
-  .support-banner::before {
-    width: 120px;
-    height: 120px;
-    top: -60px;
-    left: -60px;
-  }
-
-  .support-banner::after {
-    width: 120px;
-    height: 120px;
-    bottom: -60px;
-    right: -60px;
+  
+  .support-description {
+    font-size: 0.9rem;
   }
 }

@@ -23,85 +23,134 @@
   font-weight: 500;
 }
 
+/* --- REDUCED CONTAINER BOX WIDTH SLIGHTLY --- */
 .faq-container {
-  max-width: 900px;
-  
+  max-width: 680px; /* Reduced width slightly for a sleeker profile */
   margin: auto;
 }
 
+/* --- THE MAIN BOX CONTAINER WITH INCREASED HEIGHT & MORE SPACE BETWEEN THEM --- */
 .faq-item {
-  margin-bottom: 20px;
-  height: 100px;
-}
-
-.faq-question {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  min-height: 76px;
-  display: grid;
-  grid-template-columns: 80px 1fr 50px;
-  align-items: center;
+  background: #F4F3F3; 
+  border: 1px solid #dcdcdc;
+  border-radius: 16px; 
+  
+  /* --- INCREASED SPACE BETWEEN FAQS --- */
+  margin-bottom: 30px; /* Increased from 16px to give much more breathing room between cards */
+  
+  /* --- INCREASED HEIGHT BY BOOSTING VERTICAL PADDING --- */
+  padding: 26px 24px; /* Increased vertical padding to make the boxes taller */
+  
   cursor: pointer;
-  transition: 0.3s;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.faq-question:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+/* --- INTERACTIVE LIGHT BLUE HOVER/CLICK EFFECT STATE --- */
+.faq-item:hover,
+.faq-item.active {
+  background: #D4E6F1; 
 }
 
-.faq-number {
-  /* border-right: 1px solid #ddd; */
-  height: 100%;
-  display: flex;
+.faq-item.active {
+  border-color: #0b4db8; 
+}
+
+/* --- CONTAINER TOP CONTENT ROW GRID --- */
+.faq-header-row {
+  display: grid;
+  grid-template-columns: 50px 1fr 30px;
   align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  color: #555;
+  width: 100%;
 }
 
+/* --- INDEX CONTAINER HANDLING --- */
+.faq-number {
+  font-size: 15px;
+  font-weight: 600;
+  color: #555;
+  text-align: left;
+  transition: color 0.2s ease;
+}
+
+.faq-item.active .faq-number {
+  color: #0b4db8;
+}
+
+/* --- QUESTION TEXT GRAPHICS --- */
 .question-text {
   text-align: center;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 500;
   color: #222;
+  transition: color 0.2s ease;
+  padding: 0 10px;
 }
 
+.faq-item.active .question-text {
+  color: #0b4db8;
+}
+
+/* --- SIGNS AND ARROWS --- */
 .faq-icon {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
-  color: #666;
-  font-size: 13px;
+  color: #222;
+  font-size: 16px;
+  transition: color 0.2s ease;
 }
 
-.faq-answer {
-  background: white;
-  padding: 20px;
-  border: 1px solid #ddd;
-  border-top: none;
-  border-radius: 0 0 12px 12px;
-  line-height: 1.7;
-  color: #444;
+.faq-item.active .faq-icon {
+  color: #0b4db8;
+}
+
+/* --- ANSWER TEXT CONTAINER ELEMENT --- */
+.faq-answer-content {
+  margin-top: 18px; /* Slightly more space before the text due to box size increase */
+  width: 100%;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.faq-answer-content p {
+  text-align: center; 
+  line-height: 1.6;
+  color: #333;
   font-size: 14px;
+  font-weight: 400;
+  margin: 0;
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- MOBILE BREAKPOINTS SIZING ADJUSTMENTS --- */
 @media (max-width: 768px) {
   .faq-title {
     font-size: 2rem;
   }
 
-  .faq-question {
-    grid-template-columns: 60px 1fr 40px;
+  .faq-item {
+    padding: 18px 16px; /* Scales down layout height beautifully on screens like phones */
+    margin-bottom: 20px; /* Gives slightly tightened spacing for mobile displays */
+  }
+
+  .faq-header-row {
+    grid-template-columns: 40px 1fr 24px;
   }
 
   .question-text {
-    text-align: left;
-    padding: 0 10px;
+    font-size: 14px;
+  }
+
+  .faq-answer-content p {
     font-size: 13px;
   }
 
   .faq-subtitle {
-    font-size: 13px;
+    font-size: 14px;
   }
 }

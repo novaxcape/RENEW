@@ -8,7 +8,7 @@ const Header = () => {
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
-    // Prevent scrolling when menu is open
+    // Prevent background scrolling when menu overlay is open
     document.body.style.overflow = menuOpen ? "auto" : "hidden";
   };
 
@@ -79,7 +79,7 @@ const Header = () => {
             </ul>
           </div>
 
-          {/* RIGHT SIDE / BUTTONS */}
+          {/* RIGHT SIDE / ACTION BUTTONS */}
           <div className="button">
             {/* MOBILE ICONS */}
             <div className="mobile-icons">
@@ -144,12 +144,12 @@ const Header = () => {
                 Support
               </NavLink>
             </li>
+            
             {/* MOBILE AUTH LINKS */}
             <li className="mobile-auth-links">
               <NavLink to="/signup" onClick={closeMenu} className="mobile-signup">
                 Sign Up
               </NavLink>
-
               <NavLink to="/Login" onClick={closeMenu} className="mobile-signin">
                 Sign In
               </NavLink>

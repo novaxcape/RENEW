@@ -1,15 +1,21 @@
 .payment-navbar-header {
+  /* Crucial fixed configuration styles */
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000; /* Keeps layout stacked above scrollable content layers */
   width: 100%;
+  height: 80px; /* Locked explicit desktop height dimension */
   background-color: #ffffff;
-  border-bottom: 2px solid #3b5998;
+  border-bottom: 2px solid #0056b3; /* Matched to the active brand blue in the image */
   box-sizing: border-box;
 }
 
 .navbar-inner-container {
-  max-width: 1200px;
-  height: 80px;
-  margin: 0 auto;
-  padding: 0;
+  max-width: 1200px; /* Restricts maximum width to leave space on ultra-wide screens */
+  height: 100%; /* Spans full height of the fixed header frame container */
+  margin: 0 auto; /* Centers the content block to create equal space on both sides */
+  padding: 0 40px; /* Provides built-in breathing room on standard desktop layouts */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -22,7 +28,7 @@
 }
 
 .navbar-brand-logo {
-  height: 32px;
+  height: 36px; /* Slightly increased for visibility clarity */
   width: auto;
   display: block;
 }
@@ -30,7 +36,7 @@
 .navbar-navigation-links {
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 36px; /* Optimized layout gap based on photo spacing */
 }
 
 .nav-item-link {
@@ -43,15 +49,21 @@
   transition: color 0.2s ease;
 }
 
+/* Color rule targeting the active/highlighted Support link */
+.nav-item-link.nav-item-link-active {
+  color: #0056b3; 
+  font-weight: 600;
+}
+
 .nav-item-link:hover {
-  color: #0060a3;
+  color: #0056b3;
 }
 
 .navbar-action-btn {
   background: none;
   border: none;
   padding: 0;
-  color: #333333;
+  color: #1a1a1a;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -60,30 +72,40 @@
 }
 
 .navbar-action-btn:hover {
-  color: #0060a3;
+  color: #0056b3;
 }
 
-/* Desktop: show user only */
+/* Desktop Actions Container Configuration */
 .navbar-desktop-actions {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 28px; /* Roomy separation for layout actions */
 }
 
-/* Mobile: hidden by default */
+/* Mobile Layout Actions Setup */
 .navbar-mobile-actions {
   display: none;
 }
 
+/* Helper spacing utility: add this top class rule directly inside your 
+   payment screens wrapper div layout to clean up view overlap clipping */
+.payment-page-offset {
+  padding-top: 80px;
+}
+
+/* Responsive Window Viewport Alterations */
 @media (max-width: 1240px) {
   .navbar-inner-container {
-    padding: 0 20px;
+    padding: 0 24px; /* Decreases side margins gracefully for tablet/small laptop screens */
   }
 }
 
 @media (max-width: 992px) {
   .navbar-navigation-links {
     gap: 20px;
+  }
+  .navbar-desktop-actions {
+    gap: 18px;
   }
 }
 
