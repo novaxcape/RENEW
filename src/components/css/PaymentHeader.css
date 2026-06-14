@@ -11,7 +11,7 @@
   box-sizing: border-box;
 }
 
-.navbar-inner-container {
+.p-navbar-inner-container {
   max-width: 1200px; /* Restricts maximum width to leave space on ultra-wide screens */
   height: 100%; /* Spans full height of the fixed header frame container */
   margin: 0 auto; /* Centers the content block to create equal space on both sides */
@@ -22,24 +22,24 @@
   box-sizing: border-box;
 }
 
-.navbar-logo-wrapper {
+.p-navbar-logo-wrapper {
   display: flex;
   align-items: center;
 }
 
-.navbar-brand-logo {
+.p-navbar-brand-logo {
   height: 36px; /* Slightly increased for visibility clarity */
   width: auto;
   display: block;
 }
 
-.navbar-navigation-links {
+.p-navbar-navigation-links {
   display: flex;
   align-items: center;
   gap: 36px; /* Optimized layout gap based on photo spacing */
 }
 
-.nav-item-link {
+.p-nav-item-link {
   font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
   font-weight: 500;
   font-size: 18px;
@@ -50,16 +50,17 @@
 }
 
 /* Color rule targeting the active/highlighted Support link */
-.nav-item-link.nav-item-link-active {
+.p-nav-item-link.p-nav-item-link-active,
+.p-nav-item-link.p-nav-active {
   color: #0056b3; 
   font-weight: 600;
 }
 
-.nav-item-link:hover {
+.p-nav-item-link:hover {
   color: #0056b3;
 }
 
-.navbar-action-btn {
+.p-navbar-action-btn {
   background: none;
   border: none;
   padding: 0;
@@ -71,19 +72,19 @@
   transition: color 0.2s ease;
 }
 
-.navbar-action-btn:hover {
+.p-navbar-action-btn:hover {
   color: #0056b3;
 }
 
 /* Desktop Actions Container Configuration */
-.navbar-desktop-actions {
+.p-navbar-desktop-actions {
   display: flex;
   align-items: center;
   gap: 28px; /* Roomy separation for layout actions */
 }
 
 /* Mobile Layout Actions Setup */
-.navbar-mobile-actions {
+.p-navbar-mobile-actions {
   display: none;
 }
 
@@ -95,30 +96,30 @@
 
 /* Responsive Window Viewport Alterations */
 @media (max-width: 1240px) {
-  .navbar-inner-container {
+  .p-navbar-inner-container {
     padding: 0 24px; /* Decreases side margins gracefully for tablet/small laptop screens */
   }
 }
 
 @media (max-width: 992px) {
-  .navbar-navigation-links {
+  .p-navbar-navigation-links {
     gap: 20px;
   }
-  .navbar-desktop-actions {
+  .p-navbar-desktop-actions {
     gap: 18px;
   }
 }
 
 @media (max-width: 768px) {
-  .navbar-navigation-links {
+  .p-navbar-navigation-links {
     display: none;
   }
 
-  .navbar-desktop-actions {
+  .p-navbar-desktop-actions {
     display: none;
   }
 
-  .navbar-mobile-actions {
+  .p-navbar-mobile-actions {
     display: flex;
     align-items: center;
     gap: 20px;

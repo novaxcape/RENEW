@@ -1,4 +1,4 @@
-.header {
+.m-header {
   /* Fixed positioning parameters */
   position: fixed;
   top: 0;
@@ -13,27 +13,26 @@
   box-sizing: border-box;
 }
 
-/* Page Spacing Offset Helper Class: 
-   Apply this to your wrapping page layout divs so content doesn't hide under the header */
+/* Page Spacing Offset Helper Class */
 .has-fixed-header {
   padding-top: 80px;
 }
 
 /* Style the links inside the list items */
-.link ul li a {
+.m-link ul li a {
   text-decoration: none;
   color: #333;
   transition: color 0.3s ease;
 }
 
 /* Style for the active state */
-.link ul li a.active-link,
-.overlay-links ul li a.active-link {
+.m-link ul li a.m-active-link,
+.m-overlay-links ul li a.m-active-link {
   color: #246bff;
   font-weight: bold;
 }
 
-.header-body {
+.m-header-body {
   width: 90%;
   height: 100%;
   display: flex;
@@ -41,50 +40,50 @@
   align-items: center;
 }
 
-.logo {
+.m-logo {
   display: flex;
   align-items: center;
 }
 
-.header-logo-img {
+.m-header-logo-img {
   width: 120px;
   object-fit: contain;
 }
 
-.link {
+.m-link {
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.link ul {
+.m-link ul {
   display: flex;
   align-items: center;
   list-style: none;
   gap: 3rem;
 }
 
-.link ul li {
+.m-link ul li {
   color: #000;
   font-size: 18px;
   font-weight: 500;
   cursor: pointer;
 }
 
-.button {
+.m-button {
   display: flex;
   align-items: center;
 }
 
 /* Desktop Buttons Container */
-.desktop-buttons {
+.m-desktop-buttons {
   display: flex;
   gap: 12px;
   align-items: center;
 }
 
 /* Transparent Sign In Button Style */
-.signin-btn {
+.m-signin-btn {
   width: 120px;
   height: 44px;
   border: 1px solid #FF5000;
@@ -97,16 +96,16 @@
   transition: background 0.2s ease, color 0.2s ease, transform 0.1s ease;
 }
 
-.signin-btn:hover {
+.m-signin-btn:hover {
   background: rgba(255, 80, 0, 0.05);
   color: #FF5000;
 }
 
 /* RESTRUCTURED SOLID SIGN UP BUTTON */
-.signup-btn {
+.m-signup-btn {
   width: 120px;
   height: 44px;
-  border: 1px solid #FF6B35; /* Keeps bounds identical to signin button */
+  border: 1px solid #FF6B35;
   border-radius: 20px;
   background: #FF6B35;
   color: #ffffff;
@@ -116,22 +115,22 @@
   transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
 }
 
-.signup-btn:hover {
-  background-color: #e55a2b; /* Slightly darker shade on hover for a responsive feedback effect */
+.m-signup-btn:hover {
+  background-color: #e55a2b;
   border-color: #e55a2b;
 }
 
-.signup-btn:active, .signin-btn:active {
-  transform: scale(0.98); /* Micro-interaction scale drop when pressed */
+.m-signup-btn:active, .m-signin-btn:active {
+  transform: scale(0.98);
 }
 
 /* HIDE MOBILE ICONS ON DESKTOP */
-.mobile-icons {
+.m-mobile-icons {
   display: none;
 }
 
 /* ===== MOBILE OVERLAY ===== */
-.mobile-overlay {
+.m-mobile-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -146,11 +145,11 @@
   box-sizing: border-box;
 }
 
-.mobile-overlay.active {
+.m-mobile-overlay.m-active {
   transform: translateX(0);
 }
 
-.overlay-header {
+.m-overlay-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -158,12 +157,12 @@
   border-bottom: 1px solid #eee;
 }
 
-.overlay-logo img {
+.m-overlay-logo img {
   height: 40px;
   object-fit: contain;
 }
 
-.close-btn {
+.m-close-btn {
   background: #246bff;
   border: none;
   width: 40px;
@@ -178,15 +177,15 @@
   transition: 0.3s ease;
 }
 
-.close-btn:hover {
+.m-close-btn:hover {
   background: #1a54cc;
 }
 
-.overlay-links {
+.m-overlay-links {
   margin-top: 40px;
 }
 
-.overlay-links ul {
+.m-overlay-links ul {
   list-style: none;
   padding: 0;
   display: flex;
@@ -194,7 +193,7 @@
   gap: 25px;
 }
 
-.overlay-links ul li a {
+.m-overlay-links ul li a {
   text-decoration: none;
   color: #333;
   font-size: 18px;
@@ -203,20 +202,20 @@
   display: block;
 }
 
-.overlay-links ul li a:hover,
-.overlay-links ul li a.active-link {
+.m-overlay-links ul li a:hover,
+.m-overlay-links ul li a.m-active-link {
   color: #246bff;
 }
 
 /* Mobile Auth Link Formatting inside the Sidebar Menu */
-.mobile-auth-links {
+.m-mobile-auth-links {
   margin-top: 15px;
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
 
-.mobile-auth-links .mobile-signin {
+.m-mobile-auth-links .m-mobile-signin {
   text-align: center;
   border: 2px solid #FF6B35 !important;
   color: #FF6B35 !important;
@@ -224,7 +223,7 @@
   border-radius: 20px;
 }
 
-.mobile-auth-links .mobile-signup {
+.m-mobile-auth-links .m-mobile-signup {
   text-align: center;
   background: #FF6B35;
   color: #fff !important;
@@ -233,25 +232,25 @@
 }
 
 /* =========================================
-   MEDIA QUERIES (Mobile Responsiveness)
+    MEDIA QUERIES (Mobile Responsiveness)
 ========================================= */
 
 @media (max-width: 768px) {
-  .desktop-links {
+  .m-desktop-links {
     display: none;
   }
   
-  .desktop-buttons {
+  .m-desktop-buttons {
     display: none;
   }
   
-  .mobile-icons {
+  .m-mobile-icons {
     display: flex;
     align-items: center;
     gap: 15px;
   }
   
-  .mobile-icons .hamburger {
+  .m-mobile-icons .m-hamburger {
     cursor: pointer;
     font-size: 20px;
   }
@@ -259,25 +258,24 @@
 
 /* Small screen optimization */
 @media (max-width: 400px) {
-  .header {
+  .m-header {
     height: 60px;
     border-bottom: 1px solid #01388C;
   }
   
-  /* Adjusted mobile content frame offset to prevent overlap when screen size drops */
   .has-fixed-header {
     padding-top: 60px;
   }
 
-  .header-body {
+  .m-header-body {
     width: 95%;
   }
 
-  .header-logo-img {
+  .m-header-logo-img {
     width: 120px;
   }
 
-  .mobile-icons {
+  .m-mobile-icons {
     gap: 14px;
     font-size: 18px;
     color: #000;
@@ -285,10 +283,10 @@
 }
 
 @media (min-width: 769px) {
-  .mobile-overlay {
+  .m-mobile-overlay {
     display: none !important;
   }
-  .mobile-icons .hamburger {
+  .m-mobile-icons .m-hamburger {
     display: none;
   }
 }
