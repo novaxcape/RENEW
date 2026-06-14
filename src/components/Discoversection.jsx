@@ -1,9 +1,6 @@
 import React, { useState } from "react";
 import "../components/css/Discoversection.css";
-import {
-  FaStar,
-  FaRegClock,
-} from "react-icons/fa";
+import { FaStar, FaRegClock } from "react-icons/fa";
 
 import lekki from "/novaxcape/lekki.png";
 import olumo from "/novaxcape/olumo.png";
@@ -117,10 +114,69 @@ const attractions = [
   },
 ];
 
-const Discoversection = () => {
-  const [activeCategory, setActiveCategory] = useState(
-    "Park & Recreation"
-  );
+const Discoversection = ({
+  searchState,
+  searchSubmitted,
+  touristCentres,
+  loading,
+  error,
+}) => {
+  const [activeCategory, setActiveCategory] = useState("Park & Recreation");
+
+  const renderPlace = (place) => {
+    const imageSrc = place.image || lekki;
+    const title =
+      place.centreName || place.name || place.title || "Tourist Centre";
+    const location =
+      [place.city, place.state].filter(Boolean).join(", ") ||
+      place.location ||
+      "Unknown location";
+    const rating = place.rating || place.averageRating || 4.0;
+    const reviews = place.reviews || place.reviewCount || 0;
+    const time = place.openingHours || place.time || "8:30 AM - 5:00 PM";
+    const price = place.price || place.ticketPrice || "Contact";
+
+    return (
+      <div className="attraction_card" key={place.id || place._id || title}>
+        <img src={imageSrc} alt={title} />
+
+        <div className="card_content">
+          <h3>{title}</h3>
+
+          <h4>{location}</h4>
+
+          <div className="card_details">
+            <div className="rating">
+              {[...Array(5)].map((_, i) => (
+                <FaStar key={i} />
+              ))}
+
+              <span>{rating}</span>
+
+              <small>({reviews})</small>
+            </div>
+
+            <div className="time">
+              <FaRegClock />
+              <span>{time}</span>
+            </div>
+          </div>
+
+          <div className="bottom_section">
+            <div>
+              <p>From</p>
+              <h2>{price}</h2>
+            </div>
+
+            <button>Book Now</button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const showApiResults = searchSubmitted;
+  const results = Array.isArray(touristCentres) ? touristCentres : [];
 
   return (
     <section className="attractions">
@@ -133,67 +189,32 @@ const Discoversection = () => {
             className={`category_btn ${
               activeCategory === category ? "active" : ""
             }`}
-            onClick={() =>
-              setActiveCategory(category)
-            }
+            onClick={() => setActiveCategory(category)}
           >
             {category}
           </button>
         ))}
       </div>
 
+      {showApiResults && (
+        <div className="search-results-header">
+          <h2>Search results for "{searchState}"</h2>
+          {loading && <p>Loading centres...</p>}
+          {error && <p className="error-text">{error}</p>}
+          {!loading && !error && results.length === 0 && (
+            <p className="no-results-text">
+              No centres found in "{searchState}". Try a different state.
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Cards */}
 
       <div className="attractions_grid">
-        {attractions.map((place) => (
-          <div
-            className="attraction_card"
-            key={place.id}
-          >
-            <img
-              src={place.image}
-              alt={place.title}
-            />
-
-            <div className="card_content">
-              <h3>{place.title}</h3>
-
-              <h4>{place.location}</h4>
-
-              <div className="card_details">
-                <div className="rating">
-                  {[...Array(5)].map((_, i) => (
-                    <FaStar key={i} />
-                  ))}
-
-                  <span>
-                    {place.rating}
-                  </span>
-
-                  <small>
-                    ({place.reviews})
-                  </small>
-                </div>
-
-                <div className="time">
-                  <FaRegClock />
-                  <span>{place.time}</span>
-                </div>
-              </div>
-
-              <div className="bottom_section">
-                <div>
-                  <p>From</p>
-                  <h2>{place.price}</h2>
-                </div>
-
-                <button>
-                  Book Now
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+        {showApiResults
+          ? results.map((place) => renderPlace(place))
+          : attractions.map((place) => renderPlace(place))}
       </div>
     </section>
   );
