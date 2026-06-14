@@ -86,6 +86,11 @@ export const forgotClientPassword = createThunk(
   (payload) => axios.post(`${API_BASE_URL}/client/forget-password`, payload)
 );
 
+export const resetClientPassword = createThunk(
+  "api/client/resetPassword",
+  (payload) => axios.post(`${API_BASE_URL}/client/reset-password`, payload)
+);
+
 export const changeClientPassword = createThunk(
   "api/client/changePassword",
   (payload, { getState }) =>
@@ -125,6 +130,11 @@ export const getVendorDetails = createThunk(
 export const forgotVendorPassword = createThunk(
   "api/vendor/forgotPassword",
   (payload) => axios.post(`${API_BASE_URL}/vendor/forget-password`, payload)
+);
+
+export const resetVendorPassword = createThunk(
+  "api/vendor/resetPassword",
+  (payload) => axios.post(`${API_BASE_URL}/vendor/reset-password`, payload)
 );
 
 export const changeVendorPassword = createThunk(
@@ -193,6 +203,12 @@ export const getTouristCentersByState = createThunk(
     axios.get(`${API_BASE_URL}/tourist/get-all-state/${encodeURIComponent(state)}`)
 );
 
+export const getTouristCenterById = createThunk(
+  "api/touristCentre/getById",
+  (id) =>
+    axios.get(`${API_BASE_URL}/tourist/get-one/${id}`)
+);
+
 export const getVendorTouristCenters = createThunk(
   "api/touristCentre/getVendorCentres",
   (vendorId, { getState }) =>
@@ -254,6 +270,12 @@ export const createBooking = createThunk(
     )
 );
 
+export const getAllClientBookings = createThunk(
+  "api/booking/getAllClient",
+  (_, { getState }) =>
+    axios.get(`${API_BASE_URL}/booking/get-all`, authConfig(getState()))
+);
+
 export const getUserBookings = createThunk(
   "api/booking/getUserBookings",
   (userId, { getState }) =>
@@ -262,8 +284,27 @@ export const getUserBookings = createThunk(
 
 export const getVendorBookings = createThunk(
   "api/booking/getVendorBookings",
-  (vendorId, { getState }) =>
-    axios.get(`${API_BASE_URL}/booking/vendor/${vendorId}`, authConfig(getState()))
+  ({ touristId, packageId }, { getState }) =>
+    axios.get(
+      `${API_BASE_URL}/booking/get-all/${touristId}/${packageId}`, 
+      authConfig(getState())
+    )
+);
+
+export const getBookingById = createThunk(
+  "api/booking/getById",
+  (bookingId, { getState }) =>
+    axios.get(`${API_BASE_URL}/booking/${bookingId}`, authConfig(getState()))
+);
+
+export const cancelBooking = createThunk(
+  "api/booking/cancel",
+  (bookingId, { getState }) =>
+    axios.put(
+      `${API_BASE_URL}/booking/cancel/${bookingId}`,
+      {},
+      authConfig(getState())
+    )
 );
 
 // ========== INITIAL STATE ==========
@@ -273,6 +314,8 @@ const initialState = {
   clientError: null,
   clientProfile: null,
   clientSuccessMessage: null,
+  clientResetLoading: false,
+  clientResetError: null,
   
   // Vendor State
   vendorLoading: false,
@@ -280,6 +323,8 @@ const initialState = {
   vendorProfile: null,
   vendorSuccessMessage: null,
   vendorCentres: [],
+  vendorResetLoading: false,
+  vendorResetError: null,
   
   // Package State
   packagesLoading: false,
@@ -291,6 +336,7 @@ const initialState = {
   touristCentresLoading: false,
   touristCentresError: null,
   touristCentres: [],
+  selectedTouristCenter: null,
   createdTouristCenter: null,
   
   // KYC State
@@ -310,6 +356,7 @@ const initialState = {
   booking: null,
   userBookings: [],
   vendorBookings: [],
+  clientBookings: [],
   
   // Google Auth State
   googleCallback: null,
@@ -351,6 +398,8 @@ const apiSlice = createSlice({
       state.kycError = null;
       state.paymentPlanError = null;
       state.bookingError = null;
+      state.clientResetError = null;
+      state.vendorResetError = null;
     },
     clearApiSuccess: (state) => {
       state.successMessage = null;
@@ -377,6 +426,19 @@ const apiSlice = createSlice({
       .addCase(forgotClientPassword.rejected, (state, action) => {
         state.clientError = action.payload;
       })
+      
+      .addCase(resetClientPassword.pending, (state) => {
+        state.clientResetLoading = true;
+      })
+      .addCase(resetClientPassword.fulfilled, (state, action) => {
+        state.clientResetLoading = false;
+        state.clientSuccessMessage = action.payload?.message || "Password reset successfully";
+      })
+      .addCase(resetClientPassword.rejected, (state, action) => {
+        state.clientResetLoading = false;
+        state.clientResetError = action.payload;
+      })
+      
       .addCase(changeClientPassword.fulfilled, (state, action) => {
         state.clientSuccessMessage = action.payload?.message || "Password changed successfully";
       })
@@ -392,6 +454,7 @@ const apiSlice = createSlice({
       .addCase(updateVendorProfile.rejected, (state, action) => {
         state.vendorError = action.payload;
       })
+      
       .addCase(getVendorDetails.fulfilled, (state, action) => {
         state.vendorProfile = action.payload?.data || action.payload?.vendor || action.payload;
       })
@@ -406,6 +469,19 @@ const apiSlice = createSlice({
       .addCase(forgotVendorPassword.rejected, (state, action) => {
         state.vendorError = action.payload;
       })
+      
+      .addCase(resetVendorPassword.pending, (state) => {
+        state.vendorResetLoading = true;
+      })
+      .addCase(resetVendorPassword.fulfilled, (state, action) => {
+        state.vendorResetLoading = false;
+        state.vendorSuccessMessage = action.payload?.message || "Password reset successfully";
+      })
+      .addCase(resetVendorPassword.rejected, (state, action) => {
+        state.vendorResetLoading = false;
+        state.vendorResetError = action.payload;
+      })
+      
       .addCase(changeVendorPassword.fulfilled, (state, action) => {
         state.vendorSuccessMessage = action.payload?.message || "Password changed successfully";
       })
@@ -519,6 +595,18 @@ const apiSlice = createSlice({
         state.touristCentresError = action.payload;
       })
       
+      .addCase(getTouristCenterById.pending, (state) => {
+        state.touristCentresLoading = true;
+      })
+      .addCase(getTouristCenterById.fulfilled, (state, action) => {
+        state.touristCentresLoading = false;
+        state.selectedTouristCenter = action.payload?.data || action.payload?.tourist || action.payload;
+      })
+      .addCase(getTouristCenterById.rejected, (state, action) => {
+        state.touristCentresLoading = false;
+        state.touristCentresError = action.payload;
+      })
+      
       .addCase(getVendorTouristCenters.pending, (state) => {
         state.touristCentresLoading = true;
       })
@@ -615,6 +703,18 @@ const apiSlice = createSlice({
         state.bookingError = action.payload;
       })
       
+      .addCase(getAllClientBookings.pending, (state) => {
+        state.bookingLoading = true;
+      })
+      .addCase(getAllClientBookings.fulfilled, (state, action) => {
+        state.bookingLoading = false;
+        state.clientBookings = action.payload?.data || action.payload?.bookings || action.payload || [];
+      })
+      .addCase(getAllClientBookings.rejected, (state, action) => {
+        state.bookingLoading = false;
+        state.bookingError = action.payload;
+      })
+      
       .addCase(getUserBookings.pending, (state) => {
         state.bookingLoading = true;
       })
@@ -635,6 +735,38 @@ const apiSlice = createSlice({
         state.vendorBookings = action.payload?.data || action.payload?.bookings || action.payload || [];
       })
       .addCase(getVendorBookings.rejected, (state, action) => {
+        state.bookingLoading = false;
+        state.bookingError = action.payload;
+      })
+      
+      .addCase(getBookingById.pending, (state) => {
+        state.bookingLoading = true;
+      })
+      .addCase(getBookingById.fulfilled, (state, action) => {
+        state.bookingLoading = false;
+        state.booking = action.payload?.data || action.payload?.booking || action.payload;
+      })
+      .addCase(getBookingById.rejected, (state, action) => {
+        state.bookingLoading = false;
+        state.bookingError = action.payload;
+      })
+      
+      .addCase(cancelBooking.pending, (state) => {
+        state.bookingLoading = true;
+      })
+      .addCase(cancelBooking.fulfilled, (state, action) => {
+        state.bookingLoading = false;
+        state.successMessage = "Booking cancelled successfully";
+        // Update the booking status in the lists
+        const cancelledId = action.meta.arg;
+        state.userBookings = state.userBookings.map((booking) =>
+          booking?.id === cancelledId ? { ...booking, status: "cancelled" } : booking
+        );
+        state.clientBookings = state.clientBookings.map((booking) =>
+          booking?.id === cancelledId ? { ...booking, status: "cancelled" } : booking
+        );
+      })
+      .addCase(cancelBooking.rejected, (state, action) => {
         state.bookingLoading = false;
         state.bookingError = action.payload;
       });
@@ -658,6 +790,8 @@ export const selectClientProfile = (state) => state.api.clientProfile;
 export const selectClientLoading = (state) => state.api.clientLoading;
 export const selectClientError = (state) => state.api.clientError;
 export const selectClientSuccess = (state) => state.api.clientSuccessMessage;
+export const selectClientResetLoading = (state) => state.api.clientResetLoading;
+export const selectClientResetError = (state) => state.api.clientResetError;
 
 // Vendor Selectors
 export const selectVendorProfile = (state) => state.api.vendorProfile;
@@ -665,18 +799,56 @@ export const selectVendorLoading = (state) => state.api.vendorLoading;
 export const selectVendorError = (state) => state.api.vendorError;
 export const selectVendorSuccess = (state) => state.api.vendorSuccessMessage;
 export const selectVendorCentres = (state) => state.api.vendorCentres;
+export const selectVendorResetLoading = (state) => state.api.vendorResetLoading;
+export const selectVendorResetError = (state) => state.api.vendorResetError;
 
 // Package Selectors
 export const selectPackages = (state) => state.api.packages;
 export const selectSelectedPackage = (state) => state.api.selectedPackage;
 export const selectPackagesLoading = (state) => state.api.packagesLoading;
+export const selectPackagesError = (state) => state.api.packagesError;
 
 // Tourist Centre Selectors
 export const selectTouristCentres = (state) => state.api.touristCentres;
+export const selectSelectedTouristCenter = (state) => state.api.selectedTouristCenter;
 export const selectTouristCentresLoading = (state) => state.api.touristCentresLoading;
+export const selectTouristCentresError = (state) => state.api.touristCentresError;
+export const selectCreatedTouristCenter = (state) => state.api.createdTouristCenter;
+
+// KYC Selectors
+export const selectKyc = (state) => state.api.kyc;
+export const selectKycLoading = (state) => state.api.kycLoading;
+export const selectKycError = (state) => state.api.kycError;
+
+// Payment Plan Selectors
+export const selectPaymentPlans = (state) => state.api.paymentPlans;
+export const selectPaymentPlan = (state) => state.api.paymentPlan;
+export const selectPaymentPlanLoading = (state) => state.api.paymentPlanLoading;
+export const selectPaymentPlanError = (state) => state.api.paymentPlanError;
 
 // Booking Selectors
 export const selectUserBookings = (state) => state.api.userBookings;
 export const selectVendorBookings = (state) => state.api.vendorBookings;
+export const selectClientBookings = (state) => state.api.clientBookings;
+export const selectBooking = (state) => state.api.booking;
+export const selectBookingLoading = (state) => state.api.bookingLoading;
+export const selectBookingError = (state) => state.api.bookingError;
+
+// Google Auth Selector
+export const selectGoogleCallback = (state) => state.api.googleCallback;
+
+// Common Selectors
+export const selectApiLoading = (state) => 
+  state.api.loading || 
+  state.api.clientLoading || 
+  state.api.vendorLoading || 
+  state.api.packagesLoading || 
+  state.api.touristCentresLoading ||
+  state.api.kycLoading ||
+  state.api.bookingLoading ||
+  state.api.paymentPlanLoading;
+
+export const selectApiError = (state) => state.api.error;
+export const selectApiSuccess = (state) => state.api.successMessage;
 
 export default apiSlice.reducer;
