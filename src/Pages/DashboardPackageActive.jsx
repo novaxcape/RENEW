@@ -1,5 +1,5 @@
  import React, { useState } from 'react';
-import '../styles/Dashboardpackageactive.css';
+import '../Styles/DashboardPackageActive.css';
 
 // Mock Data representing the tour packages
 const INITIAL_PACKAGES = [

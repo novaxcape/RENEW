@@ -1,17 +1,3 @@
-/* ==========================================================================
-   RESET & BASE VARIABLES
-   ========================================================================== */
-:root {
-  --primary-orange: #ff5500;
-  --primary-blue: #002d72;
-  --bg-light-blue: #f4f7fc;
-  --text-dark: #333333;
-  --text-muted: #666666;
-  --border-color: #e2e8f0;
-  --sidebar-width: 260px;
-}
-
-
 
 body {
   background-color: #ffffff;
