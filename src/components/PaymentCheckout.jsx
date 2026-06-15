@@ -1,14 +1,51 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './css/PaymentCheckout.css';
 import { LuShield } from 'react-icons/lu';
 import { CiCalendar } from "react-icons/ci";
+import { useDispatch, useSelector } from 'react-redux';
+import { useParams, useNavigate } from 'react-router-dom';
+import { createPaymentPlan } from '../redox/apiSlice'; // adjust path if needed
+
+const PLANS = [
+  { durationInMonths: 1, frequency: 'weekly',  label: '1 Month',  interval: 'Per week',  price: '₦4,667' },
+  { durationInMonths: 2, frequency: 'monthly', label: '2 Month',  interval: 'Per month', price: '₦3,667' },
+  { durationInMonths: 3, frequency: 'monthly', label: '3 Month',  interval: 'Per month', price: '₦2,167' },
+];
 
 const PaymentCheckout = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { packageId } = useParams(); // gets packageId from the URL
+
+  const [selectedPlan, setSelectedPlan] = useState(PLANS[1]); // default: 2 Month
+
+  const isLoading = useSelector((state) => state.api.paymentPlanLoading);
+  const error = useSelector((state) => state.api.paymentPlanError);
+
+  const handleContinue = async () => {
+    const result = await dispatch(
+      createPaymentPlan({
+        packageId,
+        planData: {
+          durationInMonths: selectedPlan.durationInMonths,
+          frequency: selectedPlan.frequency,
+          currency: 'NGN',
+        },
+      })
+    );
+
+    if (createPaymentPlan.fulfilled.match(result)) {
+      // Plan created! Navigate to next step or show success
+      console.log('Payment plan created:', result.payload);
+      // e.g. navigate('/booking-confirmation');
+    }
+  };
+
   return (
     <div className="payment-page-wrapper">
-      
+
       <div className="back-btn-container">
-        <button className="back-nav-btn">Back</button>
+        <button className="back-nav-btn" onClick={() => navigate(-1)}>Back</button>
       </div>
 
       <div className="payment-page-header">
@@ -19,7 +56,7 @@ const PaymentCheckout = () => {
       <div className="installment-banner-container">
         <div className="installment-banner-card">
           <div className="banner-icon-box">
-            <CiCalendar  size={28}/>
+            <CiCalendar size={28} />
           </div>
           <h2 className="banner-title">Installment Payment</h2>
           <p className="banner-subtitle">Split payment into smaller amount</p>
@@ -28,45 +65,28 @@ const PaymentCheckout = () => {
       </div>
 
       <div className="payment-layout-container">
-        
+
         <div className="plan-selector-card">
           <h3 className="card-section-heading">Choose Installment Plan</h3>
 
           <div className="plans-list-wrapper">
-            
-            <div className="plan-option-row">
-              <div className="plan-left-meta">
-                <span className="plan-duration-title">1 Month</span>
-                <span className="plan-interval-subtitle">Monthly payment</span>
+            {PLANS.map((plan) => (
+              <div
+                key={plan.durationInMonths}
+                className={`plan-option-row ${selectedPlan.durationInMonths === plan.durationInMonths ? 'selected' : ''}`}
+                onClick={() => setSelectedPlan(plan)}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className="plan-left-meta">
+                  <span className="plan-duration-title">{plan.label}</span>
+                  <span className="plan-interval-subtitle">Monthly payment</span>
+                </div>
+                <div className="plan-right-price">
+                  <span className="plan-price-value">{plan.price}</span>
+                  <span className="plan-price-label">{plan.interval}</span>
+                </div>
               </div>
-              <div className="plan-right-price">
-                <span className="plan-price-value">₦4,667</span>
-                <span className="plan-price-label">Per week</span>
-              </div>
-            </div>
-
-            <div className="plan-option-row selected">
-              <div className="plan-left-meta">
-                <span className="plan-duration-title">2 Month</span>
-                <span className="plan-interval-subtitle">Monthly payment</span>
-              </div>
-              <div className="plan-right-price">
-                <span className="plan-price-value">₦3,667</span>
-                <span className="plan-price-label">Per month</span>
-              </div>
-            </div>
-
-            <div className="plan-option-row">
-              <div className="plan-left-meta">
-                <span className="plan-duration-title">3 Month</span>
-                <span className="plan-interval-subtitle">Monthly payment</span>
-              </div>
-              <div className="plan-right-price">
-                <span className="plan-price-value">₦2,167</span>
-                <span className="plan-price-label">Per month</span>
-              </div>
-            </div>
-
+            ))}
           </div>
 
           <div className="plan-info-alert-box">
@@ -97,17 +117,29 @@ const PaymentCheckout = () => {
           <div className="summary-highlight-toast">
             <div className="toast-row-line">
               <span className="toast-label-txt">Ticket total</span>
-              <span className="toast-val-price">₦3,667</span>
+              <span className="toast-val-price">{selectedPlan.price}</span>
             </div>
-            <p className="toast-sub-caption">Due today - 2 Months</p>
+            <p className="toast-sub-caption">Due today - {selectedPlan.label}</p>
           </div>
 
           <div className="due-date-row-block">
             <span className="due-main-heading">Due date</span>
-            <span className="due-main-amount">₦3,667</span>
+            <span className="due-main-amount">{selectedPlan.price}</span>
           </div>
 
-          <button className="checkout-submit-btn">Continue To Payment</button>
+          {error && (
+            <p style={{ color: 'red', paddingLeft: 35, paddingRight: 35, fontSize: 13 }}>
+              {error}
+            </p>
+          )}
+
+          <button
+            className="checkout-submit-btn"
+            onClick={handleContinue}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Processing...' : 'Continue To Payment'}
+          </button>
 
           <div className="security-notice-row">
             <LuShield className="security-shield-icon" />
