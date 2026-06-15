@@ -1,27 +1,27 @@
-// components/RootLayout.jsx
+// src/components/RootLayout.jsx
 import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import Header from "../components/Header";
+// import Discoverpage from "../Pages/Discoverpage"
+// import Centres from "../Pages/Centres"
 import PaymentHeader from "../components/PaymentHeader";
 
 const RootLayout = () => {
-  // 1. Setup authentication state (Default to false/logged out)
+  // Check if a token exists in localStorage to determine login status
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // 2. Optional: Check if a user token exists on mount (e.g., from localStorage)
   useEffect(() => {
-    const userToken = localStorage.getItem("userToken"); // or whatever key your app uses
-    if (userToken) {
-      setIsLoggedIn(true);
-    }
+    // Replace "userToken" with whatever key your app uses to store login tokens/data
+    const token = localStorage.getItem("userToken");
+    setIsLoggedIn(!!token); 
   }, []);
 
   return (
     <>
-      {/* 3. Conditionally render the correct header based on auth status */}
-      {isLoggedIn ? <PaymentHeader /> : <Header />}
+      {/* Dynamic Header Switch */}
+      {isLoggedIn ? <Header /> : <PaymentHeader />}
 
-      {/* 4. This is where your page views are injected dynamically */}
+      {/* Main Page Content injection window */}
       <main className={isLoggedIn ? "payment-page-offset" : "has-fixed-header"}>
         <Outlet />
       </main>
