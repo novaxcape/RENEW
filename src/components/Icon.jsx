@@ -23,7 +23,7 @@ export const IconDollar = () => (
 );
 
 export const IconImage = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
     <circle cx="8.5" cy="8.5" r="1.5"></circle>
     <polyline points="21 15 16 10 5 21"></polyline>
@@ -64,5 +64,49 @@ export const IconWifi = () => (
 export const IconCar = () => (
   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M5 17h14M5 17a2 2 0 0 1-2-2v-4l2.5-5A2 2 0 0 1 7.5 5h9a2 2 0 0 1 2 2l2.5 5v4a2 2 0 0 1-2 2M5 17a2 2 0 1 0 4 0M19 17a2 2 0 1 0-4 0"></path>
+  </svg>
+);
+
+// NEW ICONS FOR FACILITIES
+export const IconUtensils = () => (
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
+    <path d="M7 2v20" />
+    <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
+  </svg>
+);
+
+export const IconTree = () => (
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2L2 7l10 5 10-5-10-5z" />
+    <path d="M2 17l10 5 10-5" />
+    <path d="M2 12l10 5 10-5" />
+  </svg>
+);
+
+export const IconWater = () => (
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+  </svg>
+);
+
+export const IconMountain = () => (
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 14l4-4 4 4 4-4 4 4" />
+    <path d="M4 10l4-4 4 4 4-4 4 4" />
+  </svg>
+);
+
+export const IconCompass = () => (
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <polygon points="16.24 7.76 14 12 14 12 12 14 7.76 16.24 10 12 10 12 12 10 16.24 7.76" />
+  </svg>
+);
+
+export const IconCamera = () => (
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+    <circle cx="12" cy="13" r="4" />
   </svg>
 );

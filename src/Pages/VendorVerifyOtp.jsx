@@ -1,5 +1,5 @@
 // Pages/Vendor/VendorVerifyOtp.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
@@ -10,7 +10,7 @@ import {
   vendorVerifyOTPFail,
   updateVendorToken,
   setVendorDetails,
-} from "../redox/authSlice"; // Fixed import path
+} from "../redox/authSlice";
 import "../Styles/SignUpVendor.css";
 
 const API_BASE_URL =
@@ -27,25 +27,13 @@ const VendorVerifyOtp = () => {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [timer, setTimer] = useState(180);
-  const [canResend, setCanResend] = useState(false);
+  const [canResend, setCanResend] = useState(true);
 
-  useEffect(() => {
-    if (timer > 0) {
-      const interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-      return () => clearInterval(interval);
-    } else {
-      setCanResend(true);
+  React.useEffect(() => {
+    if (!email) {
+      navigate("/signupvendor");
     }
-  }, [timer]);
-
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
+  }, [email, navigate]);
 
   const handleOtpChange = (index, value) => {
     if (value.length > 1) return;
@@ -81,7 +69,6 @@ const VendorVerifyOtp = () => {
     setLoading(true);
     setError("");
 
-    // Dispatch vendor OTP verification started
     dispatch(vendorVerifyOTP());
 
     try {
@@ -92,14 +79,16 @@ const VendorVerifyOtp = () => {
 
       console.log("Verification response:", response.data);
 
-      // Dispatch success
       dispatch(vendorVerifyOTPSuccess());
 
       if (response.data.token) {
         dispatch(updateVendorToken(response.data.token));
+        localStorage.setItem("vendorToken", response.data.token);
       }
       if (response.data.user) {
         dispatch(setVendorDetails(response.data.user));
+        localStorage.setItem("vendorId", response.data.user.id || response.data.user._id);
+        localStorage.setItem("vendorEmail", response.data.user.email);
       }
 
       Swal.fire({
@@ -115,7 +104,6 @@ const VendorVerifyOtp = () => {
       const errorMessage =
         error.response?.data?.message || "Invalid OTP. Please try again.";
 
-      // Dispatch failure
       dispatch(vendorVerifyOTPFail(errorMessage));
       setError(errorMessage);
 
@@ -135,7 +123,7 @@ const VendorVerifyOtp = () => {
       Swal.fire({
         icon: "info",
         title: "Please Wait",
-        text: `Please wait ${formatTime(timer)} before requesting another OTP.`,
+        text: "Please wait before requesting another OTP.",
         confirmButtonColor: "#ff6b35",
       });
       return;
@@ -143,6 +131,7 @@ const VendorVerifyOtp = () => {
 
     setLoading(true);
     setError("");
+    setCanResend(false);
 
     try {
       const response = await axios.post(`${API_BASE_URL}/vendor/resend-otp`, {
@@ -157,15 +146,20 @@ const VendorVerifyOtp = () => {
         confirmButtonColor: "#ff6b35",
       });
 
-      setTimer(180);
-      setCanResend(false);
       setOtp(["", "", "", "", "", ""]);
       document.getElementById("otp-0")?.focus();
+      
+      // Re-enable resend after 5 minutes (300000 ms)
+      setTimeout(() => {
+        setCanResend(true);
+      }, 300000);
+      
     } catch (error) {
       console.error("Resend error:", error.response?.data);
       const errorMessage =
         error.response?.data?.message || "Failed to resend OTP.";
       setError(errorMessage);
+      setCanResend(true);
 
       Swal.fire({
         icon: "error",
@@ -178,54 +172,36 @@ const VendorVerifyOtp = () => {
     }
   };
 
+  if (!email) {
+    return null;
+  }
+
   return (
-    <main className="signupvendor_container">
-      <section className="signupvendor_wrapper">
-        <div className="signup-image-section">
-          <div className="image-overlay">
-            <h1>Verify Your Email</h1>
-            <p>
-              Enter the 6-digit verification code sent to your email to complete
-              registration.
-            </p>
-          </div>
+    <main className="signup_wrapper">
+      <div className="signupBody">
+        <div className="signupLeft">
+          <img src="/novaxcape/img.png" alt="Verification" />
         </div>
 
-        <div className="signup-form-section">
-          <div className="form-wrapper">
-            <h2>Email Verification</h2>
+        <div className="signupRight">
+          <form onSubmit={(e) => e.preventDefault()}>
+            <h1 className="signupTitle">Verify Email</h1>
 
-            <p
-              style={{
-                textAlign: "center",
-                marginBottom: "20px",
-                color: "#666",
-              }}
-            >
+            <p style={{ textAlign: "center", marginBottom: "20px", color: "#666" }}>
               We've sent a code to:
               <br />
-              <strong style={{ color: "#ff6b35" }}>
-                {email || "your email"}
-              </strong>
+              <strong style={{ color: "#ff6b35" }}>{email || "your email"}</strong>
             </p>
 
             {error && (
-              <div
-                className="error-message"
-                style={{
-                  color: "red",
-                  textAlign: "center",
-                  marginBottom: "15px",
-                }}
-              >
+              <div className="error" style={{ textAlign: "center", marginBottom: "15px" }}>
                 {error}
               </div>
             )}
 
-            <div className="form-group">
+            <div className="field">
               <label>Verification Code</label>
               <div
-                className="otp-input-group"
                 style={{
                   display: "flex",
                   gap: "12px",
@@ -259,15 +235,13 @@ const VendorVerifyOtp = () => {
 
             <div style={{ textAlign: "center", marginTop: "15px" }}>
               <span style={{ fontSize: "14px" }}>
-                Code expires in:{" "}
-                <strong style={{ color: timer < 60 ? "red" : "#ff6b35" }}>
-                  {formatTime(timer)}
-                </strong>
+                Code expires in: <strong style={{ color: "#ff6b35" }}>5 minutes</strong>
               </span>
             </div>
 
             <button
-              className="signup-button"
+              type="button"
+              className="signupBtn"
               onClick={handleVerify}
               disabled={loading || otp.join("").length !== 6}
             >
@@ -284,16 +258,16 @@ const VendorVerifyOtp = () => {
                   textDecoration: "underline",
                 }}
               >
-                {canResend ? "Resend Code" : `Resend in ${formatTime(timer)}`}
+                {canResend ? "Resend Code" : "Resend available in 5 minutes"}
               </span>
             </div>
 
-            <p className="signin-link" style={{ marginTop: "30px" }}>
+            <p className="signinText" style={{ marginTop: "30px" }}>
               Already have an account? <Link to="/vendor/login">Sign in</Link>
             </p>
-          </div>
+          </form>
         </div>
-      </section>
+      </div>
     </main>
   );
 };

@@ -120,14 +120,16 @@ h1 {
   background: #ff5e3a;
   border: none;
   color: white;
-  padding: 10px 35px;
-  border-radius: 25px;
+  padding: 8px 20px;
+  border-radius: 20px;
   cursor: pointer;
   margin-bottom: 25px;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   transition: background 0.3s;
   display: inline-block;
+  width: auto;
+  min-width: 80px;
 }
 
 .btn-back:hover {
@@ -338,7 +340,7 @@ h1 {
 }
 
 /* ============================================
-   FACILITIES GRID
+   FACILITIES GRID - BLUE THEME
    ============================================ */
 .facilities-grid {
   display: grid;
@@ -353,7 +355,7 @@ h1 {
   padding: 25px 20px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   background: white;
   display: flex;
   flex-direction: column;
@@ -366,26 +368,37 @@ h1 {
   border-color: #004481;
   background: #f8faff;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 68, 129, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 68, 129, 0.15);
 }
 
 .facility-card svg {
   margin-bottom: 12px;
+  stroke: #7a7a7a;
+  transition: all 0.3s ease;
 }
 
 .facility-card span {
   font-size: 0.95rem;
   color: #444;
   font-weight: 500;
+  transition: all 0.3s ease;
 }
 
+/* SELECTED STATE - BLUE THEME */
 .facility-card.selected {
-  border-color: #ff6b35;
-  background: #fff4ee;
+  border: 2px solid #004481;
+  background: #e8f0fe;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 68, 129, 0.2);
+}
+
+.facility-card.selected svg {
+  stroke: #004481;
 }
 
 .facility-card.selected span {
-  color: #ff6b35;
+  color: #004481;
+  font-weight: 600;
 }
 
 /* ============================================
@@ -631,6 +644,36 @@ h1 {
 }
 
 /* ============================================
+   BACK BUTTON - SMALL VERSION
+   ============================================ */
+.btn-back-small {
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  color: #666;
+  padding: 6px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  margin-bottom: 25px;
+  font-weight: 500;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  display: inline-block;
+  width: auto;
+  min-width: 80px;
+}
+
+.btn-back-small:hover:not(:disabled) {
+  background: #e8e8e8;
+  border-color: #ff6b35;
+  color: #ff6b35;
+}
+
+.btn-back-small:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================================
    FOOTER
    ============================================ */
 .footer {
@@ -788,6 +831,12 @@ h1 {
   
   .facilities-grid {
     grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+  
+  .facility-card {
+    padding: 20px 15px;
+    min-height: 100px;
   }
   
   .day-row {
@@ -834,5 +883,11 @@ h1 {
   
   .logo-mark {
     font-size: 1.4rem;
+  }
+  
+  .btn-back-small {
+    padding: 5px 12px;
+    font-size: 12px;
+    min-width: 70px;
   }
 }
