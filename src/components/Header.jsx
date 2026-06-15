@@ -89,7 +89,7 @@ const Header = () => {
 
             {/* DESKTOP BUTTONS */}
             <div className="m-desktop-buttons">
-              <Link to="/loginscreen">
+              <Link to="/signinscreen">
                 <button className="m-signin-btn">Sign In</button>
               </Link>
               <Link to="/signupscreen">
@@ -149,7 +149,7 @@ const Header = () => {
               <NavLink to="/signup" onClick={closeMenu} className="m-mobile-signup">
                 Sign Up
               </NavLink>
-              <NavLink to="/Login" onClick={closeMenu} className="m-mobile-signin">
+              <NavLink to="/signinscreen" onClick={closeMenu} className="m-mobile-signin">
                 Sign In
               </NavLink>
             </li>
