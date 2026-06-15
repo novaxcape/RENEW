@@ -10,7 +10,7 @@ const SemiLayout = () => {
       <div className="has-fixed-header">
         <Outlet />
       </div>
-    </>>
+    </>
   )
 }
 

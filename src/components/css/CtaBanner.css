@@ -69,6 +69,7 @@
 }
 
 .cta-content {
+ 
   position: relative;
   z-index: 2;
   text-align: center;
@@ -78,8 +79,13 @@
   align-items: center;
 }
 
-.badge-wrapper {
+.cta-badge-wrapper {
   margin-bottom: 36px;
+  display: inline-block;
+  background: none;
+  border: none;
+  padding: 0;
+  width: auto;
 }
 
 .cta-badge {
@@ -93,6 +99,7 @@
   border-radius: 100px;
   background-color: rgba(255, 255, 255, 0.04);
   display: inline-block;
+ 
 }
 
 .cta-title {
