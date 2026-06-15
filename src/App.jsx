@@ -275,7 +275,7 @@ const App = () => {
 
 
 
-{/* 
+
       <Route
         path="/wishlist"
         element={
@@ -307,7 +307,7 @@ const App = () => {
             <PaymentConfirmationPage />
           </PrivateRoute>
         }
-      /> */}
+      /> 
       {/* ========== VENDOR DASHBOARD ROUTES (Protected) ========== */}
       <Route
         path="/vendor/dashboard"
@@ -341,7 +341,7 @@ const App = () => {
 
 
       {/* ========== STANDALONE PROTECTED PAGES ========== */}
-      {/* <Route
+      <Route
         path="/settings"
         element={
           <PrivateRoute>
@@ -372,7 +372,7 @@ const App = () => {
             <KycPage />
           </PrivateRoute>
         }
-      /> */}
+      /> 
 
 
       {/* Fallback 404 */}

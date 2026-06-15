@@ -1,10 +1,8 @@
-import React, { useState } from "react";
-import { useDispatch } from "react-redux";
+import React, { useState, useEffect } from "react";
 import { IoLocationOutline } from "react-icons/io5";
 import { IoSearchOutline } from "react-icons/io5";
 import { CiFilter } from "react-icons/ci";
 import { IoChevronDown } from "react-icons/io5";
-import { getTouristCentersByState } from "../redox/apiSlice";
 import "../components/css/Discoverpagehero.css";
 
 const LOCATIONS = [
@@ -22,56 +20,32 @@ const LOCATIONS = [
   "Edo",
 ];
 
-const Discoverpagehero = ({ searchState, setSearchState, onSearch, setSearchSubmitted, setTouristCentres, setLoading, setError }) => {
-  const dispatch = useDispatch();
+const Discoverpagehero = ({ 
+  searchState, 
+  setSearchState, 
+  selectedLocation, 
+  setSelectedLocation, 
+  onSearch,
+  loading 
+}) => {
   const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState("");
 
   const handleLocationSelect = (location) => {
     setSelectedLocation(location);
     setSearchState(location);
     setLocationDropdownOpen(false);
-    // Auto search when location is selected
-    performSearch(location);
-  };
-
-  const performSearch = async (searchTerm) => {
-    const term = searchTerm?.trim() || searchState?.trim();
-    
-    if (!term) {
-      console.log("Please enter a state to search");
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    setSearchSubmitted(true);
-
-    try {
-      const result = await dispatch(getTouristCentersByState(term)).unwrap();
-      const centers = result?.data || result?.tourists || result || [];
-      setTouristCentres(centers);
-      
-      // Call the onSearch callback if provided
-      if (onSearch) onSearch(term);
-      
-    } catch (error) {
-      console.error("Search error:", error);
-      setError(error.message || "No centers found in this state");
-      setTouristCentres([]);
-      if (onSearch) onSearch(term);
-    } finally {
-      setLoading(false);
-    }
+    if (onSearch) onSearch(location);
   };
 
   const handleSearch = () => {
-    performSearch();
+    if (onSearch && searchState.trim()) {
+      onSearch(searchState);
+    }
   };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
-      performSearch();
+      handleSearch();
     }
   };
 
@@ -116,12 +90,13 @@ const Discoverpagehero = ({ searchState, setSearchState, onSearch, setSearchSubm
               value={searchState}
               onChange={(e) => setSearchState(e.target.value)}
               onKeyDown={handleKeyDown}
+              disabled={loading}
             />
           </div>
 
-          <button className="filter_btn" type="button" onClick={handleSearch}>
+          <button className="filter_btn" type="button" onClick={handleSearch} disabled={loading}>
             <CiFilter />
-            Search
+            {loading ? "Searching..." : "Search"}
           </button>
         </div>
       </div>
