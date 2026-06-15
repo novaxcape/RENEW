@@ -1,64 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import "./css/BookingHistory.css";
 import { FiSearch, FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { getUserBookings } from "../redox/apiSlice"; // adjust path if needed
-
-const getStatusBadgeClass = (status) => {
-  switch (status?.toLowerCase()) {
-    case "inprogress": return "badge-progress";
-    case "installment": return "badge-installment";
-    case "delivered": return "badge-successful";
-    case "camcelled":
-    case "cancelled": return "badge-cancelled";
-    default: return "badge-progress";
-  }
-};
-
-const getStatusLabel = (status) => {
-  switch (status?.toLowerCase()) {
-    case "inprogress": return "In Progress";
-    case "installment": return "Installment";
-    case "delivered": return "Successful";
-    case "camcelled":
-    case "cancelled": return "Cancelled";
-    default: return status;
-  }
-};
-
-const ITEMS_PER_PAGE = 8;
 
 const BookingHistory = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const userBookings = useSelector((state) => state.api.userBookings);
-  const isLoading = useSelector((state) => state.api.bookingLoading);
-  const error = useSelector((state) => state.api.bookingError);
-  const loggedInUser = useSelector((state) => state.auth.loggedInUser);
-
-  useEffect(() => {
-    if (loggedInUser?.id) {
-      dispatch(getUserBookings(loggedInUser.id));
-    }
-  }, [dispatch, loggedInUser]);
-
-  // Filter by search
-  const filtered = userBookings.filter((booking) =>
-    booking?.bookingNumber?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // Pagination
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-  const paginated = filtered.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
-
   return (
     <div className="history-page-wrapper">
       <div className="history-header-row">
@@ -66,9 +10,7 @@ const BookingHistory = () => {
           <h1 className="history-main-title">Booking History</h1>
           <p className="history-sub-caption">Review your past Bookings.</p>
         </div>
-        <button className="back-home-redirect-btn" onClick={() => navigate("/")}>
-          Back To Home
-        </button>
+        <button className="back-home-redirect-btn">Back To Home</button>
       </div>
 
       <div className="history-toolbar-card">
@@ -80,16 +22,15 @@ const BookingHistory = () => {
             type="text"
             placeholder="Type here"
             className="toolbar-text-input"
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
           />
         </div>
 
         <button className="filter-dropdown-trigger-btn">
-          <img src="/novaxcape/filter.png" alt="Filter" className="toolbar-filter-img" />
+          <img
+            src="/novaxcape/filter.png"
+            alt="Filter"
+            className="toolbar-filter-img"
+          />
           Filter By
         </button>
       </div>
@@ -109,82 +50,141 @@ const BookingHistory = () => {
             </tr>
           </thead>
           <tbody>
-            {isLoading ? (
-              <tr>
-                <td colSpan="6" style={{ textAlign: "center", padding: "40px", color: "#888" }}>
-                  Loading bookings...
-                </td>
-              </tr>
-            ) : error ? (
-              <tr>
-                <td colSpan="6" style={{ textAlign: "center", padding: "40px", color: "red" }}>
-                  {error}
-                </td>
-              </tr>
-            ) : paginated.length === 0 ? (
-              <tr>
-                <td colSpan="6" style={{ textAlign: "center", padding: "40px", color: "#888" }}>
-                  No bookings found.
-                </td>
-              </tr>
-            ) : (
-              paginated.map((booking) => (
-                <tr key={booking.id} className="table-data-row">
-                  <td className="td-checkbox-cell">
-                    <div className="custom-table-checkbox"></div>
-                  </td>
-                  <td className="ticket-id-txt">{booking.bookingNumber}</td>
-                  <td className="ticket-type-txt">{booking.packageId}</td>
-                  <td className="date-txt">
-                    {booking.visitDate
-                      ? new Date(booking.visitDate).toLocaleDateString("en-US", {
-                          month: "short", day: "numeric", year: "numeric",
-                        })
-                      : "-"}
-                  </td>
-                  <td className="amount-txt">-</td>
-                  <td>
-                    <span className={`status-badge ${getStatusBadgeClass(booking.status)}`}>
-                      {getStatusLabel(booking.status)}
-                    </span>
-                  </td>
-                </tr>
-              ))
-            )}
+            <tr className="table-data-row">
+              <td className="td-checkbox-cell">
+                <div className="custom-table-checkbox"></div>
+              </td>
+              <td className="ticket-id-txt">NOV - 00132</td>
+              <td className="ticket-type-txt">Adult ticket</td>
+              <td className="date-txt">May 15,2026</td>
+              <td className="amount-txt">₦13,500</td>
+              <td>
+                <span className="status-badge badge-progress">In Progress</span>
+              </td>
+            </tr>
+
+            <tr className="table-data-row">
+              <td className="td-checkbox-cell">
+                <div className="custom-table-checkbox"></div>
+              </td>
+              <td className="ticket-id-txt">NOV - 00134</td>
+              <td className="ticket-type-txt">Children Ticket</td>
+              <td className="date-txt">may 20,2026</td>
+              <td className="amount-txt">₦11,000</td>
+              <td>
+                <span className="status-badge badge-installment">
+                  Installment
+                </span>
+              </td>
+            </tr>
+
+            <tr className="table-data-row">
+              <td className="td-checkbox-cell">
+                <div className="custom-table-checkbox"></div>
+              </td>
+              <td className="ticket-id-txt">NOV - 00132</td>
+              <td className="ticket-type-txt">Family pack</td>
+              <td className="date-txt">May 10,2026</td>
+              <td className="amount-txt">₦13,500</td>
+              <td>
+                <span className="status-badge badge-successful">
+                  Successful
+                </span>
+              </td>
+            </tr>
+
+            <tr className="table-data-row">
+              <td className="td-checkbox-cell">
+                <div className="custom-table-checkbox"></div>
+              </td>
+              <td className="ticket-id-txt">NOV - 00134</td>
+              <td className="ticket-type-txt">Adult Ticket</td>
+              <td className="date-txt">APR 28,2026</td>
+              <td className="amount-txt">₦3,000</td>
+              <td>
+                <span className="status-badge badge-cancelled">Cancelled</span>
+              </td>
+            </tr>
+
+            <tr className="table-data-row">
+              <td className="td-checkbox-cell">
+                <div className="custom-table-checkbox"></div>
+              </td>
+              <td className="ticket-id-txt">NOV - 00132</td>
+              <td className="ticket-type-txt">Adult ticket</td>
+              <td className="date-txt">May 04,2026</td>
+              <td className="amount-txt">₦4,500</td>
+              <td>
+                <span className="status-badge badge-successful">
+                  Successful
+                </span>
+              </td>
+            </tr>
+
+            <tr className="table-data-row">
+              <td className="td-checkbox-cell">
+                <div className="custom-table-checkbox"></div>
+              </td>
+              <td className="ticket-id-txt">NOV - 00134</td>
+              <td className="ticket-type-txt">Children Ticket</td>
+              <td className="date-txt">Mar 28,2026</td>
+              <td className="amount-txt">₦7,000</td>
+              <td>
+                <span className="status-badge badge-successful">
+                  Successful
+                </span>
+              </td>
+            </tr>
+
+            <tr className="table-data-row">
+              <td className="td-checkbox-cell">
+                <div className="custom-table-checkbox"></div>
+              </td>
+              <td className="ticket-id-txt">NOV - 00132</td>
+              <td className="ticket-type-txt">Family Pack</td>
+              <td className="date-txt">May 30,2026</td>
+              <td className="amount-txt">₦13,200</td>
+              <td>
+                <span className="status-badge badge-successful">
+                  Successful
+                </span>
+              </td>
+            </tr>
+
+            <tr className="table-data-row">
+              <td className="td-checkbox-cell">
+                <div className="custom-table-checkbox"></div>
+              </td>
+              <td className="ticket-id-txt">NOV - 00134</td>
+              <td className="ticket-type-txt">Family Pack</td>
+              <td className="date-txt">Apr 28,2026</td>
+              <td className="amount-txt">₦23,500</td>
+              <td>
+                <span className="status-badge badge-cancelled">Cancelled</span>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
 
       <div className="history-table-footer-row">
         <span className="pagination-count-summary-txt">
-          Showing Total Pages of {totalPages || 1}
+          Showing Total Pages of 5
         </span>
 
         <div className="pagination-controls-wrapper">
-          <button
-            className={`pag-nav-btn ${currentPage === 1 ? "disabled-nav" : ""}`}
-            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-            disabled={currentPage === 1}
-          >
+          <button className="pag-nav-btn disabled-nav">
             <FiChevronLeft className="pag-arrow-icon" />
             Back
           </button>
 
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              className={`pag-num-btn ${currentPage === page ? "active-num" : ""}`}
-              onClick={() => setCurrentPage(page)}
-            >
-              {page}
-            </button>
-          ))}
+          <button className="pag-num-btn active-num">1</button>
+          <button className="pag-num-btn">2</button>
+          <button className="pag-num-btn">3</button>
+          <span className="pag-ellipsis-dots">...</span>
+          <button className="pag-num-btn">10</button>
 
-          <button
-            className={`pag-nav-btn ${currentPage === totalPages ? "disabled-nav" : ""}`}
-            onClick={() => setCurrentPage((p) => Math.min(p + totalPages, totalPages))}
-            disabled={currentPage === totalPages}
-          >
+          <button className="pag-nav-btn">
             Next
             <FiChevronRight className="pag-arrow-icon" />
           </button>
