@@ -13,13 +13,14 @@ import {
   clearError,
 } from "../redox/authSlice";
 import { getVendorTouristCenters, getKycStatus } from "../redox/apiSlice";
-// import "../../Styles/SignUpVendor.css";
 import "../Styles/SignUpVendor.css";
+
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "https://novaxcape.onrender.com/api/v1";
 
 const getEntityId = (value) =>
-  value?.id || value?._id || value?.vendorId || value?.touristId || value?.data?.id || value?.touristCenter?._id || value?.touristCenter?.id;
+  value?.id || value?._id || value?.vendorId || value?.touristId || 
+  value?.data?.id || value?.touristCenter?._id || value?.touristCenter?.id;
 
 const VendorLogin = () => {
   const navigate = useNavigate();
@@ -40,43 +41,44 @@ const VendorLogin = () => {
 
   const handlePostLoginFlow = async (user) => {
     const vendorId = getEntityId(user);
+    console.log("Vendor ID:", vendorId);
 
     if (!vendorId) {
-      navigate("/vendor/dashboard", { replace: true });
+      console.warn("No vendor ID found, redirecting to add centre");
+      navigate("/add-centre", { replace: true });
       return;
     }
 
     try {
+      // Fetch vendor's tourist centres
       const centresResp = await dispatch(getVendorTouristCenters(vendorId)).unwrap();
+      console.log("Centres response:", centresResp);
+      
+      // Extract centres array from response
       const centres = centresResp?.data || centresResp?.touristCentres || centresResp || [];
+      
+      console.log("Number of centres found:", centres.length);
 
+      // Check if vendor has added any centre
       if (!centres || centres.length === 0) {
+        console.log("No centres found, redirecting to add centre");
+        await Swal.fire({
+          icon: "info",
+          title: "No Centre Found",
+          text: "Please add your tourism centre to get started.",
+          confirmButtonColor: "#ff6b35",
+        });
         navigate("/add-centre", { replace: true });
         return;
       }
 
-      const centreId = getEntityId(centres[0]);
-      if (!centreId) {
-        navigate("/add-centre", { replace: true });
-        return;
-      }
-
-      const kycResp = await dispatch(getKycStatus(centreId)).unwrap();
-      const kycData = kycResp?.data || kycResp?.kyc || kycResp || null;
-
-      const isVerified = Boolean(
-        kycData && (kycData?.status === "verified" || kycData?.isVerified || kycData?.verified)
-      );
-
-      if (!isVerified) {
-        navigate("/kyc", { state: { touristId: centreId }, replace: true });
-        return;
-      }
-
+      // Vendor has centres, proceed to dashboard
       navigate("/vendor/dashboard", { replace: true });
+      
     } catch (err) {
-      console.warn("Post-login flow check failed:", err);
-      navigate("/vendor/dashboard", { replace: true });
+      console.error("Post-login flow check failed:", err);
+      // If error fetching centres, assume no centres exist
+      navigate("/add-centre", { replace: true });
     }
   };
 
@@ -102,23 +104,18 @@ const VendorLogin = () => {
       console.log("Vendor login response:", response.data);
 
       const loginData = response.data?.data || response.data;
-      const token =
-        response.data?.token || loginData?.token || loginData?.accessToken;
+      const token = response.data?.token || loginData?.token || loginData?.accessToken;
       const user = loginData?.user || loginData?.vendor || loginData;
 
       if (token) {
         dispatch(updateVendorToken(token));
+        localStorage.setItem("vendorToken", token);
       }
+      
       if (user) {
         dispatch(setVendorDetails(user));
-        localStorage.setItem(
-          "vendorName",
-          user?.centreName || user?.name || "",
-        );
-        localStorage.setItem(
-          "vendorId",
-          user?.id || user?._id || user?.vendorId || "",
-        );
+        localStorage.setItem("vendorName", user?.centreName || user?.name || "");
+        localStorage.setItem("vendorId", user?.id || user?._id || user?.vendorId || "");
       }
 
       localStorage.setItem("vendorEmail", formData.email);
@@ -128,10 +125,13 @@ const VendorLogin = () => {
         title: "Login Successful",
         text: "Welcome back!",
         confirmButtonColor: "#ff6b35",
+        timer: 1500,
+        showConfirmButton: false,
       });
 
       // Run post-login checks to determine where to navigate next
       await handlePostLoginFlow(user);
+      
     } catch (error) {
       console.error("Vendor login error:", error.response?.data || error);
       const errorMessage =
