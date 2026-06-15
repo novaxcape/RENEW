@@ -66,7 +66,7 @@
   min-height: 480px;
   border-radius: 24px;
   overflow: hidden;
-  background-color: #0084FF;
+  /* background-color: #0084FF; */
 }
 
 .center-banner-image {
@@ -109,17 +109,21 @@
 .feature-icon-box.blue-bg {
   background-color: #EBF3FF;
 }
-
+/* 
 .feature-icon-box.orange-bg {
   background-color: #FFF0EB;
-}
+} */
 
 .feature-icon {
   font-size: 20px;
 }
 
-.feature-icon.blue-text {
-  color: #0A3B8B;
+.feature-icon {
+  width: 24px;
+  height: 24px;
+  color: #0A3B8B; /* Sets the line stroke/fill color */
+  fill: none;    /* Prevents the SVG container from filling up completely */
+  background: transparent !important; /* Forces background transparency */
 }
 
 

@@ -5,14 +5,14 @@ import PerformanceInsight from '../components/PerformanceInsight'
 import "../Styles/Dashboard.css"
 const DashboardBookingPage = () => {
   return (
-    <div className="dashboard-content">
+    <>
       <div className="sticky-wrapper">
         <TopNavbar2/>
       </div>
 
       <BookingManagement/>
       <PerformanceInsight/>
-    </div>
+    </>
   )
 }
 

@@ -5,7 +5,9 @@ const DashboardLayout = () => {
   return (
     <div className="dashboard">
       <Sidebar />
-      <Outlet />
+      <div className="dashboard-content">
+        <Outlet />
+      </div>
     </div>
   );
 };
