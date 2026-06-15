@@ -1,11 +1,12 @@
 import React from "react";
-import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
-// Import your header and layout tool
-import Header from "./components/Header";
-import PaymentHeader from "./components/PaymentHeader";
+// Import your custom layout tool
+import RootLayout from "./Outlet/RootLayout";
+import Centres from "./Pages/Centres"
 
-// Import your route guard pages
+
+// Import your route guard rules
 import PrivateRoute from "./Pages/PrivateRoute";
 import PublicRoute from "./Pages/PublicRoute";
 
@@ -55,29 +56,6 @@ import VendorChangePassword from "./Pages/VendorChangePassword";
 import DashboardPackageActive from "./Pages/DashboardPackageActive";
 import DashboardPackageInactive from "./Pages/DashboardPackageInactive";
 
-// Shared layout configuration to render Fixed Header automatically
-const MainLayout = () => {
-  return (
-    <>
-      <PaymentHeader />
-      <div className="has-fixed-header">
-        <Outlet />
-      </div>
-    </>
-  );
-};
-
-const SemiLayout = () => {
-  return (
-    <>
-      <Header />
-      <div className="has-fixed-header">
-        <Outlet />
-      </div>
-    </>
-  );
-};
-
 const App = () => {
   return (
     <Routes>
@@ -96,9 +74,10 @@ const App = () => {
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/centre/:id" element={<ProductDetails />} />
 
+      
         {/* Client Protected Pages (Require login but keep the main header) */}
         <Route
-          path="/wishlist"
+          path="wishlist"
           element={
             <PrivateRoute>
               <WishList />
@@ -106,7 +85,7 @@ const App = () => {
           }
         />
         <Route
-          path="/payment"
+          path="payment"
           element={
             <PrivateRoute>
               <PaymentOptionPage />
@@ -114,7 +93,15 @@ const App = () => {
           }
         />
         <Route
-          path="/my-bookings"
+          path="payment/:packageId"
+          element={
+            <PrivateRoute>
+              <PaymentOptionPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="my-bookings"
           element={
             <PrivateRoute>
               <MyBookingsPage />
@@ -122,7 +109,7 @@ const App = () => {
           }
         />
         <Route
-          path="/payment-confirmation"
+          path="payment-confirmation"
           element={
             <PrivateRoute>
               <PaymentConfirmationPage />
@@ -130,7 +117,7 @@ const App = () => {
           }
         />
         <Route
-          path="/settings"
+          path="settings"
           element={
             <PrivateRoute>
               <SettingsPage />
@@ -138,7 +125,7 @@ const App = () => {
           }
         />
         <Route
-          path="/profile-settings"
+          path="profile-settings"
           element={
             <PrivateRoute>
               <ProfileSettingPage />
@@ -147,6 +134,10 @@ const App = () => {
         />
       </Route>
 
+      {/* ========================================================
+          2. PUBLIC CLIENT AUTHENTICATION ROUTES
+          ========================================================
+      */}
       <Route
         path="/signupscreen"
         element={
@@ -155,7 +146,6 @@ const App = () => {
           </PublicRoute>
         }
       />
-
       <Route
         path="/signinscreen"
         element={
@@ -164,7 +154,6 @@ const App = () => {
           </PublicRoute>
         }
       />
-
       <Route
         path="/signup"
         element={
@@ -206,8 +195,10 @@ const App = () => {
         }
       />
 
-      {/* Vendor Auth */}
-      {/* ========== VENDOR AUTH ROUTES (Public) ========== */}
+      {/* ========================================================
+          3. VENDOR PUBLIC AUTHENTICATION ROUTES
+          ========================================================
+      */}
       <Route
         path="/signupvendor"
         element={
@@ -248,24 +239,23 @@ const App = () => {
           </PublicRoute>
         }
       />
+     <Route
+  path="/DashboardPackageActive"
+  element={
+    <PublicRoute role="DashboardPackageActive">
+      <DashboardPackageActive />
+    </PublicRoute>
+  }
+/>
 
-      <Route
-        path="DashboardPackageActive"
-        element={
-          <PublicRoute role="DashboardPackageActive">
-            <DashboardPackageActive />
-          </PublicRoute>
-        }
-      />
-
-      <Route
-        path="DashboardPackageInactive"
-        element={
-          <PublicRoute role="DashboardPackageInactive">
-            <DashboardPackageInactive />
-          </PublicRoute>
-        }
-      />
+<Route
+  path="/DashboardPackageInactive"
+  element={
+    <PublicRoute role="DashboardPackageInactive">
+      <DashboardPackageInactive />
+    </PublicRoute>
+  }
+/>
 
       <Route
         path="/wishlist"
@@ -320,7 +310,7 @@ const App = () => {
         element={<Navigate to="/vendor/dashboard" replace />}
       />
 
-      {/* ========== VENDOR PROTECTED ROUTES (Require login) ========== */}
+      {/* Standalone Vendor Protected Components */}
       <Route
         path="/vendor/change-password"
         element={
@@ -329,6 +319,7 @@ const App = () => {
           </PrivateRoute>
         }
       />
+
 
       {/* ========== STANDALONE PROTECTED PAGES ========== */}
       <Route
@@ -364,7 +355,6 @@ const App = () => {
         }
       />
 
-      {/* Fallback 404 */}
 
       {/* ========== FALLBACK for 404 ========== */}
       <Route
@@ -377,6 +367,7 @@ const App = () => {
               alignItems: "center",
               height: "100vh",
               fontSize: "24px",
+              fontFamily: "sans-serif"
             }}
           >
             404 - Page Not Found

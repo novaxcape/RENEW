@@ -3,20 +3,28 @@
   padding: 40px;
 }
 
-/* Base Category Container styles */
+/* Base Category Container styles (Desktop remains a single line) */
 .category_container {
   display: flex;
-  justify-content: flex-start; /* Left aligns items naturally on desktop */
-  flex-wrap: wrap;
+  justify-content: flex-start; 
+  flex-wrap: nowrap;          
+  overflow-x: auto;           
+  white-space: nowrap;        
   gap: 30px;
   margin-bottom: 50px;
+  padding-bottom: 8px;
+  scrollbar-width: none;      
 }
 
-/* FIXED: Unified size and shape for all desktop category buttons */
+.category_container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Unified size and shape for all desktop category buttons */
 .category_btn {
   border: none;
-  background: #979797; /* Muted gray background matching your image */
-  color: #4a4542; /* Darker text color matching the image labels */
+  background: #979797; 
+  color: #271A13; 
   border-radius: 50px;
   cursor: pointer;
   font-size: 16px;
@@ -24,12 +32,12 @@
   transition: all 0.3s ease;
   
   /* Shape Fixes for Desktop */
-  width: 170px; /* Forces every button to be the exact same width */
-  height: 46px; /* Forces every button to be the exact same height */
+  width: 170px; 
+  height: 46px; 
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 10px; /* Internal safety spacing */
+  padding: 0 10px; 
   
   /* Text handling for longer words */
   white-space: nowrap;
@@ -39,7 +47,7 @@
 
 /* Active Category Button State */
 .category_btn.active {
-  background: #ff6b35; /* Orange background matching your image */
+  background: #ff6b35; 
   color: white; 
 }
 
@@ -146,7 +154,7 @@
 
 
 /* =========================================================
-   EXACT MATCH MOBILE RESPONSIVENESS (Grid wrapping layout)
+   UPDATED MOBILE RESPONSIVENESS (Strict 3x2 Grid Layout)
 ========================================================= */
 
 @media (max-width: 768px) {
@@ -154,20 +162,23 @@
     padding: 30px 20px;
   }
 
-  /* Arranges buttons into a wrapped 3-column row layout exactly like your image */
+  /* FIXED: Strict 3 columns and 2 rows configuration */
   .category_container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 items per row */
-    gap: 12px 10px; 
+    grid-template-columns: repeat(3, 1fr);  /* Exactly 3 equal columns */
+    grid-template-rows: repeat(2, 44px);    /* Exactly 2 rows, each 44px tall */
+    overflow: hidden;                       /* Cuts off any extra elements past 6 buttons */
+    gap: 16px 12px;                         
     margin-bottom: 35px;
   }
 
-  /* Overriding the fixed desktop width so it fluidly fits mobile grids */
+  /* FIXED: Sizing handles the fixed row height configuration flawlessly */
   .category_btn {
-    width: 100%; 
-    height: 40px; /* Slightly shorter for mobile screens */
-    padding: 0 4px; 
-    font-size: 14px; 
+    width: 100%;             
+    height: 100%;            /* Fills out the grid template row height safely */
+    padding: 0 4px;          
+    font-size: 13px;         /* Keeps font sized well for tight layouts */
+    text-overflow: clip;     
   }
 
   /* Attractions list display styling */
@@ -190,21 +201,33 @@
     scroll-snap-align: start;
   }
 
-  /* FIX: Forces them to stay on the same line and pushes them to opposite sides */
   .card_details {
     display: flex;
-    flex-direction: row !important; /* Overrides any stacked layout rules */
-    justify-content: space-between !important; /* Pushes ratings left, time right */
+    flex-direction: row !important; 
+    justify-content: space-between !important; 
     align-items: center;
     width: 100%;
-    gap: 10px; /* Creates an explicit minimum safety spacing threshold */
+    gap: 10px; 
     margin-bottom: 18px;
   }
 
-  /* Keeps font compact on mobile cards to maximize structural space */
   .rating, .time {
     font-size: 14px;
-    white-space: nowrap; /* Prevents text elements from breaking onto new lines */
+    white-space: nowrap; 
+  }
+
+  /* Form Responsive adjustments from the search system */
+  .search-input-wrapper {
+    flex-direction: column;
+    border-radius: 12px;
+  }
+  
+  .search-input {
+    border-radius: 12px;
+  }
+  
+  .search-submit-btn {
+    border-radius: 12px;
   }
 }
 
@@ -215,24 +238,26 @@
   }
 
   .category_container {
-    gap: 10px 8px; 
+    grid-template-rows: repeat(2, 40px); /* Slightly shorter row heights on tiny screens */
+    gap: 12px 8px; 
   }
 
   .category_btn {
-    font-size: 13px;
-    height: 36px;
+    font-size: 11px; /* Ensures text like "Nature & Wildlife" shrinks gracefully */
   }
 
   .attraction_card {
     flex: 0 0 92%;
   }
 
-  /* Micro adjustment to keep text clean on ultra-small screens */
   .rating, .time {
     font-size: 13px;
   }
 }
-/* Add these new styles to your existing CSS */
+
+/* =========================================================
+   SEARCH, LOADER, AND ERROR INTERFACE COMPONENT STYLES
+========================================================= */
 
 .search-bar-container {
   max-width: 600px;
@@ -353,23 +378,6 @@
   margin-bottom: 0.5rem;
 }
 
-/* Rating stars color */
 .rating svg {
   color: #ffc107;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .search-input-wrapper {
-    flex-direction: column;
-    border-radius: 12px;
-  }
-  
-  .search-input {
-    border-radius: 12px;
-  }
-  
-  .search-submit-btn {
-    border-radius: 12px;
-  }
 }

@@ -195,9 +195,9 @@
 
 .m-overlay-links ul li a {
   text-decoration: none;
-  color: #333;
-  font-size: 18px;
-  font-weight: 500;
+  color: #271A13;
+  font-size: 10px;
+  font-weight: 300;
   transition: 0.3s ease;
   display: block;
 }
