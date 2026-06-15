@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { IoLocationOutline } from "react-icons/io5";
 import { IoSearchOutline } from "react-icons/io5";
 import { CiFilter } from "react-icons/ci";
@@ -20,7 +20,14 @@ const LOCATIONS = [
   "Edo",
 ];
 
-const Discoverpagehero = ({ searchState, setSearchState, selectedLocation, setSelectedLocation, onSearch }) => {
+const Discoverpagehero = ({ 
+  searchState, 
+  setSearchState, 
+  selectedLocation, 
+  setSelectedLocation, 
+  onSearch,
+  loading 
+}) => {
   const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
 
   const handleLocationSelect = (location) => {
@@ -31,7 +38,9 @@ const Discoverpagehero = ({ searchState, setSearchState, selectedLocation, setSe
   };
 
   const handleSearch = () => {
-    if (onSearch) onSearch(searchState);
+    if (onSearch && searchState.trim()) {
+      onSearch(searchState);
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -81,12 +90,13 @@ const Discoverpagehero = ({ searchState, setSearchState, selectedLocation, setSe
               value={searchState}
               onChange={(e) => setSearchState(e.target.value)}
               onKeyDown={handleKeyDown}
+              disabled={loading}
             />
           </div>
 
-          <button className="filter_btn" type="button" onClick={handleSearch}>
+          <button className="filter_btn" type="button" onClick={handleSearch} disabled={loading}>
             <CiFilter />
-            Search
+            {loading ? "Searching..." : "Search"}
           </button>
         </div>
       </div>

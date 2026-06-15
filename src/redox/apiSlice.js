@@ -225,6 +225,18 @@ export const updateTouristCenter = createThunk(
     )
 );
 
+export const deleteTouristCenter = createThunk(
+  "api/touristCentre/delete",
+  (centreId, { getState }) =>
+    axios.delete(`${API_BASE_URL}/tourist/delete/${centreId}`, authConfig(getState()))
+);
+
+export const getTouristCentersByOpeningHours = createThunk(
+  "api/touristCentre/getByOpeningHours",
+  (openingHours) =>
+    axios.get(`${API_BASE_URL}/tourist/get-all-opening-hours/${encodeURIComponent(openingHours)}`)
+);
+
 // ========== KYC API THUNKS ==========
 export const createKyc = createThunk(
   "api/kyc/create",
@@ -307,6 +319,35 @@ export const cancelBooking = createThunk(
     )
 );
 
+// ========== PAYMENT API THUNKS ==========
+export const initializePayment = createThunk(
+  "api/payment/initialize",
+  ({ bookingId, paymentData }, { getState }) =>
+    axios.post(
+      `${API_BASE_URL}/payment/make-payment/${bookingId}`,
+      paymentData,
+      authConfig(getState())
+    )
+);
+
+export const verifyPayment = createThunk(
+  "api/payment/verify",
+  ({ reference, bookingId }, { getState }) =>
+    axios.get(
+      `${API_BASE_URL}/payment/verify-payment`,
+      { 
+        params: { reference, bookingId },
+        ...authConfig(getState())
+      }
+    )
+);
+
+export const getPaymentStatus = createThunk(
+  "api/payment/status",
+  (bookingId, { getState }) =>
+    axios.get(`${API_BASE_URL}/payment/status/${bookingId}`, authConfig(getState()))
+);
+
 // ========== INITIAL STATE ==========
 const initialState = {
   // Client State
@@ -358,6 +399,13 @@ const initialState = {
   vendorBookings: [],
   clientBookings: [],
   
+  // Payment State
+  paymentLoading: false,
+  paymentError: null,
+  paymentReference: null,
+  paymentVerified: false,
+  paymentData: null,
+  
   // Google Auth State
   googleCallback: null,
   
@@ -398,6 +446,7 @@ const apiSlice = createSlice({
       state.kycError = null;
       state.paymentPlanError = null;
       state.bookingError = null;
+      state.paymentError = null;
       state.clientResetError = null;
       state.vendorResetError = null;
     },
@@ -635,6 +684,32 @@ const apiSlice = createSlice({
         state.touristCentresError = action.payload;
       })
       
+      .addCase(deleteTouristCenter.pending, (state) => {
+        state.touristCentresLoading = true;
+      })
+      .addCase(deleteTouristCenter.fulfilled, (state, action) => {
+        state.touristCentresLoading = false;
+        const deletedId = action.meta.arg;
+        state.vendorCentres = state.vendorCentres.filter((centre) => centre?.id !== deletedId);
+        state.successMessage = "Tourist centre deleted successfully";
+      })
+      .addCase(deleteTouristCenter.rejected, (state, action) => {
+        state.touristCentresLoading = false;
+        state.touristCentresError = action.payload;
+      })
+      
+      .addCase(getTouristCentersByOpeningHours.pending, (state) => {
+        state.touristCentresLoading = true;
+      })
+      .addCase(getTouristCentersByOpeningHours.fulfilled, (state, action) => {
+        state.touristCentresLoading = false;
+        state.touristCentres = action.payload?.data || action.payload?.tourists || action.payload || [];
+      })
+      .addCase(getTouristCentersByOpeningHours.rejected, (state, action) => {
+        state.touristCentresLoading = false;
+        state.touristCentresError = action.payload;
+      })
+      
       // ========== KYC ==========
       .addCase(createKyc.pending, (state) => {
         state.kycLoading = true;
@@ -757,7 +832,6 @@ const apiSlice = createSlice({
       .addCase(cancelBooking.fulfilled, (state, action) => {
         state.bookingLoading = false;
         state.successMessage = "Booking cancelled successfully";
-        // Update the booking status in the lists
         const cancelledId = action.meta.arg;
         state.userBookings = state.userBookings.map((booking) =>
           booking?.id === cancelledId ? { ...booking, status: "cancelled" } : booking
@@ -769,6 +843,50 @@ const apiSlice = createSlice({
       .addCase(cancelBooking.rejected, (state, action) => {
         state.bookingLoading = false;
         state.bookingError = action.payload;
+      })
+      
+      // ========== PAYMENTS ==========
+      .addCase(initializePayment.pending, (state) => {
+        state.paymentLoading = true;
+        state.paymentError = null;
+      })
+      .addCase(initializePayment.fulfilled, (state, action) => {
+        state.paymentLoading = false;
+        state.paymentData = action.payload?.data || action.payload;
+        state.paymentReference = action.payload?.data?.reference || action.payload?.reference;
+        state.successMessage = "Payment initialized successfully";
+      })
+      .addCase(initializePayment.rejected, (state, action) => {
+        state.paymentLoading = false;
+        state.paymentError = action.payload;
+      })
+      
+      .addCase(verifyPayment.pending, (state) => {
+        state.paymentLoading = true;
+        state.paymentError = null;
+      })
+      .addCase(verifyPayment.fulfilled, (state, action) => {
+        state.paymentLoading = false;
+        state.paymentVerified = true;
+        state.paymentData = action.payload?.data || action.payload;
+        state.successMessage = "Payment verified successfully";
+      })
+      .addCase(verifyPayment.rejected, (state, action) => {
+        state.paymentLoading = false;
+        state.paymentError = action.payload;
+        state.paymentVerified = false;
+      })
+      
+      .addCase(getPaymentStatus.pending, (state) => {
+        state.paymentLoading = true;
+      })
+      .addCase(getPaymentStatus.fulfilled, (state, action) => {
+        state.paymentLoading = false;
+        state.paymentData = action.payload?.data || action.payload;
+      })
+      .addCase(getPaymentStatus.rejected, (state, action) => {
+        state.paymentLoading = false;
+        state.paymentError = action.payload;
       });
   },
 });
@@ -833,6 +951,13 @@ export const selectClientBookings = (state) => state.api.clientBookings;
 export const selectBooking = (state) => state.api.booking;
 export const selectBookingLoading = (state) => state.api.bookingLoading;
 export const selectBookingError = (state) => state.api.bookingError;
+
+// Payment Selectors
+export const selectPaymentLoading = (state) => state.api.paymentLoading;
+export const selectPaymentError = (state) => state.api.paymentError;
+export const selectPaymentReference = (state) => state.api.paymentReference;
+export const selectPaymentVerified = (state) => state.api.paymentVerified;
+export const selectPaymentData = (state) => state.api.paymentData;
 
 // Google Auth Selector
 export const selectGoogleCallback = (state) => state.api.googleCallback;

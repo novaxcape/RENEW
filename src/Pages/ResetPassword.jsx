@@ -64,10 +64,10 @@ const ResetPassword = () => {
     setError(null);
     
     try {
-      // API CALL to reset password
+      // API CALL to reset password - matches the API spec
       const response = await axios.post(`${API_BASE_URL}/client/reset-password`, {
         email: email,
-        password: password,
+        password: password,  // The API expects 'password', not 'newPassword'
       });
       
       console.log("Reset password response:", response.data);
@@ -77,21 +77,34 @@ const ResetPassword = () => {
         title: "Success!",
         text: "Password reset successful! Please login with your new password.",
         confirmButtonColor: "#ff6b35",
+      }).then(() => {
+        navigate("/signin");
       });
-      
-      navigate("/signin");
       
     } catch (error) {
       console.error("Reset password error:", error.response?.data);
-      const errorMessage = error.response?.data?.message || "Failed to reset password. Please try again.";
-      setError(errorMessage);
       
-      Swal.fire({
-        icon: "error",
-        title: "Reset Failed",
-        text: errorMessage,
-        confirmButtonColor: "#ff6b35",
-      });
+      // Handle specific error codes
+      if (error.response?.status === 404) {
+        setError("Invalid credential. The link may have expired or email is incorrect.");
+        Swal.fire({
+          icon: "error",
+          title: "Invalid Request",
+          text: "Invalid credential. Please request a new password reset.",
+          confirmButtonColor: "#ff6b35",
+        }).then(() => {
+          navigate("/forgot-password");
+        });
+      } else {
+        const errorMessage = error.response?.data?.message || "Failed to reset password. Please try again.";
+        setError(errorMessage);
+        Swal.fire({
+          icon: "error",
+          title: "Reset Failed",
+          text: errorMessage,
+          confirmButtonColor: "#ff6b35",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -140,9 +153,9 @@ const ResetPassword = () => {
           <h2>Create new password</h2>
 
           <p className="reset-description">
-            Enter your new password twice below to reset a new password.
+            Enter your new password twice below to reset your password.
             <br />
-            Your password must be different than previous used passwords.
+            Your password must be at least 6 characters.
           </p>
 
           {error && (
@@ -161,12 +174,12 @@ const ResetPassword = () => {
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label>Password</label>
+              <label>New Password</label>
               <div className="password-input">
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
-                  placeholder="Input password"
+                  placeholder="Input new password"
                   value={formData.password}
                   onChange={handleChange}
                   disabled={loading}
@@ -182,12 +195,12 @@ const ResetPassword = () => {
             </div>
 
             <div className="form-group">
-              <label>Confirm Password</label>
+              <label>Confirm New Password</label>
               <div className="password-input">
                 <input
                   type={showConfirmPassword ? "text" : "password"}
                   name="confirmPassword"
-                  placeholder="Input password"
+                  placeholder="Confirm new password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   disabled={loading}
