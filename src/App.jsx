@@ -59,14 +59,20 @@ import DashboardPackageInactive from "./Pages/DashboardPackageInactive";
 const App = () => {
   return (
     <Routes>
-      <Route path="/" element={<RootLayout />}>
-        {/* Publically Accessible Routes */}
-        <Route index element={<LandingPage />} />
-        <Route path="discover" element={<Discoverpage />} />
-        <Route path="centres" element={<Centres />} />
-        <Route path="about" element={<Aboutpage />} />
-        <Route path="support" element={<Supportpage />} />
-        <Route path="product/:id" element={<ProductDetails />} />
+    
+      <Route element={<SemiLayout />}>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/centres" element={<ForCentrePage />} />
+      </Route>
+
+      <Route element={<MainLayout />}>
+        {/* Publicly Accessible Pages */}
+        <Route path="/about" element={<Aboutpage />} />
+        <Route path="/support" element={<Supportpage />} />
+        <Route path="/discover" element={<Discoverpage />} />
+        <Route path="/product" element={<ProductDetails />} />
+        <Route path="/product/:id" element={<ProductDetails />} />
+        <Route path="/centre/:id" element={<ProductDetails />} />
 
       
         {/* Client Protected Pages (Require login but keep the main header) */}
