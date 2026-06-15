@@ -20,7 +20,7 @@ import ResetPassword from "./Pages/ResetPassword";
 // Public Accessible Pages
 import LandingPage from "./Pages/LandingPage";
 import Aboutpage from "./Pages/Aboutpage";
-import ForCentrePage from "./Pages/ForCentrePage";
+import Centres from "./Pages/Centres";
 import Supportpage from "./Pages/Supportpage";
 import Discoverpage from "./Pages/Discoverpage";
 import ProductDetails from "./Pages/ProductDetails";
@@ -87,7 +87,7 @@ const App = () => {
           ======================================================== */}
       <Route element={<SemiLayout />}>
           <Route path="/" element={<LandingPage />} />
-        <Route path="/centres" element={<ForCentrePage />} />
+        <Route path="/centres" element={<Centres />} />
         </Route>
         
 
@@ -153,6 +153,40 @@ const App = () => {
        
 
       <Route
+        path="/signupscreen"
+        element={
+          <PublicRoute>
+            <SignUpScreen />
+          </PublicRoute>
+        }
+      />
+
+      <Route
+        path="/signinscreen"
+        element={
+          <PublicRoute>
+            <SignInScreen />
+          </PublicRoute>
+        }
+      />
+
+      <Route
+        path="/signup"
+        element={
+          <PublicRoute>
+            <SignUp />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/signin"
+        element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        }
+      />
+      <Route
         path="/forgot-password"
         element={
           <PublicRoute>
@@ -180,10 +214,26 @@ const App = () => {
       {/* Vendor Auth */}
       {/* ========== VENDOR AUTH ROUTES (Public) ========== */}
       <Route
+        path="/signupvendor"
+        element={
+          <PublicRoute role="vendor">
+            <SignUpVendor />
+          </PublicRoute>
+        }
+      />
+      <Route
         path="/vendor/verify-otp"
         element={
           <PublicRoute role="vendor">
             <VendorVerifyOtp />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/vendor/login"
+        element={
+          <PublicRoute role="vendor">
+            <VendorLogin />
           </PublicRoute>
         }
       />
@@ -205,7 +255,7 @@ const App = () => {
       />
 
        <Route
-        path="/DashboardPackageActive"
+        path="DashboardPackageActive"
         element={
           <PublicRoute role="DashboardPackageActive">
             <DashboardPackageActive />
@@ -214,13 +264,14 @@ const App = () => {
       />
 
        <Route
-        path="/DashboardPackageInactive"
+        path="DashboardPackageInactive"
         element={
           <PublicRoute role="DashboardPackageInactive">
             <DashboardPackageInactive />
           </PublicRoute>
         }
       />
+
 
 
 
@@ -290,7 +341,7 @@ const App = () => {
 
 
       {/* ========== STANDALONE PROTECTED PAGES ========== */}
-       <Route
+      <Route
         path="/settings"
         element={
           <PrivateRoute>
