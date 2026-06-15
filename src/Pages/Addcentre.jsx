@@ -55,12 +55,12 @@ const AddCentre = () => {
   });
   const [selectedFacilities, setSelectedFacilities] = useState([]);
   const [pricingData, setPricingData] = useState({
-    adultPrice: '',
-    childPrice: '',
-    familyPackage: '',
     dailySlotCapacity: '',
     installmentPayment: false,
   });
+  const [packagesList, setPackagesList] = useState([
+    { packageName: '', packageType: '', amount: '', numberOfPeople: '' }
+  ]);
   const [uploadedImages, setUploadedImages] = useState({});
   const [documents, setDocuments] = useState({
     termsAndCondition: null,
@@ -81,6 +81,10 @@ const AddCentre = () => {
     }));
   };
 
+  const handlePackagesChange = (packages) => {
+    setPackagesList(packages);
+  };
+
   const handleFacilityToggle = (facility) => {
     setSelectedFacilities((prev) =>
       prev.includes(facility)
@@ -99,7 +103,7 @@ const AddCentre = () => {
     }));
   };
 
-  // ✅ NEW: Validate current step before proceeding
+  // Validate current step before proceeding
   const validateCurrentStep = () => {
     switch(currentStep) {
       case 1: // Basic Information
@@ -141,8 +145,17 @@ const AddCentre = () => {
           Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please enter daily slot capacity.', confirmButtonColor: '#ff6b35' });
           return false;
         }
-        if (!pricingData.adultPrice && !pricingData.childPrice && !pricingData.familyPackage) {
-          Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please add at least one pricing option.', confirmButtonColor: '#ff6b35' });
+        // Check if at least one valid package exists
+        const validPackages = packagesList.filter(pkg => 
+          pkg.packageName && pkg.packageType && pkg.amount && pkg.numberOfPeople
+        );
+        if (validPackages.length === 0) {
+          Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please add at least one valid package.', confirmButtonColor: '#ff6b35' });
+          return false;
+        }
+        // Check if documents are uploaded
+        if (!documents.termsAndCondition || !documents.privacyPolicy) {
+          Swal.fire({ icon: 'error', title: 'Missing Documents', text: 'Please upload terms and privacy policy documents.', confirmButtonColor: '#ff6b35' });
           return false;
         }
         return true;
@@ -151,10 +164,6 @@ const AddCentre = () => {
         const imageFiles = Object.values(uploadedImages).filter((image) => image?.file);
         if (imageFiles.length < 3) {
           Swal.fire({ icon: 'error', title: 'Missing Images', text: 'Please upload at least 3 centre images.', confirmButtonColor: '#ff6b35' });
-          return false;
-        }
-        if (!documents.termsAndCondition || !documents.privacyPolicy) {
-          Swal.fire({ icon: 'error', title: 'Missing Documents', text: 'Please upload terms and privacy policy documents.', confirmButtonColor: '#ff6b35' });
           return false;
         }
         return true;
@@ -169,6 +178,9 @@ const AddCentre = () => {
 
   const validateCentre = () => {
     const imageFiles = Object.values(uploadedImages).filter((image) => image?.file);
+    const validPackages = packagesList.filter(pkg => 
+      pkg.packageName && pkg.packageType && pkg.amount && pkg.numberOfPeople
+    );
 
     if (
       !centreData.centreName ||
@@ -189,8 +201,8 @@ const AddCentre = () => {
       return 'Please add the daily capacity.';
     }
 
-    if (!pricingData.adultPrice && !pricingData.childPrice && !pricingData.familyPackage) {
-      return 'Please add at least one pricing option (Adult, Child, or Family package).';
+    if (validPackages.length === 0) {
+      return 'Please add at least one valid package.';
     }
 
     if (imageFiles.length < 3) {
@@ -204,31 +216,22 @@ const AddCentre = () => {
     return '';
   };
 
-  // ✅ FIXED: Proper package creation function
+  // Package creation function with dynamic packages
   const createPackagesForCentre = async (touristId) => {
-    const packages = [
-      {
-        packageName: 'Adult Ticket',
-        packageType: 'Adult',
-        amount: Number(pricingData.adultPrice),
-        numberOfPeople: '1',
-      },
-      {
-        packageName: 'Child Ticket',
-        packageType: 'Child',
-        amount: Number(pricingData.childPrice),
-        numberOfPeople: '1',
-      },
-      {
-        packageName: 'Family Package',
-        packageType: 'Family',
-        amount: Number(pricingData.familyPackage),
-        numberOfPeople: '5',
-      },
-    ].filter((item) => item.amount > 0);
+    // Filter out empty packages
+    const validPackages = packagesList.filter(pkg => 
+      pkg.packageName && pkg.packageType && pkg.amount && pkg.numberOfPeople
+    );
+
+    const packages = validPackages.map(pkg => ({
+      packageName: pkg.packageName,
+      packageType: pkg.packageType,
+      amount: Number(pkg.amount),
+      numberOfPeople: String(pkg.numberOfPeople),
+    }));
 
     if (packages.length === 0) {
-      console.warn('No packages to create (all amounts were 0)');
+      console.warn('No packages to create');
       return [];
     }
 
@@ -388,7 +391,6 @@ const AddCentre = () => {
     }
   };
 
-  // ✅ UPDATED: Validate current step before moving to next
   const handleNext = () => {
     if (validateCurrentStep()) {
       if (currentStep < 6) {
@@ -421,14 +423,20 @@ const AddCentre = () => {
           />
         );
       case 3:
-        return <Pricing formData={pricingData} onChange={handlePricingChange} />;
+        return (
+          <Pricing 
+            formData={pricingData} 
+            onChange={handlePricingChange}
+            onPackagesChange={handlePackagesChange}
+            onDocumentsChange={setDocuments}
+            documents={documents}
+          />
+        );
       case 4:
         return (
           <Images
             uploadedImages={uploadedImages}
-            documents={documents}
             onImagesChange={setUploadedImages}
-            onDocumentsChange={setDocuments}
           />
         );
       case 5:
@@ -442,6 +450,7 @@ const AddCentre = () => {
             uploadedImages={uploadedImages}
             documents={documents}
             openingHours={openingHours}
+            packagesList={packagesList}
           />
         );
       default:
@@ -466,7 +475,7 @@ const AddCentre = () => {
       <Navbar />
       
       <div className="main-content">
-        {/* ✅ SMALL BACK BUTTON - Hidden on step 1, with orange color and margin-top */}
+        {/* Small Back Button - Hidden on step 1 */}
         {currentStep > 1 && (
           <button 
             className="btn-back" 
