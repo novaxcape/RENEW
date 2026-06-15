@@ -1,11 +1,13 @@
 import React from "react";
 import "../components/css/Supportpagesubherocontext.css";
-import { FaEnvelope, FaPhoneAlt } from "react-icons/fa";
+import { MdOutlineCall } from "react-icons/md";
+import { HiOutlineEnvelope } from "react-icons/hi2";
+
 
 const contactData = [
   {
     id: 1,
-    icon: <FaEnvelope />,
+    icon: <HiOutlineEnvelope color="#003b9f"/>,
     title: "Live Chat",
     text: "Available 9AM-6PM WAT",
     button: "Start Chat",
@@ -15,7 +17,7 @@ const contactData = [
   },
   {
     id: 2,
-    icon: <FaPhoneAlt />,
+    icon: <MdOutlineCall color="#ff6b35"/>,
     title: "Phone Support",
     text: "+234 706 941 359",
     button: "Call Now",
@@ -25,7 +27,7 @@ const contactData = [
   },
   {
     id: 3,
-    icon: <FaEnvelope />,
+    icon: <HiOutlineEnvelope color="#003b9f"/>,
     title: "Email Support",
     text: "Support@novaxcape.ng",
     button: "Send Email",

@@ -8,7 +8,6 @@ const Header = () => {
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
-    // Prevent scrolling when menu is open
     document.body.style.overflow = menuOpen ? "auto" : "hidden";
   };
 
@@ -19,27 +18,27 @@ const Header = () => {
 
   return (
     <>
-      <div className="header">
-        <div className="header-body">
+      <div className="m-header">
+        <div className="m-header-body">
           {/* LOGO */}
-          <div className="logo">
+          <div className="m-logo">
             <Link to="/" onClick={closeMenu}>
               <img
                 src="/novaxcape/logo.png"
                 alt="Novaxcape"
-                className="header-logo-img"
+                className="m-header-logo-img"
               />
             </Link>
           </div>
 
           {/* NAV LINKS - Desktop */}
-          <div className="link desktop-links">
+          <div className="m-link m-desktop-links">
             <ul>
               <li>
                 <NavLink
                   to="/"
                   end
-                  className={({ isActive }) => (isActive ? "active-link" : "")}
+                  className={({ isActive }) => (isActive ? "m-active-link" : "")}
                 >
                   Home
                 </NavLink>
@@ -47,7 +46,7 @@ const Header = () => {
               <li>
                 <NavLink
                   to="/discover"
-                  className={({ isActive }) => (isActive ? "active-link" : "")}
+                  className={({ isActive }) => (isActive ? "m-active-link" : "")}
                 >
                   Discover
                 </NavLink>
@@ -55,7 +54,7 @@ const Header = () => {
               <li>
                 <NavLink
                   to="/centres"
-                  className={({ isActive }) => (isActive ? "active-link" : "")}
+                  className={({ isActive }) => (isActive ? "m-active-link" : "")}
                 >
                   For Centers
                 </NavLink>
@@ -63,7 +62,7 @@ const Header = () => {
               <li>
                 <NavLink
                   to="/about"
-                  className={({ isActive }) => (isActive ? "active-link" : "")}
+                  className={({ isActive }) => (isActive ? "m-active-link" : "")}
                 >
                   About us
                 </NavLink>
@@ -71,7 +70,7 @@ const Header = () => {
               <li>
                 <NavLink
                   to="/support"
-                  className={({ isActive }) => (isActive ? "active-link" : "")}
+                  className={({ isActive }) => (isActive ? "m-active-link" : "")}
                 >
                   Support
                 </NavLink>
@@ -79,22 +78,22 @@ const Header = () => {
             </ul>
           </div>
 
-          {/* RIGHT SIDE / BUTTONS */}
-          <div className="button">
+          {/* RIGHT SIDE / ACTION BUTTONS */}
+          <div className="m-button">
             {/* MOBILE ICONS */}
-            <div className="mobile-icons">
+            <div className="m-mobile-icons">
               <FaHeart />
               <FaUser />
-              <FaBars className="hamburger" onClick={toggleMenu} />
+              <FaBars className="m-hamburger" onClick={toggleMenu} />
             </div>
 
             {/* DESKTOP BUTTONS */}
-            <div className="desktop-buttons">
+            <div className="m-desktop-buttons">
               <Link to="/loginscreen">
-                <button className="signin-btn">Sign In</button>
+                <button className="m-signin-btn">Sign In</button>
               </Link>
               <Link to="/signupscreen">
-                <button className="signup-btn">Sign Up</button>
+                <button className="m-signup-btn">Sign Up</button>
               </Link>
             </div>
           </div>
@@ -102,55 +101,55 @@ const Header = () => {
       </div>
 
       {/* ===== MOBILE OVERLAY MENU ===== */}
-      <div className={`mobile-overlay ${menuOpen ? "active" : ""}`}>
-        <div className="overlay-header">
-          <div className="overlay-logo">
+      <div className={`m-mobile-overlay ${menuOpen ? "m-active" : ""}`}>
+        <div className="m-overlay-header">
+          <div className="m-overlay-logo">
             <img src="/novaxcape/logo.png" alt="Novaxcape" />
           </div>
-          <button className="close-btn" onClick={toggleMenu}>
+          <button className="m-close-btn" onClick={toggleMenu}>
             <FaTimes />
           </button>
         </div>
 
-        <div className="overlay-links">
+        <div className="m-overlay-links">
           <ul>
             <li>
-              <NavLink to="/" onClick={closeMenu} end>
+              <NavLink to="/" onClick={closeMenu} end className={({ isActive }) => (isActive ? "m-active-link" : "")}>
                 Home
               </NavLink>
             </li>
             <li>
-              <NavLink to="/discover" onClick={closeMenu}>
+              <NavLink to="/discover" onClick={closeMenu} className={({ isActive }) => (isActive ? "m-active-link" : "")}>
                 Discover
               </NavLink>
             </li>
             <li>
-              <NavLink to="/my-bookings" onClick={closeMenu}>
+              <NavLink to="/my-bookings" onClick={closeMenu} className={({ isActive }) => (isActive ? "m-active-link" : "")}>
                 My Bookings
               </NavLink>
             </li>
             <li>
-              <NavLink to="/centres" onClick={closeMenu}>
+              <NavLink to="/centres" onClick={closeMenu} className={({ isActive }) => (isActive ? "m-active-link" : "")}>
                 For Centres
               </NavLink>
             </li>
             <li>
-              <NavLink to="/about" onClick={closeMenu}>
+              <NavLink to="/about" onClick={closeMenu} className={({ isActive }) => (isActive ? "m-active-link" : "")}>
                 About Us
               </NavLink>
             </li>
             <li>
-              <NavLink to="/support" onClick={closeMenu}>
+              <NavLink to="/support" onClick={closeMenu} className={({ isActive }) => (isActive ? "m-active-link" : "")}>
                 Support
               </NavLink>
             </li>
+            
             {/* MOBILE AUTH LINKS */}
-            <li className="mobile-auth-links">
-              <NavLink to="/signup" onClick={closeMenu} className="mobile-signup">
+            <li className="m-mobile-auth-links">
+              <NavLink to="/signup" onClick={closeMenu} className="m-mobile-signup">
                 Sign Up
               </NavLink>
-
-              <NavLink to="/Login" onClick={closeMenu} className="mobile-signin">
+              <NavLink to="/Login" onClick={closeMenu} className="m-mobile-signin">
                 Sign In
               </NavLink>
             </li>

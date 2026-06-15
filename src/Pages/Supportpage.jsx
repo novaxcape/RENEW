@@ -1,5 +1,4 @@
 import React from "react";
-import PaymentHeader from "../components/PaymentHeader"
 import Supportpageherocontent from "../components/Supportpageherocontent";
 import Supportpagesubherocontext from "../components/Supportpagesubherocontext";
 import { FaQ } from "react-icons/fa6";
@@ -11,7 +10,6 @@ const Supportpage = () => {
   return (
     <main className="supportpage_wrapper">
       <section className="supportpage_container">
-        <PaymentHeader />
         <Supportpageherocontent />
         <Supportpagesubherocontext />
 

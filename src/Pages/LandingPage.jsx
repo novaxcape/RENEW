@@ -1,5 +1,4 @@
 import React from "react";
-import Header from "../components/Header";
 import Hero from "../components/Hero";
 import Recommend from "../components/Recommend";
 import PopularDestinations from "../components/PopularDestinations";
@@ -14,7 +13,6 @@ import Footer from "../components/Footer";
 const LandingPage = () => {
   return (
     <div className="home-container">
-      <Header />
       <div className="home-content">
         <Hero />
         <Recommend />
