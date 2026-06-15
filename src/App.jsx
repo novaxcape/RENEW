@@ -37,6 +37,7 @@ import SettingsPage from "./Pages/SettingPage";
 import ProfileSettingPage from "./Pages/ProfileSettingPage";
 import AddCentre from "./Pages/Addcentre";
 import KycPage from "./Pages/KycPage";
+import DashboardBookingPage from "./Pages/DashboardBookingPage";
 
 // Selection Pages
 import SignUpScreen from "./Pages/SignUpScreen";
@@ -274,7 +275,7 @@ const App = () => {
 
 
 
-{/* 
+
       <Route
         path="/wishlist"
         element={
@@ -284,7 +285,7 @@ const App = () => {
         }
       />
       <Route
-        path="/payment"
+        path="/payment/:packageId"
         element={
           <PrivateRoute>
             <PaymentOptionPage />
@@ -306,7 +307,7 @@ const App = () => {
             <PaymentConfirmationPage />
           </PrivateRoute>
         }
-      /> */}
+      /> 
       {/* ========== VENDOR DASHBOARD ROUTES (Protected) ========== */}
       <Route
         path="/vendor/dashboard"
@@ -317,7 +318,7 @@ const App = () => {
         }
       >
         <Route index element={<Dashboard />} />
-        <Route path="bookings" element={<MyBookingsPage />} />
+        <Route path="bookings" element={<DashboardBookingPage />} />
         <Route path="revenue" element={<RevenueTrendPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="support" element={<Supportpage />} />
@@ -340,7 +341,7 @@ const App = () => {
 
 
       {/* ========== STANDALONE PROTECTED PAGES ========== */}
-      {/* <Route
+      <Route
         path="/settings"
         element={
           <PrivateRoute>
@@ -371,7 +372,7 @@ const App = () => {
             <KycPage />
           </PrivateRoute>
         }
-      /> */}
+      /> 
 
 
       {/* Fallback 404 */}

@@ -1,9 +1,11 @@
 import React from "react";
-import { Link, NavLink } from "react-router-dom";
+import { useNavigate, Link, NavLink } from "react-router-dom";
 import "./css/PaymentHeader.css";
 import { FiUser, FiHeart, FiMenu } from "react-icons/fi";
 
 const PaymentHeader = () => {
+  const navigate = useNavigate();
+
   return (
     <header className="payment-navbar-header">
       <div className="p-navbar-inner-container">
@@ -26,25 +28,25 @@ const PaymentHeader = () => {
           <NavLink to="/my-bookings" className={({ isActive }) => `p-nav-item-link ${isActive ? "p-nav-active" : ""}`}>My Bookings</NavLink>
           <NavLink to="/centres" className={({ isActive }) => `p-nav-item-link ${isActive ? "p-nav-active" : ""}`}>For Centres</NavLink>
           <NavLink to="/about" className={({ isActive }) => `p-nav-item-link ${isActive ? "p-nav-active" : ""}`}>About us</NavLink>
-          <NavLink to="/support" className={({ isActive }) => `p-nav-item-link ${isActive ? "p-nav-active" : "p-nav-item-link-active"}`}>Support</NavLink>
+          <NavLink to="/support" className={({ isActive }) => `p-nav-item-link ${isActive ? "p-nav-active" : ""}`}>Support</NavLink>
         </nav>
 
         {/* DESKTOP ACTIONS */}
         <div className="p-navbar-desktop-actions">
-          <button className="p-navbar-action-btn" aria-label="Wishlist">
+          <button className="p-navbar-action-btn" aria-label="Wishlist" onClick={() => navigate('/wishlist')}>
             <FiHeart size={24} strokeWidth={1.5} />
           </button>
-          <button className="p-navbar-action-btn" aria-label="Profile">
+          <button className="p-navbar-action-btn" aria-label="Profile" onClick={() => navigate('/profile-settings')}>
             <FiUser size={24} strokeWidth={1.5} />
           </button>
         </div>
 
         {/* MOBILE ACTIONS */}
         <div className="p-navbar-mobile-actions">
-          <button className="p-navbar-action-btn" aria-label="Wishlist">
+          <button className="p-navbar-action-btn" aria-label="Wishlist" onClick={() => navigate("/wishlist")}> 
             <FiHeart size={22} strokeWidth={1.8} />
           </button>
-          <button className="p-navbar-action-btn" aria-label="Profile">
+          <button className="p-navbar-action-btn" aria-label="Profile" onClick={() => navigate('/profile-settings')}>
             <FiUser size={22} strokeWidth={1.8} />
           </button>
           <button className="p-navbar-action-btn" aria-label="Menu">

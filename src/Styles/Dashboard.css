@@ -90,13 +90,18 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  overflow: hidden;
+  max-width: 100%;
 }
 
 .logo-img {
-  width: 160px;
+  width: 100%;         /* fill available space */
+  max-width: 180px;    /* cap it so it doesn't overflow */
   height: auto;
   margin-bottom: 6px;
+  object-fit: contain;
 }
+
 
 .admin-portal-text {
   font-size: 15px;
@@ -640,14 +645,6 @@
   justify-content: space-between;
   align-items: center;
   padding: 32px 40px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
-  margin: 1rem 2rem;
-  color: white;
-}
-
-.welcome-section div {
-  flex: 1;
 }
 
 .welcome-section h1 {
@@ -655,8 +652,8 @@
   font-weight: 700;
   font-size: 24px;
   line-height: 24px;
+  color: #1a1a1a;
   margin-bottom: 6px;
-  word-break: break-word;
 }
 
 .welcome-section p {
@@ -664,14 +661,12 @@
   font-weight: 500;
   font-size: 16px;
   line-height: 24px;
-  opacity: 0.95;
-  word-break: break-word;
-  max-width: 600px;
+  color: #1a1a1a;
 }
 
 .manage-centre-btn {
-  background: white;
-  color: #764ba2;
+  background: #F97316;
+  color: white;
   border: none;
   padding: 16px 36px;
   border-radius: 999px;
@@ -680,12 +675,13 @@
   font-size: 16px;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.3s;
 }
 
 .manage-centre-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  background: #ea6c0a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.4);
+  transition: all 0.2s ease;
 }
 
 /* =========================
@@ -1009,8 +1005,7 @@ tbody tr:hover td {
   transform: rotate(45deg);
 }
 
-/* Table Status Badge (for bookings table) */
-.table-status-badge {
+.status-badge {
   padding: 5px 14px;
   border-radius: 20px;
   font-family: 'Manrope', sans-serif;
@@ -1179,262 +1174,269 @@ tbody tr:hover td {
 }
 
 /* =========================
-   VENDOR DASHBOARD SPECIFIC STYLES
+   RESPONSIVE - TABLET
    ========================= */
 
-/* Success Banner */
-.success-banner {
-  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
-  color: white;
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
-  margin: 1rem 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  animation: slideDown 0.5s ease;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .stat-card {
+    width: 100%;
+  }
+
+  .chart-section {
+    grid-template-columns: 1fr;
+  }
+
+  .bottom-section {
+    flex-direction: column;
+  }
+
+  .bottom-section .performance-card {
+    flex: unset;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .bottom-section .capacity-card {
+    flex: unset;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .search-bar {
+    width: 300px;
+  }
 }
 
-.success-icon {
-  font-size: 1.5rem;
-  margin-right: 1rem;
-}
+/* =========================
+   RESPONSIVE - MOBILE
+   ========================= */
 
-.success-message {
-  flex: 1;
-}
+@media (max-width: 768px) {
 
-.success-message strong {
-  display: block;
-  font-size: 1rem;
-  margin-bottom: 0.25rem;
-}
+  .sidebar {
+    display: none;
+  }
 
-.success-message p {
-  margin: 0;
-  font-size: 0.9rem;
-  opacity: 0.95;
-}
+  .dashboard {
+    flex-direction: column;
+  }
 
-.close-banner {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0 0.5rem;
-  transition: opacity 0.3s;
-}
+  .dashboard-content {
+    padding: 0;
+    width: 100%;
+  }
 
-.close-banner:hover {
-  opacity: 0.8;
-}
+  .top-navbar {
+    padding: 10px 16px;
+    gap: 8px;
+    margin-bottom: 0;
+  }
 
-/* KYC Pending Banner */
-.kyc-pending-banner {
-  background: linear-gradient(135deg, #ff9800 0%, #ff6b35 100%);
-  color: white;
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
-  margin: 0 2rem 1rem 2rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
-}
+  .navbar-left {
+    display: none;
+  }
 
-.banner-icon {
-  font-size: 2rem;
-}
+  .navbar-mobile1-logo {
+    display: flex;
+    
+    align-items: center;
+    
+    
+  }
 
-.banner-content {
-  flex: 1;
-}
+  .navbar-mobile-logo img {
+    height: 28px;
+    width: auto;
+   
+  }
 
-.banner-content strong {
-  display: block;
-  font-size: 1rem;
-  margin-bottom: 0.25rem;
-}
+  .search-bar {
+    flex: 1;
+    width: auto;
+    height: 36px;
+    margin-left: 0;
+    padding: 0 14px;
+  }
 
-.banner-content p {
-  margin: 0;
-  font-size: 0.9rem;
-  opacity: 0.95;
-}
+  .search-bar input {
+    font-size: 13px;
+  }
 
-.kyc-status-link {
-  background: none;
-  border: none;
-  color: white;
-  text-decoration: underline;
-  cursor: pointer;
-  margin-top: 0.5rem;
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: opacity 0.3s;
-}
+  .top-right {
+    padding-right: 0;
+    gap: 8px;
+  }
 
-.kyc-status-link:hover {
-  opacity: 0.9;
-}
+  .bell-wrapper {
+    width: 32px;
+    height: 32px;
+  }
 
-/* Quick Actions */
-.quick-actions {
-  padding: 0 2rem;
-  margin: 1.5rem 0;
-}
+  .bell-icon {
+    width: 32px;
+    height: 32px;
+  }
 
-.add-centre-btn {
-  background: #ff6b35;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
+  .bell-icon svg {
+    width: 16px;
+    height: 16px;
+  }
 
-.add-centre-btn:hover {
-  background: #e55a2b;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
+  .bell-dot {
+    top: 5px;
+    right: 5px;
+    width: 7px;
+    height: 7px;
+  }
 
-/* Centres Section */
-.centres-section {
-  padding: 0 2rem;
-  margin: 2rem 0;
-}
+  .profile img {
+    width: 34px;
+    height: 34px;
+  }
 
-.centres-section h2 {
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
-  color: #1a1a2e;
-  font-weight: 600;
-}
+  .profile-info {
+    display: none;
+  }
 
-.centres-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
-}
+  .hamburger-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-.centre-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: all 0.3s;
-  border: 1px solid #e0e0e0;
-}
+  .notification-dropdown {
+    width: calc(100vw - 32px);
+    right: -60px;
+  }
 
-.centre-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-}
+  .welcome-section {
+    padding: 20px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
 
-.centre-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-}
+  .welcome-section h1 {
+    font-size: 20px;
+  }
 
-.centre-header h3 {
-  margin: 0;
-  font-size: 1.2rem;
-  color: #1a1a2e;
-  font-weight: 600;
-}
+  .welcome-section p {
+    font-size: 14px;
+  }
 
-/* Centre Card Status Badge (for centre cards) */
-.centre-status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
+  .manage-centre-btn {
+    padding: 12px 28px;
+    font-size: 14px;
+  }
 
-.centre-status-badge.approved {
-  background: #4caf50;
-  color: white;
-}
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 12px 16px;
+    gap: 10px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    display: flex;
+  }
 
-.centre-status-badge.pending {
-  background: #ff9800;
-  color: white;
-}
+  .stat-card {
+    min-width: 160px;
+    width: 160px;
+    flex-shrink: 0;
+  }
 
-.centre-status-badge.rejected {
-  background: #f44336;
-  color: white;
-}
+  .stat-title {
+    font-size: 13px;
+    line-height: 18px;
+  }
 
-.centre-details {
-  margin: 1rem 0;
-  color: #666;
-}
+  .stat-value {
+    font-size: 20px;
+  }
 
-.centre-details p {
-  margin: 0.5rem 0;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
+  .stat-previous {
+    font-size: 12px;
+    line-height: 18px;
+  }
 
-.view-centre-btn {
-  width: 100%;
-  padding: 0.75rem;
-  background: #f5f5f5;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-weight: 600;
-  color: #333;
-  margin-top: 0.5rem;
-}
+  .chart-section {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 0 16px;
+    margin-bottom: 16px;
+  }
 
-.view-centre-btn:hover {
-  background: #ff6b35;
-  color: white;
-  border-color: #ff6b35;
-}
+  .chart-card {
+    padding: 20px 16px 12px 16px;
+    border-radius: 12px;
+  }
 
-/* Loading State */
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-}
+  .ticket-chart {
+    padding: 20px 16px;
+    border-radius: 12px;
+  }
 
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #ff6b35;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
+  .donut-wrapper {
+    gap: 16px;
+  }
 
-.loading-container p {
-  margin-top: 1rem;
-  color: #666;
-}
+  .single-booking-container {
+    border-radius: 12px;
+    margin: 0 16px;
+  }
 
-/* Empty State */
-.empty-state {
-  text-align: center;
-  padding: 3rem;
-  background: white;
+  .booking-top-header {
+    padding: 16px 16px 12px 16px;
+  }
 
+  .booking-top-header h3 {
+    font-size: 17px;
+  }
+
+  td, th {
+    padding: 12px 12px;
+    font-size: 12px;
+  }
+
+  .bottom-section {
+    flex-direction: column;
+    padding: 0 16px;
+    gap: 16px;
+    margin-top: 16px;
+    margin-bottom: 20px;
+  }
+
+  .bottom-section .performance-card {
+    flex: unset;
+    width: 100%;
+    min-width: 0;
+    padding: 28px 20px;
+  }
+
+  .bottom-section .capacity-card {
+    flex: unset;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .performance-card {
+    min-width: 0;
+  }
+
+  .performance-card h3 {
+    font-size: 16px;
+  }
+
+  .performance-card p {
+    font-size: 14px;
+  }
+
+  .review-btn {
+    font-size: 16px;
+  }
 }

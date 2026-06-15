@@ -42,7 +42,7 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
         <div className="sidebar-top">
           <div className="logo-section">
             <img
-              src="/novaxcape/nova.png"
+              src="/novaxcape/pic.png"
               alt="Novaxcape Logo"
               className="logo-img"
             />
