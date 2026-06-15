@@ -7,14 +7,15 @@
 
 .section-title {
   font-family: "Manrope", sans-serif;
-  font-size: 36px;
-  font-weight: 700;
-  color: #1f1f1f;
+  font-size: 40px;
+  font-weight: 600;
+  color: #271A13;
 }
 
 .section-subtitle {
-  font-size: 20px;
-  color: #7a7a7a;
+  font-size: 18px;
+  font-weight: 600;
+  color: #271A13;
   margin-top: 8px;
   margin-bottom: 40px;
 }
@@ -183,6 +184,14 @@
     padding: 12px 24px;
     font-size: 30px;
     white-space: nowrap;
+  }
+
+  .section-header{
+    gap:10px;
+  }
+
+  .section-title{
+    font-size: 25px;
   }
 
   /* Swipeable Cards */
