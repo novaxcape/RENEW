@@ -128,8 +128,20 @@ const Discoversection = ({
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("All");
 
-  const handleBookNow = (centre) => {
-    const centreId = centre.id || centre._id;
+  const handleViewDetails = (centre) => {
+    const centreId = centre.id || centre._id || centre.centreId;
+    if (!centreId) return;
+
+    navigate(`/centre/${centreId}`, {
+      state: { centre },
+    });
+  };
+
+  const handleBookNow = (e, centre) => {
+    e.stopPropagation(); // Prevents triggering the card click
+    const centreId = centre.id || centre._id || centre.centreId;
+    if (!centreId) return;
+
     navigate(`/centre/${centreId}`, {
       state: { centre },
     });
@@ -146,7 +158,9 @@ const Discoversection = ({
   // Get price from tourist centre data
   const getCentrePrice = (centre) => {
     if (centre.packages && centre.packages.length > 0) {
-      const adultPackage = centre.packages.find(pkg => pkg.packageType === 'Adult');
+      const adultPackage = centre.packages.find(
+        (pkg) => pkg.packageType === "Adult"
+      );
       if (adultPackage) return formatPrice(adultPackage.amount);
       return formatPrice(centre.packages[0].amount);
     }
@@ -155,9 +169,14 @@ const Discoversection = ({
 
   const filterByCategory = (centers) => {
     if (activeCategory === "All") return centers;
-    
+
     return centers.filter((center) => {
-      const centreType = (center.centreType || center.type || center.category || "").toLowerCase();
+      const centreType = (
+        center.centreType ||
+        center.type ||
+        center.category ||
+        ""
+      ).toLowerCase();
       const category = activeCategory.toLowerCase();
       return centreType.includes(category) || category.includes(centreType);
     });
@@ -165,7 +184,10 @@ const Discoversection = ({
 
   // Determine what to display
   const hasActiveSearch = searchSubmitted && searchState;
-  const displayCenters = hasActiveSearch && touristCentres?.length > 0 ? touristCentres : staticAttractions;
+  const displayCenters =
+    hasActiveSearch && touristCentres?.length > 0
+      ? touristCentres
+      : staticAttractions;
   const filteredCenters = filterByCategory(displayCenters);
 
   return (
@@ -200,7 +222,11 @@ const Discoversection = ({
       {/* Error Message */}
       {error && hasActiveSearch && (
         <div className="error-container">
-          <p className="error-text">{typeof error === 'string' ? error : error.message || 'Failed to load centers'}</p>
+          <p className="error-text">
+            {typeof error === "string"
+              ? error
+              : error.message || "Failed to load centers"}
+          </p>
           <button
             className="try-again-btn"
             onClick={() => window.location.reload()}
@@ -219,19 +245,23 @@ const Discoversection = ({
       )}
 
       {/* No Results */}
-      {!loading && hasActiveSearch && !error && touristCentres?.length === 0 && (
-        <div className="no-results-container">
-          <p className="no-results-text">
-            No centres found in "{searchState}". Try a different state or check back later.
-          </p>
-          <button
-            className="browse-all-btn"
-            onClick={() => window.location.reload()}
-          >
-            Browse All Centres
-          </button>
-        </div>
-      )}
+      {!loading &&
+        hasActiveSearch &&
+        !error &&
+        touristCentres?.length === 0 && (
+          <div className="no-results-container">
+            <p className="no-results-text">
+              No centres found in "{searchState}". Try a different state or
+              check back later.
+            </p>
+            <button
+              className="browse-all-btn"
+              onClick={() => window.location.reload()}
+            >
+              Browse All Centres
+            </button>
+          </div>
+        )}
 
       {/* Cards Grid */}
       {!loading && !error && (
@@ -239,19 +269,32 @@ const Discoversection = ({
           {filteredCenters.map((place) => {
             // Check if this is static data (has title property) or API data
             const isStatic = place.title && !place.centreName;
-            
+
             if (isStatic) {
               // Render static attraction
               return (
-                <div className="attraction_card" key={place.id}>
-                  <img src={place.image} alt={place.title} />
+                <div 
+                  className="attraction_card" 
+                  key={place.id}
+                  onClick={() => handleViewDetails(place)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <img
+                    src={place.image}
+                    alt={place.title}
+                  />
                   <div className="card_content">
                     <h3>{place.title}</h3>
                     <h4>{place.location}</h4>
                     <div className="card_details">
                       <div className="rating">
                         {[...Array(5)].map((_, i) => (
-                          <FaStar key={i} color={i < Math.floor(place.rating) ? "#ff6b35" : "#ddd"} />
+                          <FaStar
+                            key={i}
+                            color={
+                              i < Math.floor(place.rating) ? "#ff6b35" : "#ddd"
+                            }
+                          />
                         ))}
                         <span>{place.rating}</span>
                         <small>({place.reviews} reviews)</small>
@@ -266,23 +309,35 @@ const Discoversection = ({
                         <p>From</p>
                         <h2>{place.price}</h2>
                       </div>
-                      <button onClick={() => handleBookNow(place)}>Book Now</button>
+                      <button onClick={(e) => handleBookNow(e, place)}>
+                        Book Now
+                      </button>
                     </div>
                   </div>
                 </div>
               );
             } else {
               // Render API tourist centre
-              const imageSrc = place.images?.[0] || place.image || "/novaxcape/placeholder.jpg";
+              const imageSrc =
+                place.images?.[0] ||
+                place.image ||
+                "/novaxcape/placeholder.jpg";
               const title = place.centreName || place.name || "Tourist Centre";
-              const location = [place.city, place.state].filter(Boolean).join(", ") || "Location not specified";
+              const location =
+                [place.city, place.state].filter(Boolean).join(", ") ||
+                "Location not specified";
               const rating = place.rating || place.averageRating || 4.0;
               const reviews = place.reviews || place.reviewCount || 0;
               const time = place.openingHours || "Hours not specified";
               const price = getCentrePrice(place);
-              
+
               return (
-                <div className="attraction_card" key={place.id || place._id}>
+                <div 
+                  className="attraction_card" 
+                  key={place.id || place._id}
+                  onClick={() => handleViewDetails(place)}
+                  style={{ cursor: "pointer" }}
+                >
                   <img
                     src={imageSrc}
                     alt={title}
@@ -296,7 +351,10 @@ const Discoversection = ({
                     <div className="card_details">
                       <div className="rating">
                         {[...Array(5)].map((_, i) => (
-                          <FaStar key={i} color={i < Math.floor(rating) ? "#ff6b35" : "#ddd"} />
+                          <FaStar
+                            key={i}
+                            color={i < Math.floor(rating) ? "#ff6b35" : "#ddd"}
+                          />
                         ))}
                         <span>{rating}</span>
                         <small>({reviews} reviews)</small>
@@ -311,7 +369,9 @@ const Discoversection = ({
                         <p>From</p>
                         <h2>{price}</h2>
                       </div>
-                      <button onClick={() => handleBookNow(place)}>Book Now</button>
+                      <button onClick={(e) => handleBookNow(e, place)}>
+                        Book Now
+                      </button>
                     </div>
                   </div>
                 </div>

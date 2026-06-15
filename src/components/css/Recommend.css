@@ -2,6 +2,7 @@
   width: 100%;
   padding: 48px 60px;
   box-sizing: border-box;
+  /* background-color: red; */
 }
 
 .recommend_body {
@@ -22,10 +23,11 @@
 }
 
 .recommend_left img {
-  width: 600px;
+  width: 560px;
   height: auto;
   margin-left: 0px;
   object-fit: contain;
+  background-color: yellow;
 }
 
 .recommend_right {
@@ -37,19 +39,22 @@
 
 .recommend_tag {
   color: #ff6b35;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 24px;
 }
 
 .recommend_right h2 {
   font-family: "Manrope", sans-serif;
-  font-size: 42px;
+  font-size: 36px;
   font-weight: 700;
-  color: #1f1f1f;
+  color: #271A13;
   line-height: 1.2;
 }
 
 .recommend_right p {
+  font-size: 18px;
+  font-weight: 500;
+  color: #271A13;
   font-size: 20px;
   color: #7a7a7a;
   line-height: 1.6;
@@ -63,9 +68,9 @@
 
 .statBlockCard {
   background: #f0f0f0;
-  border: 1px solid;
+  border: 1px solid #DED9D9;
   border-radius: 16px;
-  padding: 18px 19px;
+  padding: 10px 10px;
   text-align: center;
   flex: 1;
   min-height: unset;
@@ -73,19 +78,19 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .statValueNumber {
   font-size: 18px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #271A13;
   font-family: Manrope;
 }
 
 .statValueLabel {
   font-size: 14px;
-  color: #1a1a1a;
+  color: #271A13;
   font-weight: 400;
   margin-top: 0;
 }

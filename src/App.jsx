@@ -4,11 +4,13 @@ import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 // Import your header and layout tool
 import Header from "./components/Header";
 import PaymentHeader from "./components/PaymentHeader";
+// import Home from "./components/Home"
+
 
 // Import your route guard pages
 import PrivateRoute from "./Pages/PrivateRoute";
 import PublicRoute from "./Pages/PublicRoute";
-
+import RootLayout from "./Outlet/RootLayout";
 // ========== CLIENT PAGES ==========
 // Public Pages (Client Auth)
 import SignUp from "./Pages/SignUp";
@@ -19,10 +21,11 @@ import ResetPassword from "./Pages/ResetPassword";
 
 // Public Accessible Pages
 import LandingPage from "./Pages/LandingPage";
-import Aboutpage from "./Pages/Aboutpage";
+import About from "./Pages/Aboutpage";
 import ForCentrePage from "./Pages/ForCentrePage";
-import Supportpage from "./Pages/Supportpage";
-import Discoverpage from "./Pages/Discoverpage";
+import Centres from "./Pages/ForCentrePage";
+import Support from "./Pages/Supportpage";
+import Discover from "./Pages/Discoverpage";
 import ProductDetails from "./Pages/ProductDetails";
 
 // Protected Pages (Client - require login)
@@ -41,7 +44,7 @@ import DashboardBookingPage from "./Pages/DashboardBookingPage";
 
 // Selection Pages
 import SignUpScreen from "./Pages/SignUpScreen";
-import SignInScreen from "./Pages/SignInScreen"
+import SignInScreen from "./Pages/SignInScreen";
 
 // ========== VENDOR PAGES ==========
 // Vendor Auth Pages (Public - no login required)
@@ -51,53 +54,23 @@ import VendorLogin from "./Pages/VendorLogin";
 import VendorForgotPassword from "./Pages/VendorForgotPassword";
 import VendorResetPassword from "./Pages/VendorResetPassword";
 import VendorChangePassword from "./Pages/VendorChangePassword";
-import DashboardPackageActive from "./Pages/DashboardPackageActive"
-import DashboardPackageInactive from "./Pages/DashboardPackageInactive"
+import DashboardPackageActive from "./Pages/DashboardPackageActive";
+import DashboardPackageInactive from "./Pages/DashboardPackageInactive";
 
-// Shared layout configuration to render Fixed Header automatically 
-const MainLayout = () => {
-  return (
-    <>
-      <PaymentHeader />
-      <div className="has-fixed-header">
-        <Outlet />
-      </div>
-    </>
-  );
-};
-
-const SemiLayout = () => {
-  return (
-    <>
-      <Header />
-      <div className="has-fixed-header">
-        <Outlet />
-      </div>
-    </>
-  );
-};
+// Shared layout configuration to render Fixed Header automatically
 
 
 const App = () => {
   return (
     <Routes>
-      
-      {/* ========================================================
-          1. CLIENT & PUBLIC WEBSITE PAGES (Fixed Header Appears Here)
-          ======================================================== */}
-      <Route element={<SemiLayout />}>
+    
+{/* The RootLayout houses the conditional header switcher */}
+        <Route path="/" element={<RootLayout />}>
+          {/* All pages inside here will get injected into the <Outlet /> */}
+          {/* <Route index element={<Home />} /> */}
           <Route path="/" element={<LandingPage />} />
         <Route path="/centres" element={<ForCentrePage/>} />
         </Route>
-        
-
-      <Route element={<MainLayout />}>
-        {/* Publicly Accessible Pages */}
-        <Route path="/about" element={<Aboutpage />} />
-        <Route path="/support" element={<Supportpage />} />
-        <Route path="/discover" element={<Discoverpage />} />
-        <Route path="/product" element={<ProductDetails />} />
-
         {/* Client Protected Pages (Require login but keep the main header) */}
         <Route
           path="/wishlist"
@@ -147,10 +120,7 @@ const App = () => {
             </PrivateRoute>
           }
         />
-      </Route>
-
-
-       
+      {/* </Routes> */}
 
       <Route
         path="/signupscreen"
@@ -254,7 +224,7 @@ const App = () => {
         }
       />
 
-       <Route
+      <Route
         path="DashboardPackageActive"
         element={
           <PublicRoute role="DashboardPackageActive">
@@ -263,7 +233,7 @@ const App = () => {
         }
       />
 
-       <Route
+      <Route
         path="DashboardPackageInactive"
         element={
           <PublicRoute role="DashboardPackageInactive">
@@ -271,10 +241,6 @@ const App = () => {
           </PublicRoute>
         }
       />
-
-
-
-
 
       <Route
         path="/wishlist"
@@ -307,7 +273,7 @@ const App = () => {
             <PaymentConfirmationPage />
           </PrivateRoute>
         }
-      /> 
+      />
       {/* ========== VENDOR DASHBOARD ROUTES (Protected) ========== */}
       <Route
         path="/vendor/dashboard"
@@ -321,7 +287,7 @@ const App = () => {
         <Route path="bookings" element={<DashboardBookingPage/>} />
         <Route path="revenue" element={<RevenueTrendPage />} />
         <Route path="settings" element={<SettingsPage />} />
-        <Route path="support" element={<Supportpage />} />
+        <Route path="support" element={<Support />} />
       </Route>
 
       <Route
@@ -338,7 +304,6 @@ const App = () => {
           </PrivateRoute>
         }
       />
-
 
       {/* ========== STANDALONE PROTECTED PAGES ========== */}
       <Route
@@ -372,8 +337,9 @@ const App = () => {
             <KycPage />
           </PrivateRoute>
         }
-      /> 
+      />
 
+      
 
       {/* Fallback 404 */}
 
