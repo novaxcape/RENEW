@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaStar, FaRegClock } from "react-icons/fa";
 import "../components/css/Discoversection.css";
@@ -118,30 +118,20 @@ const staticAttractions = [
   },
 ];
 
-const Discoversection = () => {
+const Discoversection = ({
+  searchState,
+  searchSubmitted,
+  touristCentres,
+  loading,
+  error,
+}) => {
   const navigate = useNavigate();
-  
   const [activeCategory, setActiveCategory] = useState("All");
-  const [searchState, setSearchState] = useState("");
-  const [searchSubmitted, setSearchSubmitted] = useState(false);
-  const [touristCentres, setTouristCentres] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  // Get search params from URL on component mount
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const stateParam = params.get("state");
-    
-    if (stateParam) {
-      setSearchState(stateParam);
-      setSearchSubmitted(true);
-    }
-  }, []);
 
   const handleBookNow = (centre) => {
-    navigate(`/centre/${centre.id || centre._id}`, {
-      state: { centre }
+    const centreId = centre.id || centre._id;
+    navigate(`/centre/${centreId}`, {
+      state: { centre },
     });
   };
 
@@ -153,89 +143,30 @@ const Discoversection = () => {
     return price;
   };
 
+  // Get price from tourist centre data
+  const getCentrePrice = (centre) => {
+    if (centre.packages && centre.packages.length > 0) {
+      const adultPackage = centre.packages.find(pkg => pkg.packageType === 'Adult');
+      if (adultPackage) return formatPrice(adultPackage.amount);
+      return formatPrice(centre.packages[0].amount);
+    }
+    return formatPrice(centre.adultPrice || centre.ticketPrice);
+  };
+
   const filterByCategory = (centers) => {
     if (activeCategory === "All") return centers;
     
     return centers.filter((center) => {
-      const centreType = (center.centreType || center.type || "").toLowerCase();
+      const centreType = (center.centreType || center.type || center.category || "").toLowerCase();
       const category = activeCategory.toLowerCase();
-      
       return centreType.includes(category) || category.includes(centreType);
     });
   };
 
-  const renderPlace = (place, isStatic = false) => {
-    const imageSrc = isStatic 
-      ? place.image 
-      : place.images?.[0] || place.image || "/novaxcape/placeholder.jpg";
-    
-    const title = isStatic 
-      ? place.title 
-      : place.centreName || place.name || "Tourist Centre";
-    
-    const location = isStatic
-      ? place.location
-      : [place.city, place.state].filter(Boolean).join(", ") || "Location not specified";
-    
-    const rating = isStatic
-      ? place.rating
-      : place.rating || place.averageRating || 4.0;
-    
-    const reviews = isStatic
-      ? place.reviews
-      : place.reviews || place.reviewCount || 0;
-    
-    const time = isStatic
-      ? place.time
-      : place.openingHours || "Hours not specified";
-    
-    const price = isStatic
-      ? place.price
-      : formatPrice(place.adultPrice || place.ticketPrice || place.price);
-
-    return (
-      <div className="attraction_card" key={isStatic ? place.id : place.id || place._id}>
-        <img src={imageSrc} alt={title} onError={(e) => {
-          e.target.src = "/novaxcape/placeholder.jpg";
-        }} />
-
-        <div className="card_content">
-          <h3>{title}</h3>
-          <h4>{location}</h4>
-
-          <div className="card_details">
-            <div className="rating">
-              {[...Array(5)].map((_, i) => (
-                <FaStar key={i} color={i < Math.floor(rating) ? "#ff6b35" : "#ddd"} />
-              ))}
-              <span>{rating}</span>
-              <small>({reviews} reviews)</small>
-            </div>
-
-            <div className="time">
-              <FaRegClock />
-              <span>{time}</span>
-            </div>
-          </div>
-
-          <div className="bottom_section">
-            <div>
-              <p>From</p>
-              <h2>{price}</h2>
-            </div>
-
-            <button onClick={() => handleBookNow(place)}>
-              Book Now
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const displayCenters = searchSubmitted ? touristCentres : staticAttractions;
-  const filteredCenters = filterByCategory(displayCenters);
+  // Determine what to display
   const hasActiveSearch = searchSubmitted && searchState;
+  const displayCenters = hasActiveSearch && touristCentres?.length > 0 ? touristCentres : staticAttractions;
+  const filteredCenters = filterByCategory(displayCenters);
 
   return (
     <section className="attractions">
@@ -244,9 +175,7 @@ const Discoversection = () => {
         {categories.map((category, index) => (
           <button
             key={index}
-            className={`category_btn ${
-              activeCategory === category ? "active" : ""
-            }`}
+            className={`category_btn ${activeCategory === category ? "active" : ""}`}
             onClick={() => setActiveCategory(category)}
           >
             {category}
@@ -258,8 +187,8 @@ const Discoversection = () => {
       {hasActiveSearch && (
         <div className="search-results-header">
           <h2>
-            {loading 
-              ? `Searching for "${searchState}"...` 
+            {loading
+              ? `Searching for "${searchState}"...`
               : `Search results for "${searchState}"`}
           </h2>
           {!loading && !error && (
@@ -269,23 +198,20 @@ const Discoversection = () => {
       )}
 
       {/* Error Message */}
-      {error && (
+      {error && hasActiveSearch && (
         <div className="error-container">
-          <p className="error-text">{error}</p>
-          <button 
+          <p className="error-text">{typeof error === 'string' ? error : error.message || 'Failed to load centers'}</p>
+          <button
             className="try-again-btn"
-            onClick={() => {
-              setSearchSubmitted(false);
-              setError(null);
-            }}
+            onClick={() => window.location.reload()}
           >
-            Browse All Centres
+            Try Again
           </button>
         </div>
       )}
 
       {/* Loading State */}
-      {loading && (
+      {loading && hasActiveSearch && (
         <div className="loading-container">
           <div className="spinner"></div>
           <p>Loading amazing destinations...</p>
@@ -293,17 +219,14 @@ const Discoversection = () => {
       )}
 
       {/* No Results */}
-      {!loading && hasActiveSearch && !error && filteredCenters.length === 0 && (
+      {!loading && hasActiveSearch && !error && touristCentres?.length === 0 && (
         <div className="no-results-container">
           <p className="no-results-text">
             No centres found in "{searchState}". Try a different state or check back later.
           </p>
-          <button 
+          <button
             className="browse-all-btn"
-            onClick={() => {
-              setSearchSubmitted(false);
-              setSearchState("");
-            }}
+            onClick={() => window.location.reload()}
           >
             Browse All Centres
           </button>
@@ -313,9 +236,88 @@ const Discoversection = () => {
       {/* Cards Grid */}
       {!loading && !error && (
         <div className="attractions_grid">
-          {filteredCenters.map((place) => 
-            renderPlace(place, !searchSubmitted)
-          )}
+          {filteredCenters.map((place) => {
+            // Check if this is static data (has title property) or API data
+            const isStatic = place.title && !place.centreName;
+            
+            if (isStatic) {
+              // Render static attraction
+              return (
+                <div className="attraction_card" key={place.id}>
+                  <img src={place.image} alt={place.title} />
+                  <div className="card_content">
+                    <h3>{place.title}</h3>
+                    <h4>{place.location}</h4>
+                    <div className="card_details">
+                      <div className="rating">
+                        {[...Array(5)].map((_, i) => (
+                          <FaStar key={i} color={i < Math.floor(place.rating) ? "#ff6b35" : "#ddd"} />
+                        ))}
+                        <span>{place.rating}</span>
+                        <small>({place.reviews} reviews)</small>
+                      </div>
+                      <div className="time">
+                        <FaRegClock />
+                        <span>{place.time}</span>
+                      </div>
+                    </div>
+                    <div className="bottom_section">
+                      <div>
+                        <p>From</p>
+                        <h2>{place.price}</h2>
+                      </div>
+                      <button onClick={() => handleBookNow(place)}>Book Now</button>
+                    </div>
+                  </div>
+                </div>
+              );
+            } else {
+              // Render API tourist centre
+              const imageSrc = place.images?.[0] || place.image || "/novaxcape/placeholder.jpg";
+              const title = place.centreName || place.name || "Tourist Centre";
+              const location = [place.city, place.state].filter(Boolean).join(", ") || "Location not specified";
+              const rating = place.rating || place.averageRating || 4.0;
+              const reviews = place.reviews || place.reviewCount || 0;
+              const time = place.openingHours || "Hours not specified";
+              const price = getCentrePrice(place);
+              
+              return (
+                <div className="attraction_card" key={place.id || place._id}>
+                  <img
+                    src={imageSrc}
+                    alt={title}
+                    onError={(e) => {
+                      e.target.src = "/novaxcape/placeholder.jpg";
+                    }}
+                  />
+                  <div className="card_content">
+                    <h3>{title}</h3>
+                    <h4>{location}</h4>
+                    <div className="card_details">
+                      <div className="rating">
+                        {[...Array(5)].map((_, i) => (
+                          <FaStar key={i} color={i < Math.floor(rating) ? "#ff6b35" : "#ddd"} />
+                        ))}
+                        <span>{rating}</span>
+                        <small>({reviews} reviews)</small>
+                      </div>
+                      <div className="time">
+                        <FaRegClock />
+                        <span>{time}</span>
+                      </div>
+                    </div>
+                    <div className="bottom_section">
+                      <div>
+                        <p>From</p>
+                        <h2>{price}</h2>
+                      </div>
+                      <button onClick={() => handleBookNow(place)}>Book Now</button>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+          })}
         </div>
       )}
     </section>

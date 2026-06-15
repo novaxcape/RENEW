@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import "./css/BookingManagement.css";
+import { useDispatch, useSelector } from "react-redux";
+import { getVendorBookings } from "../redox/apiSlice";
 
 const tabs = [
   { label: "All Booking", count: 124, active: true },
@@ -11,74 +13,12 @@ const tabs = [
   { label: "Delivered", count: 62, active: false },
 ];
 
-const bookings = [
-  {
-    id: "NOV - 00132",
-    type: "Adult ticket",
-    date: "May 15,2026",
-    amount: "₦13,500",
-    status: "In Progress",
-  },
-  {
-    id: "NOV - 00134",
-    type: "Total package",
-    date: "may 20,2026",
-    amount: "₦11,000",
-    status: "Installment",
-  },
-  {
-    id: "NOV - 00132",
-    type: "Family pack",
-    date: "May 10,2026",
-    amount: "₦13,500",
-    status: "Successful",
-  },
-  {
-    id: "NOV - 00134",
-    type: "Adult Ticket",
-    date: "APR 28,2026",
-    amount: "₦3,000",
-    status: "Cancelled",
-  },
-  {
-    id: "NOV - 00132",
-    type: "Adult ticket",
-    date: "May 04.2026",
-    amount: "₦4,500",
-    status: "Successful",
-  },
-  {
-    id: "NOV - 00134",
-    type: "Children Ticket",
-    date: "Mar 28,2026",
-    amount: "₦7,000",
-    status: "Successful",
-  },
-  {
-    id: "NOV - 00132",
-    type: "Family Pack",
-    date: "May 30,2026",
-    amount: "₦13,200",
-    status: "Successful",
-  },
-  {
-    id: "NOV - 00134",
-    type: "Family Pack",
-    date: "Apr 28,2026",
-    amount: "₦23,500",
-    status: "Cancelled",
-  },
-];
-
-const statusClassMap = {
-  "In Progress": "status-in-progress",
-  Installment: "status-installment",
-  Successful: "status-successful",
-  Cancelled: "status-cancelled",
-};
-
 export default function BookingManagement() {
+  const dispatch = useDispatch();
   const [isMobile, setIsMobile] = useState(false);
+  const [activeTab, setActiveTab] = useState("All Booking");
+  
+  const { vendorBookings, vendorCentres, bookingLoading } = useSelector((state) => state.api);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 600);
@@ -86,6 +26,82 @@ export default function BookingManagement() {
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  // Fetch real bookings
+  useEffect(() => {
+    if (vendorCentres && vendorCentres.length > 0) {
+      vendorCentres.forEach((centre) => {
+        if (centre.packages && centre.packages.length > 0) {
+          centre.packages.forEach((pkg) => {
+            dispatch(getVendorBookings({ 
+              touristId: centre.id, 
+              packageId: pkg.id 
+            }));
+          });
+        }
+      });
+    }
+  }, [dispatch, vendorCentres]);
+
+  // Map real data to match the expected format
+  const mapRealBookings = () => {
+    if (!vendorBookings || vendorBookings.length === 0) return bookings; // fallback to static
+    
+    return vendorBookings.map((booking, index) => ({
+      id: booking.ticketId || booking.bookingReference || `NOV - ${String(index + 1).padStart(5, '0')}`,
+      type: booking.packageName || booking.package?.packageName || "Adult ticket",
+      date: booking.date ? new Date(booking.date).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }).replace(/,/g, ',') : "May 15,2026",
+      amount: `₦${(booking.amount || booking.totalAmount || 0).toLocaleString()}`,
+      status: booking.isInstallment ? "Installment" : 
+              booking.status === "pending" ? "In Progress" :
+              booking.status === "completed" ? "Successful" :
+              booking.status === "cancelled" ? "Cancelled" : "In Progress",
+    }));
+  };
+
+  // Update tab counts based on real data
+  const getTabCounts = () => {
+    const realBookings = vendorBookings || [];
+    return {
+      "All Booking": realBookings.length,
+      "New Booking": realBookings.filter(b => b.status === "pending").length,
+      "Canceled": realBookings.filter(b => b.status === "cancelled").length,
+      "In progress": realBookings.filter(b => b.status === "in_progress" || b.status === "pending").length,
+      "Instalment": realBookings.filter(b => b.isInstallment).length,
+      "Delivered": realBookings.filter(b => b.status === "completed").length,
+    };
+  };
+
+  const tabCounts = getTabCounts();
+  const displayBookings = mapRealBookings();
+
+  // Filter bookings based on active tab
+  const filteredBookings = displayBookings.filter((booking) => {
+    if (activeTab === "All Booking") return true;
+    return booking.status === activeTab;
+  });
+
+  const statusClassMap = {
+    "In Progress": "status-in-progress",
+    Installment: "status-installment",
+    Successful: "status-successful",
+    Cancelled: "status-cancelled",
+  };
+
+  if (bookingLoading && vendorBookings?.length === 0) {
+    return (
+      <div className="booking-page">
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p>Loading bookings...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="booking-page">
@@ -105,15 +121,16 @@ export default function BookingManagement() {
         {tabs.map((tab) => (
           <div
             key={tab.label}
-            className={`tab ${tab.active ? "tab-active" : ""}`}
+            className={`tab ${activeTab === tab.label ? "tab-active" : ""}`}
+            onClick={() => setActiveTab(tab.label)}
           >
             <span className="tab-label">{tab.label}</span>
             <span
               className={`tab-count ${
-                tab.active ? "tab-count-active" : ""
+                activeTab === tab.label ? "tab-count-active" : ""
               }`}
             >
-              {tab.count}
+              {tabCounts[tab.label] || tab.count}
             </span>
           </div>
         ))}
@@ -149,7 +166,7 @@ export default function BookingManagement() {
             </tr>
           </thead>
           <tbody>
-            {bookings.map((b, i) => (
+            {filteredBookings.map((b, i) => (
               <tr key={i}>
                 <td className="checkbox-col">
                   <input type="checkbox" className="row-checkbox" />

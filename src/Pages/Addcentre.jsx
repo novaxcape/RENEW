@@ -136,6 +136,7 @@ const AddCentre = () => {
     return '';
   };
 
+  // ✅ FIXED: Proper package creation function
   const createPackagesForCentre = async (touristId) => {
     const packages = [
       {
@@ -163,14 +164,30 @@ const AddCentre = () => {
       return [];
     }
 
-    const results = await Promise.allSettled(
-      packages.map((packageData) =>
-        dispatch(createPackage({ touristId, packageData })).unwrap()
-      )
-    );
+    const results = [];
+    
+    // Create packages one by one to avoid overwhelming the API
+    for (const packageData of packages) {
+      try {
+        const result = await dispatch(createPackage({ touristId, packageData })).unwrap();
+        results.push({ 
+          success: true, 
+          package: packageData.packageName, 
+          data: result 
+        });
+        console.log(`✅ Created ${packageData.packageName} package`);
+      } catch (error) {
+        console.error(`❌ Failed to create ${packageData.packageName}:`, error);
+        results.push({ 
+          success: false, 
+          package: packageData.packageName, 
+          error: error.message || error 
+        });
+      }
+    }
 
-    const successfulPackages = results.filter(r => r.status === 'fulfilled');
-    const failedPackages = results.filter(r => r.status === 'rejected');
+    const successfulPackages = results.filter(r => r.success);
+    const failedPackages = results.filter(r => !r.success);
 
     if (failedPackages.length > 0) {
       console.warn(`${failedPackages.length} package(s) failed to create`);
@@ -183,6 +200,7 @@ const AddCentre = () => {
     return results;
   };
 
+  // ✅ ENHANCED: Handle submit with better error handling and user feedback
   const handleSubmit = async () => {
     const validationError = validateCentre();
     if (validationError) {
@@ -211,10 +229,7 @@ const AddCentre = () => {
       .map((image) => image?.file)
       .filter(Boolean);
 
-    // Convert facilities array to comma-separated string
     const facilitiesString = selectedFacilities.join(', ');
-
-    // Convert opening hours object to readable string format
     const hoursString = Object.entries(openingHours)
       .map(([day, times]) => {
         const dayName = day.charAt(0).toUpperCase() + day.slice(1);
@@ -236,7 +251,18 @@ const AddCentre = () => {
       privacyPolicy: documents.privacyPolicy,
     };
 
+    // Show loading indicator
+    Swal.fire({
+      title: 'Creating Centre...',
+      text: 'Please wait while we set up your tourism centre',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
     try {
+      // Step 1: Register tourist center
       const response = await dispatch(
         registerTouristCenter({ vendorId, centreData: payload })
       ).unwrap();
@@ -247,18 +273,45 @@ const AddCentre = () => {
         throw new Error('No tourist centre ID returned from server');
       }
 
+      // Update loading message for package creation
+      Swal.fire({
+        title: 'Creating Packages...',
+        text: 'Setting up ticket packages for your centre',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      // Step 2: Create packages
+      const packageResults = await createPackagesForCentre(touristId);
+      
+      const successfulPackages = packageResults.filter(r => r.success);
+      const failedPackages = packageResults.filter(r => !r.success);
+
+      // Store info for KYC
       localStorage.setItem('latestTouristId', touristId);
       localStorage.setItem('lastAddedCentre', JSON.stringify({
         centreName: centreData.centreName,
-        centreId: touristId
+        centreId: touristId,
+        packagesCreated: successfulPackages.length,
+        packagesFailed: failedPackages.length
       }));
       
-      await createPackagesForCentre(touristId);
+      // Show success message with package creation summary
+      let successMessage = 'Your tourism centre has been submitted successfully!';
+      if (successfulPackages.length > 0) {
+        successMessage += `\n✅ ${successfulPackages.length} package(s) created.`;
+      }
+      if (failedPackages.length > 0) {
+        successMessage += `\n⚠️ ${failedPackages.length} package(s) failed. You can add them later.`;
+      }
+      successMessage += '\n\nPlease complete KYC verification to activate your centre.';
 
       Swal.fire({
-        icon: 'success',
-        title: 'Centre Submitted Successfully!',
-        text: 'Your tourism centre has been submitted. Please complete KYC verification to activate your centre.',
+        icon: successfulPackages.length > 0 ? 'success' : 'warning',
+        title: successfulPackages.length > 0 ? 'Centre Created!' : 'Partial Success',
+        text: successMessage,
         confirmButtonColor: '#ff6b35',
       }).then(() => {
         navigate('/kyc', { state: { touristId, centreName: centreData.centreName } });

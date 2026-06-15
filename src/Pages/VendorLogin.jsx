@@ -12,10 +12,14 @@ import {
   setError,
   clearError,
 } from "../redox/authSlice";
+import { getVendorTouristCenters, getKycStatus } from "../redox/apiSlice";
 // import "../../Styles/SignUpVendor.css";
 import "../Styles/SignUpVendor.css";
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "https://novaxcape.onrender.com/api/v1";
+
+const getEntityId = (value) =>
+  value?.id || value?._id || value?.vendorId || value?.touristId || value?.data?.id || value?.touristCenter?._id || value?.touristCenter?.id;
 
 const VendorLogin = () => {
   const navigate = useNavigate();
@@ -32,6 +36,48 @@ const VendorLogin = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (error) setErrorState("");
     if (reduxLoading) dispatch(clearError());
+  };
+
+  const handlePostLoginFlow = async (user) => {
+    const vendorId = getEntityId(user);
+
+    if (!vendorId) {
+      navigate("/vendor/dashboard", { replace: true });
+      return;
+    }
+
+    try {
+      const centresResp = await dispatch(getVendorTouristCenters(vendorId)).unwrap();
+      const centres = centresResp?.data || centresResp?.touristCentres || centresResp || [];
+
+      if (!centres || centres.length === 0) {
+        navigate("/add-centre", { replace: true });
+        return;
+      }
+
+      const centreId = getEntityId(centres[0]);
+      if (!centreId) {
+        navigate("/add-centre", { replace: true });
+        return;
+      }
+
+      const kycResp = await dispatch(getKycStatus(centreId)).unwrap();
+      const kycData = kycResp?.data || kycResp?.kyc || kycResp || null;
+
+      const isVerified = Boolean(
+        kycData && (kycData?.status === "verified" || kycData?.isVerified || kycData?.verified)
+      );
+
+      if (!isVerified) {
+        navigate("/kyc", { state: { touristId: centreId }, replace: true });
+        return;
+      }
+
+      navigate("/vendor/dashboard", { replace: true });
+    } catch (err) {
+      console.warn("Post-login flow check failed:", err);
+      navigate("/vendor/dashboard", { replace: true });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -84,9 +130,10 @@ const VendorLogin = () => {
         confirmButtonColor: "#ff6b35",
       });
 
-      navigate("/vendor/dashboard", { replace: true });
+      // Run post-login checks to determine where to navigate next
+      await handlePostLoginFlow(user);
     } catch (error) {
-      console.error("Vendor login error:", error.response?.data);
+      console.error("Vendor login error:", error.response?.data || error);
       const errorMessage =
         error.response?.data?.message || "Login failed. Please try again.";
       setErrorState(errorMessage);
