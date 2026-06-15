@@ -27,8 +27,26 @@ const BookingHistory = () => {
     };
   }, [dispatch, isAuthenticated]);
 
+  // Map API data to display format
+  const mapBookingsToDisplay = (bookings) => {
+    if (!bookings || bookings.length === 0) return [];
+    
+    return bookings.map((booking) => ({
+      id: booking.id,
+      ticketId: booking.bookingNumber || booking.ticketId,
+      packageName: booking.package?.packageName || booking.packageName,
+      centreName: booking.tourist?.centreName || booking.centreName,
+      date: booking.visitDate || booking.date,
+      amount: booking.package?.amount || booking.amount,
+      status: booking.status,
+      rawData: booking
+    }));
+  };
+
+  const displayBookings = mapBookingsToDisplay(clientBookings);
+
   // Filter and search bookings
-  const filteredBookings = (clientBookings || []).filter((booking) => {
+  const filteredBookings = displayBookings.filter((booking) => {
     const matchesSearch =
       searchTerm === "" ||
       booking.ticketId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -49,9 +67,10 @@ const BookingHistory = () => {
   const getStatusBadge = (status) => {
     const statusMap = {
       pending: { class: "badge-progress", text: "In Progress" },
-      confirmed: { class: "badge-successful", text: "Successful" },
-      completed: { class: "badge-successful", text: "Successful" },
+      confirmed: { class: "badge-successful", text: "Confirmed" },
+      completed: { class: "badge-successful", text: "Completed" },
       cancelled: { class: "badge-cancelled", text: "Cancelled" },
+      camcelled: { class: "badge-cancelled", text: "Cancelled" }, // Fix API typo
       installment: { class: "badge-installment", text: "Installment" },
       in_progress: { class: "badge-progress", text: "In Progress" },
       successful: { class: "badge-successful", text: "Successful" },
@@ -77,7 +96,7 @@ const BookingHistory = () => {
 
   const handleViewDetails = (booking) => {
     navigate(`/booking/${booking.id}`, {
-      state: { booking },
+      state: { booking: booking.rawData || booking },
     });
   };
 
@@ -94,9 +113,10 @@ const BookingHistory = () => {
     const statuses = [
       { value: "all", label: "All" },
       { value: "pending", label: "In Progress" },
-      { value: "confirmed", label: "Successful" },
+      { value: "confirmed", label: "Confirmed" },
       { value: "completed", label: "Completed" },
       { value: "cancelled", label: "Cancelled" },
+      { value: "camcelled", label: "Cancelled" },
       { value: "installment", label: "Installment" },
     ];
     return statuses;
@@ -216,16 +236,16 @@ const BookingHistory = () => {
                         <div className="custom-table-checkbox"></div>
                       </td>
                       <td className="ticket-id-txt">
-                        {booking.ticketId || booking.bookingReference || `NOV-${booking.id?.slice(-5)}`}
+                        {booking.ticketId || `NOV-${booking.id?.slice(-5)}`}
                       </td>
                       <td className="ticket-type-txt">
-                        {booking.packageName || booking.package?.packageName || "Package"}
+                        {booking.packageName || "Package"}
                       </td>
                       <td className="centre-name-txt">
-                        {booking.centreName || booking.touristCentre?.centreName || "Centre"}
+                        {booking.centreName || "Centre"}
                       </td>
-                      <td className="date-txt">{formatDate(booking.date || booking.createdAt)}</td>
-                      <td className="amount-txt">{formatAmount(booking.amount || booking.totalAmount)}</td>
+                      <td className="date-txt">{formatDate(booking.date)}</td>
+                      <td className="amount-txt">{formatAmount(booking.amount)}</td>
                       <td>
                         <span className={`status-badge ${statusBadge.class}`}>
                           {statusBadge.text}

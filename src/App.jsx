@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 
 // Import your custom layout tool
 import RootLayout from "./Outlet/RootLayout";
+import Centres from "./Pages/Centres"
+
 
 // Import your route guard rules
 import PrivateRoute from "./Pages/PrivateRoute";
@@ -19,7 +21,8 @@ import ResetPassword from "./Pages/ResetPassword";
 // Public Accessible Pages
 import LandingPage from "./Pages/LandingPage";
 import Aboutpage from "./Pages/Aboutpage";
-import Centres from "./Pages/Centres";
+import ForCentrePage from "./Pages/ForCentrePage";
+// import ForCenterPage from "./Pages/ForCentrePage";
 import Supportpage from "./Pages/Supportpage";
 import Discoverpage from "./Pages/Discoverpage";
 import ProductDetails from "./Pages/ProductDetails";
@@ -56,10 +59,6 @@ import DashboardPackageInactive from "./Pages/DashboardPackageInactive";
 const App = () => {
   return (
     <Routes>
-      {/* ========================================================
-          1. ROOT LAYOUT WRAPPER (Dynamically Switches Headers)
-          ========================================================
-      */}
       <Route path="/" element={<RootLayout />}>
         {/* Publically Accessible Routes */}
         <Route index element={<LandingPage />} />
@@ -69,7 +68,8 @@ const App = () => {
         <Route path="support" element={<Supportpage />} />
         <Route path="product/:id" element={<ProductDetails />} />
 
-        {/* Client Protected Routes (Protected by PrivateRoute, but inside Header Framework) */}
+      
+        {/* Client Protected Pages (Require login but keep the main header) */}
         <Route
           path="wishlist"
           element={
@@ -233,27 +233,57 @@ const App = () => {
           </PublicRoute>
         }
       />
-      <Route
-        path="/DashboardPackageActive"
-        element={
-          <PublicRoute role="DashboardPackageActive">
-            <DashboardPackageActive />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/DashboardPackageInactive"
-        element={
-          <PublicRoute role="DashboardPackageInactive">
-            <DashboardPackageInactive />
-          </PublicRoute>
-        }
-      />
+     <Route
+  path="/DashboardPackageActive"
+  element={
+    <PublicRoute role="DashboardPackageActive">
+      <DashboardPackageActive />
+    </PublicRoute>
+  }
+/>
 
-      {/* ========================================================
-          4. VENDOR DASHBOARD PANEL LAYOUT (Nested Navigation)
-          ========================================================
-      */}
+<Route
+  path="/DashboardPackageInactive"
+  element={
+    <PublicRoute role="DashboardPackageInactive">
+      <DashboardPackageInactive />
+    </PublicRoute>
+  }
+/>
+
+      <Route
+        path="/wishlist"
+        element={
+          <PrivateRoute>
+            <WishList />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/payment/:packageId"
+        element={
+          <PrivateRoute>
+            <PaymentOptionPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/my-bookings"
+        element={
+          <PrivateRoute>
+            <MyBookingsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/payment-confirmation"
+        element={
+          <PrivateRoute>
+            <PaymentConfirmationPage />
+          </PrivateRoute>
+        }
+      />
+      {/* ========== VENDOR DASHBOARD ROUTES (Protected) ========== */}
       <Route
         path="/vendor/dashboard"
         element={
@@ -283,6 +313,25 @@ const App = () => {
           </PrivateRoute>
         }
       />
+
+
+      {/* ========== STANDALONE PROTECTED PAGES ========== */}
+      <Route
+        path="/settings"
+        element={
+          <PrivateRoute>
+            <SettingsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/profile-settings"
+        element={
+          <PrivateRoute>
+            <ProfileSettingPage />
+          </PrivateRoute>
+        }
+      />
       <Route
         path="/add-centre"
         element={
@@ -300,10 +349,8 @@ const App = () => {
         }
       />
 
-      {/* ========================================================
-          5. GLOBAL FALLBACK (404 Error handling)
-          ========================================================
-      */}
+
+      {/* ========== FALLBACK for 404 ========== */}
       <Route
         path="*"
         element={
