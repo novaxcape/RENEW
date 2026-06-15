@@ -33,7 +33,7 @@
 
 /* ─── TAGLINE ─────────────────────────────────────────── */
 .hero_tagline {
-  margin-bottom: 36px;
+  margin-bottom: 24px;
 }
 
 .hero_tagline img {
@@ -82,7 +82,7 @@
   font-weight: 500;
   color: #271A13;
   line-height: 1.65;
-  margin: 0 0 36px 0;
+  margin: 0 0 20px 0;
   max-width: 480px;
 }
 
@@ -90,29 +90,26 @@
 .search_row {
   display: flex;
   align-items: center;
-  width: calc(100% + 200px);
-  max-width: 900px;
+  width: calc(100% + 140px); /* Reduced pull-out width to sit tighter */
+  max-width: 880px;          /* Reduced maximum row constraint */
   position: relative;
   z-index: 50;
   overflow: visible;
-  background-color: red;
 }
 
 /* ─── GLASS CONTAINER ────────────────────────────────── */
 .search_glass {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;                  /* Reduced layout gap slightly */
   width: 100%;
-  background: transparent;
-  border: 1.5px solid rgba(255, 255, 255, 0.7);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.10),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   border-radius: 50px;
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
-  padding: 8px 8px 8px 10px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 6px 8px;          /* Significantly reduced vertical/horizontal glass padding */
   overflow: visible;
 }
 
@@ -126,56 +123,64 @@
 /* ─── PILL BASE ───────────────────────────────────────── */
 .search_pill {
   width: 100%;
-  height: 44px;
+  height: 44px;               /* Reduced height down to 44px for a sleeker look */
   border: none;
   border-radius: 50px;
   font-family: 'Manrope', sans-serif;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 0 20px;
-  transition: filter 0.15s;
+  transition: background 0.3s ease, color 0.3s ease;
   white-space: nowrap;
   text-align: left;
 }
 
-.search_pill:hover { filter: brightness(0.96); }
-
+/* Grey input field styles */
 .search_pill--grey {
-  background: #e0e0e0;
-  color: #666;
+  background: #B0B0B0;
+  color: #4A4A4A;
 }
 
+/* Grey icon styles */
 .search_pill_icon {
-  font-size: 14px;
-  color: #888;
+  font-size: 18px;
+  color: #4A4A4A;
   flex-shrink: 0;
+}
+
+/* Hover effects for grey pills */
+.search_pill--grey:hover {
+  background: #A0A0A0;
 }
 
 /* ─── ORANGE SEARCH BUTTON ───────────────────────────── */
 .search_btn_orange {
   flex-shrink: 0;
-  height: 44px;
-  width: 160px;
+  height: 44px;               /* Reduced height down to 44px to match pills */
+  width: 140px;               /* Proportional slimmed down width */
   border: none;
   border-radius: 50px;
-  background: #FF6B35;
+  background: #FF6E40;
   color: #ffffff;
   font-family: 'Manrope', sans-serif;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
   cursor: pointer;
-  transition: filter 0.15s;
+  transition: background 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   white-space: nowrap;
 }
 
-.search_btn_orange:hover { filter: brightness(0.92); }
+/* Hover effects for the orange button */
+.search_btn_orange:hover {
+  background: #E66136;
+}
 
 /* ─── DROPDOWN ────────────────────────────────────────── */
 .dropdown_list {
@@ -325,7 +330,9 @@
 
   .hero_right { width: 52%; }
 
-  .search_row { width: calc(100% + 100px); }
+  .search_row { 
+    width: calc(100% + 100px); /* Clean balance for tablet responsive break */
+  }
 
   .hero_headline_static { font-size: 34px; }
   .hero_headline_rotating { font-size: 40px; }
@@ -375,7 +382,7 @@
   .search_mobile {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 12px;
     padding: 16px 20px 0;
     width: 100%;
     position: relative;
@@ -393,23 +400,23 @@
   .search_mobile_pill {
     width: 100%;
     height: 42px;
-    background: #e8e8e8;
+    background: #B0B0B0;
     border: none;
     border-radius: 50px;
     font-family: 'Manrope', sans-serif;
-    font-size: 12px;
-    font-weight: 500;
-    color: #555;
+    font-size: 15px;
+    color: #4A4A4A;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
     padding: 0 16px;
     box-sizing: border-box;
+    transition: background 0.3s ease;
   }
 
   .search_mobile_pill--orange {
-    background: #FF6B35;
+    background: #FF6E40;
     color: #fff;
     font-weight: 700;
     flex: 0 0 auto;
@@ -418,8 +425,8 @@
   }
 
   .search_mobile_icon {
-    font-size: 12px;
-    color: #888;
+    font-size: 16px; 
+    color: #4A4A4A; 
     flex-shrink: 0;
   }
 

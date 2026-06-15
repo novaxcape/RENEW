@@ -12,17 +12,17 @@
 }
 
 .popular-destination__title {
-  font-size: 36px;
-  font-weight: 700;
-  color: #1a1a1a;
+  font-size: 40px;
+  font-weight: 600;
+  color: #271A13;
   margin: 0 0 12px 0;
   line-height: 1.2;
 }
 
 .popular-destination__subtitle {
-  font-size: 16px;
-  font-weight: 400;
-  color: #555555;
+  font-size: 18px;
+  font-weight: 600;
+  color: #271A13;
   margin: 0;
   line-height: 1.5;
 }
@@ -30,7 +30,7 @@
 .popular-destination__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  gap: 80px;
   width: 100%;
 }
 
@@ -42,7 +42,7 @@
 
 .popular-destination__image {
   width: 100%;
-  height: 390px;
+  height: 330px;
   object-fit: cover;
   display: block;
   transform: scale(1);

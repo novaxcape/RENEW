@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import '../Styles/DashboardPackageInactive.css';
+import "/novaxcape/dashlogo.png"
+import { RiDashboardFill } from "react-icons/ri";
+import dashv from "/novaxcape/dashv.png"
+
 
 export default function PackageSettings() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -26,13 +30,19 @@ export default function PackageSettings() {
       {/* Sidebar Navigation */}
       <aside className={`sidebar ${isSidebarOpen ? 'sidebar-open' : ''}`}>
         <div className="sidebar-brand">
-          <span className="brand-logo">novaxcape</span>
+          <span className="brand-logo">
+            <img
+                src="/novaxcape/dashlogo.png"
+                alt="Novaxcape"
+                className="m-header-logo-img"
+              />
+          </span>
           <span className="brand-sub">Admin Portal</span>
         </div>
 
         <nav className="sidebar-menu">
           <a href="#dashboard" className="menu-item">
-            <svg className="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            <RiDashboardFill />
             Dashboard
           </a>
           <a href="#bookings" className="menu-item">
@@ -87,7 +97,7 @@ export default function PackageSettings() {
               <span className="notification-dot"></span>
             </button>
             <div className="user-profile">
-              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Admin avatar" className="user-avatar" />
+              <img src={dashv} alt="Admin avatar" className="user-avatar" />
               <div className="user-info">
                 <span className="user-name">Lekki CC</span>
                 <span className="user-role">Admin</span>
