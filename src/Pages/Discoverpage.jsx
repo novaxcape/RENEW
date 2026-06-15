@@ -1,34 +1,47 @@
 import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Discoverpagehero from "../components/Discoverpagehero";
 import Discoversection from "../components/Discoversection";
 import Footer from "../components/Footer";
+import {
+  getTouristCentersByState,
+  clearApiError,
+  selectTouristCentres,
+  selectTouristCentresError,
+  selectTouristCentresLoading,
+} from "../redox/apiSlice";
 
 const Discoverpage = () => {
-  // State for search functionality
+  const dispatch = useDispatch();
   const [searchState, setSearchState] = useState("");
   const [searchSubmitted, setSearchSubmitted] = useState(false);
-  const [touristCentres, setTouristCentres] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState("");
 
-  // Handler for search
+  const touristCentres = useSelector(selectTouristCentres);
+  const loading = useSelector(selectTouristCentresLoading);
+  const error = useSelector(selectTouristCentresError);
+
   const handleSearch = (searchTerm) => {
-    setSearchState(searchTerm);
+    const term = (searchTerm || searchState).trim();
+    if (!term) return;
+
+    setSearchState(term);
+    setSelectedLocation(term);
     setSearchSubmitted(true);
+    dispatch(clearApiError());
+    dispatch(getTouristCentersByState(term));
   };
 
   return (
     <div>
-      <Discoverpagehero 
+      <Discoverpagehero
         searchState={searchState}
         setSearchState={setSearchState}
+        selectedLocation={selectedLocation}
+        setSelectedLocation={setSelectedLocation}
         onSearch={handleSearch}
-        setSearchSubmitted={setSearchSubmitted}
-        setTouristCentres={setTouristCentres}
-        setLoading={setLoading}
-        setError={setError}
       />
-      <Discoversection 
+      <Discoversection
         searchState={searchState}
         searchSubmitted={searchSubmitted}
         touristCentres={touristCentres}

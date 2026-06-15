@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaStar, FaRegClock } from "react-icons/fa";
 import "../components/css/Discoversection.css";
@@ -118,30 +118,19 @@ const staticAttractions = [
   },
 ];
 
-const Discoversection = () => {
+const Discoversection = ({
+  searchState,
+  searchSubmitted,
+  touristCentres,
+  loading,
+  error,
+}) => {
   const navigate = useNavigate();
-  
   const [activeCategory, setActiveCategory] = useState("All");
-  const [searchState, setSearchState] = useState("");
-  const [searchSubmitted, setSearchSubmitted] = useState(false);
-  const [touristCentres, setTouristCentres] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  // Get search params from URL on component mount
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const stateParam = params.get("state");
-    
-    if (stateParam) {
-      setSearchState(stateParam);
-      setSearchSubmitted(true);
-    }
-  }, []);
 
   const handleBookNow = (centre) => {
     navigate(`/centre/${centre.id || centre._id}`, {
-      state: { centre }
+      state: { centre },
     });
   };
 
@@ -155,49 +144,57 @@ const Discoversection = () => {
 
   const filterByCategory = (centers) => {
     if (activeCategory === "All") return centers;
-    
+
     return centers.filter((center) => {
       const centreType = (center.centreType || center.type || "").toLowerCase();
       const category = activeCategory.toLowerCase();
-      
+
       return centreType.includes(category) || category.includes(centreType);
     });
   };
 
   const renderPlace = (place, isStatic = false) => {
-    const imageSrc = isStatic 
-      ? place.image 
+    const imageSrc = isStatic
+      ? place.image
       : place.images?.[0] || place.image || "/novaxcape/placeholder.jpg";
-    
-    const title = isStatic 
-      ? place.title 
+
+    const title = isStatic
+      ? place.title
       : place.centreName || place.name || "Tourist Centre";
-    
+
     const location = isStatic
       ? place.location
-      : [place.city, place.state].filter(Boolean).join(", ") || "Location not specified";
-    
+      : [place.city, place.state].filter(Boolean).join(", ") ||
+        "Location not specified";
+
     const rating = isStatic
       ? place.rating
       : place.rating || place.averageRating || 4.0;
-    
+
     const reviews = isStatic
       ? place.reviews
       : place.reviews || place.reviewCount || 0;
-    
+
     const time = isStatic
       ? place.time
       : place.openingHours || "Hours not specified";
-    
+
     const price = isStatic
       ? place.price
       : formatPrice(place.adultPrice || place.ticketPrice || place.price);
 
     return (
-      <div className="attraction_card" key={isStatic ? place.id : place.id || place._id}>
-        <img src={imageSrc} alt={title} onError={(e) => {
-          e.target.src = "/novaxcape/placeholder.jpg";
-        }} />
+      <div
+        className="attraction_card"
+        key={isStatic ? place.id : place.id || place._id}
+      >
+        <img
+          src={imageSrc}
+          alt={title}
+          onError={(e) => {
+            e.target.src = "/novaxcape/placeholder.jpg";
+          }}
+        />
 
         <div className="card_content">
           <h3>{title}</h3>
@@ -206,7 +203,10 @@ const Discoversection = () => {
           <div className="card_details">
             <div className="rating">
               {[...Array(5)].map((_, i) => (
-                <FaStar key={i} color={i < Math.floor(rating) ? "#ff6b35" : "#ddd"} />
+                <FaStar
+                  key={i}
+                  color={i < Math.floor(rating) ? "#ff6b35" : "#ddd"}
+                />
               ))}
               <span>{rating}</span>
               <small>({reviews} reviews)</small>
@@ -224,9 +224,7 @@ const Discoversection = () => {
               <h2>{price}</h2>
             </div>
 
-            <button onClick={() => handleBookNow(place)}>
-              Book Now
-            </button>
+            <button onClick={() => handleBookNow(place)}>Book Now</button>
           </div>
         </div>
       </div>
@@ -258,8 +256,8 @@ const Discoversection = () => {
       {hasActiveSearch && (
         <div className="search-results-header">
           <h2>
-            {loading 
-              ? `Searching for "${searchState}"...` 
+            {loading
+              ? `Searching for "${searchState}"...`
               : `Search results for "${searchState}"`}
           </h2>
           {!loading && !error && (
@@ -272,11 +270,10 @@ const Discoversection = () => {
       {error && (
         <div className="error-container">
           <p className="error-text">{error}</p>
-          <button 
+          <button
             className="try-again-btn"
             onClick={() => {
-              setSearchSubmitted(false);
-              setError(null);
+              window.location.href = "/discover";
             }}
           >
             Browse All Centres
@@ -293,29 +290,30 @@ const Discoversection = () => {
       )}
 
       {/* No Results */}
-      {!loading && hasActiveSearch && !error && filteredCenters.length === 0 && (
-        <div className="no-results-container">
-          <p className="no-results-text">
-            No centres found in "{searchState}". Try a different state or check back later.
-          </p>
-          <button 
-            className="browse-all-btn"
-            onClick={() => {
-              setSearchSubmitted(false);
-              setSearchState("");
-            }}
-          >
-            Browse All Centres
-          </button>
-        </div>
-      )}
+      {!loading &&
+        hasActiveSearch &&
+        !error &&
+        filteredCenters.length === 0 && (
+          <div className="no-results-container">
+            <p className="no-results-text">
+              No centres found in "{searchState}". Try a different state or
+              check back later.
+            </p>
+            <button
+              className="browse-all-btn"
+              onClick={() => {
+                window.location.href = "/discover";
+              }}
+            >
+              Browse All Centres
+            </button>
+          </div>
+        )}
 
       {/* Cards Grid */}
       {!loading && !error && (
         <div className="attractions_grid">
-          {filteredCenters.map((place) => 
-            renderPlace(place, !searchSubmitted)
-          )}
+          {filteredCenters.map((place) => renderPlace(place, !searchSubmitted))}
         </div>
       )}
     </section>
