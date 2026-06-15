@@ -164,7 +164,7 @@ const App = () => {
         }
       />
       <Route
-        path="/payment"
+        path="/payment/:packageId"
         element={
           <PrivateRoute>
             <PaymentOptionPage />

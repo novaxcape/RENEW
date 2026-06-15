@@ -3,6 +3,7 @@
 /* ─── WRAPPER ─────────────────────────────────────────── */
 .hero_wrapper {
   width: 100%;
+  margin-top: 60px;
   min-height: 90vh;
   background: #ffffff;
   font-family: 'Manrope', sans-serif;
@@ -78,7 +79,7 @@
 /* ─── DESCRIPTION ─────────────────────────────────────── */
 .hero_description {
   font-family: 'Manrope', sans-serif;
-  font-size: 16px;
+  font-size: 19px;
   font-weight: 500;
   color: #444444;
   line-height: 1.65;
