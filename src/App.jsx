@@ -81,9 +81,7 @@ const SemiLayout = () => {
 const App = () => {
   return (
     <Routes>
-      {/* ========================================================
-          1. CLIENT & PUBLIC WEBSITE PAGES (Fixed Header Appears Here)
-          ======================================================== */}
+    
       <Route element={<SemiLayout />}>
         <Route path="/" element={<LandingPage />} />
         <Route path="/centres" element={<ForCentrePage />} />
