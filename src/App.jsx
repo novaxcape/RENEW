@@ -20,7 +20,8 @@ import ResetPassword from "./Pages/ResetPassword";
 // Public Accessible Pages
 import LandingPage from "./Pages/LandingPage";
 import Aboutpage from "./Pages/Aboutpage";
-import Centres from "./Pages/Centres";
+import ForCentrePage  from "./Pages/ForCentrePage"
+// import ForCenterPage from "./Pages/ForCentrePage";
 import Supportpage from "./Pages/Supportpage";
 import Discoverpage from "./Pages/Discoverpage";
 import ProductDetails from "./Pages/ProductDetails";
@@ -87,7 +88,7 @@ const App = () => {
           ======================================================== */}
       <Route element={<SemiLayout />}>
           <Route path="/" element={<LandingPage />} />
-        <Route path="/centres" element={<Centres />} />
+        <Route path="/centres" element={<ForCentrePage />} />
         </Route>
         
 
