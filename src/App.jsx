@@ -4,11 +4,13 @@ import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 // Import your header and layout tool
 import Header from "./components/Header";
 import PaymentHeader from "./components/PaymentHeader";
+// import Home from "./components/Home"
+
 
 // Import your route guard pages
 import PrivateRoute from "./Pages/PrivateRoute";
 import PublicRoute from "./Pages/PublicRoute";
-
+import RootLayout from "./Outlet/RootLayout";
 // ========== CLIENT PAGES ==========
 // Public Pages (Client Auth)
 import SignUp from "./Pages/SignUp";
@@ -19,11 +21,11 @@ import ResetPassword from "./Pages/ResetPassword";
 
 // Public Accessible Pages
 import LandingPage from "./Pages/LandingPage";
-import Aboutpage from "./Pages/Aboutpage";
+import About from "./Pages/Aboutpage";
 import ForCentrePage from "./Pages/ForCentrePage";
-// import ForCenterPage from "./Pages/ForCentrePage";
-import Supportpage from "./Pages/Supportpage";
-import Discoverpage from "./Pages/Discoverpage";
+import Centres from "./Pages/ForCentrePage";
+import Support from "./Pages/Supportpage";
+import Discover from "./Pages/Discoverpage";
 import ProductDetails from "./Pages/ProductDetails";
 
 // Protected Pages (Client - require login)
@@ -56,46 +58,23 @@ import DashboardPackageActive from "./Pages/DashboardPackageActive";
 import DashboardPackageInactive from "./Pages/DashboardPackageInactive";
 
 // Shared layout configuration to render Fixed Header automatically
-const MainLayout = () => {
-  return (
-    <>
-      <PaymentHeader />
-      <div className="has-fixed-header">
-        <Outlet />
-      </div>
-    </>
-  );
-};
 
-const SemiLayout = () => {
-  return (
-    <>
-      <Header />
-      <div className="has-fixed-header">
-        <Outlet />
-      </div>
-    </>
-  );
-};
 
 const App = () => {
   return (
     <Routes>
     
-      <Route element={<SemiLayout />}>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/centres" element={<ForCentrePage />} />
-      </Route>
-
-      <Route element={<MainLayout />}>
-        {/* Publicly Accessible Pages */}
-        <Route path="/about" element={<Aboutpage />} />
-        <Route path="/support" element={<Supportpage />} />
-        <Route path="/discover" element={<Discoverpage />} />
-        <Route path="/product" element={<ProductDetails />} />
-        <Route path="/product/:id" element={<ProductDetails />} />
-        <Route path="/centre/:id" element={<ProductDetails />} />
-
+{/* The RootLayout houses the conditional header switcher */}
+        <Route path="/" element={<RootLayout />}>
+          {/* All pages inside here will get injected into the <Outlet /> */}
+          {/* <Route index element={<Home />} /> */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="discover" element={<Discover />} />
+          <Route path="centres" element={<Centres />} />
+          <Route path="about" element={<About />} />
+          <Route path="support" element={<Support />} />
+          {/* Add all other route tracks below */}
+        </Route>
         {/* Client Protected Pages (Require login but keep the main header) */}
         <Route
           path="/wishlist"
@@ -145,7 +124,7 @@ const App = () => {
             </PrivateRoute>
           }
         />
-      </Route>
+      {/* </Routes> */}
 
       <Route
         path="/signupscreen"
@@ -312,7 +291,7 @@ const App = () => {
         <Route path="bookings" element={<DashboardBookingPage />} />
         <Route path="revenue" element={<RevenueTrendPage />} />
         <Route path="settings" element={<SettingsPage />} />
-        <Route path="support" element={<Supportpage />} />
+        <Route path="support" element={<Support />} />
       </Route>
 
       <Route
@@ -363,6 +342,8 @@ const App = () => {
           </PrivateRoute>
         }
       />
+
+      
 
       {/* Fallback 404 */}
 
