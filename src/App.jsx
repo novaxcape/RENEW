@@ -20,7 +20,7 @@ import ResetPassword from "./Pages/ResetPassword";
 // Public Accessible Pages
 import LandingPage from "./Pages/LandingPage";
 import Aboutpage from "./Pages/Aboutpage";
-import ForCentrePage  from "./Pages/ForCentrePage"
+import ForCentrePage from "./Pages/ForCentrePage";
 // import ForCenterPage from "./Pages/ForCentrePage";
 import Supportpage from "./Pages/Supportpage";
 import Discoverpage from "./Pages/Discoverpage";
@@ -42,7 +42,7 @@ import DashboardBookingPage from "./Pages/DashboardBookingPage";
 
 // Selection Pages
 import SignUpScreen from "./Pages/SignUpScreen";
-import SignInScreen from "./Pages/SignInScreen"
+import SignInScreen from "./Pages/SignInScreen";
 
 // ========== VENDOR PAGES ==========
 // Vendor Auth Pages (Public - no login required)
@@ -52,10 +52,10 @@ import VendorLogin from "./Pages/VendorLogin";
 import VendorForgotPassword from "./Pages/VendorForgotPassword";
 import VendorResetPassword from "./Pages/VendorResetPassword";
 import VendorChangePassword from "./Pages/VendorChangePassword";
-import DashboardPackageActive from "./Pages/DashboardPackageActive"
-import DashboardPackageInactive from "./Pages/DashboardPackageInactive"
+import DashboardPackageActive from "./Pages/DashboardPackageActive";
+import DashboardPackageInactive from "./Pages/DashboardPackageInactive";
 
-// Shared layout configuration to render Fixed Header automatically 
+// Shared layout configuration to render Fixed Header automatically
 const MainLayout = () => {
   return (
     <>
@@ -78,19 +78,16 @@ const SemiLayout = () => {
   );
 };
 
-
 const App = () => {
   return (
     <Routes>
-      
       {/* ========================================================
           1. CLIENT & PUBLIC WEBSITE PAGES (Fixed Header Appears Here)
           ======================================================== */}
       <Route element={<SemiLayout />}>
-          <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/centres" element={<ForCentrePage />} />
-        </Route>
-        
+      </Route>
 
       <Route element={<MainLayout />}>
         {/* Publicly Accessible Pages */}
@@ -98,6 +95,8 @@ const App = () => {
         <Route path="/support" element={<Supportpage />} />
         <Route path="/discover" element={<Discoverpage />} />
         <Route path="/product" element={<ProductDetails />} />
+        <Route path="/product/:id" element={<ProductDetails />} />
+        <Route path="/centre/:id" element={<ProductDetails />} />
 
         {/* Client Protected Pages (Require login but keep the main header) */}
         <Route
@@ -149,9 +148,6 @@ const App = () => {
           }
         />
       </Route>
-
-
-       
 
       <Route
         path="/signupscreen"
@@ -255,7 +251,7 @@ const App = () => {
         }
       />
 
-       <Route
+      <Route
         path="DashboardPackageActive"
         element={
           <PublicRoute role="DashboardPackageActive">
@@ -264,7 +260,7 @@ const App = () => {
         }
       />
 
-       <Route
+      <Route
         path="DashboardPackageInactive"
         element={
           <PublicRoute role="DashboardPackageInactive">
@@ -272,10 +268,6 @@ const App = () => {
           </PublicRoute>
         }
       />
-
-
-
-
 
       <Route
         path="/wishlist"
@@ -308,7 +300,7 @@ const App = () => {
             <PaymentConfirmationPage />
           </PrivateRoute>
         }
-      /> 
+      />
       {/* ========== VENDOR DASHBOARD ROUTES (Protected) ========== */}
       <Route
         path="/vendor/dashboard"
@@ -339,7 +331,6 @@ const App = () => {
           </PrivateRoute>
         }
       />
-
 
       {/* ========== STANDALONE PROTECTED PAGES ========== */}
       <Route
@@ -373,8 +364,7 @@ const App = () => {
             <KycPage />
           </PrivateRoute>
         }
-      /> 
-
+      />
 
       {/* Fallback 404 */}
 
