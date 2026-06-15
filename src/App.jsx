@@ -70,6 +70,9 @@ const App = () => {
           {/* <Route index element={<Home />} /> */}
           <Route path="/" element={<LandingPage />} />
         <Route path="/centres" element={<ForCentrePage/>} />
+        <Route path="/discover" element={<Discover />} />
+<Route path="/about" element={<About />} />
+<Route path="/support" element={<Support />} />
         </Route>
         {/* Client Protected Pages (Require login but keep the main header) */}
         <Route
