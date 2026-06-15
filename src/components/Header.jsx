@@ -56,7 +56,7 @@ const Header = () => {
                   to="/centres"
                   className={({ isActive }) => (isActive ? "m-active-link" : "")}
                 >
-                  ForCenter
+                  For Centers
                 </NavLink>
               </li>
               <li>

@@ -5,7 +5,7 @@ import Footer from '../components/Footer'
 const MyBookingsPage = () => {
   return (
     <div>
-      <BookingHeader/>
+      
       <BookingHistory/>
       <Footer/>
     </div>
