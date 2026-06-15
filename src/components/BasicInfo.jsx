@@ -3,7 +3,7 @@
 const BasicInfo = ({ formData, onChange }) => {
   return (
     <div className="step-content">
-      <div className="card-title">Basic Information</div>
+      {/* <div className="card-title">Basic Information</div> */}
       
       <div className="form-group">
         <label>Centre Name *</label>

@@ -1,27 +1,19 @@
-import { IconWifi, IconCar, IconImage } from './Icon';
-
-// Add IconUtensils if not in Icons.js
-const IconUtensils = () => (
-  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path>
-    <path d="M7 2v20"></path>
-    <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path>
-  </svg>
-);
+import { IconWifi, IconCar, IconImage, IconUtensils, IconTree, IconWater, IconMountain, IconCompass, IconCamera } from './Icon.jsx';
 
 const facilityOptions = [
   { label: 'Free WiFi', icon: <IconWifi /> },
   { label: 'Parking', icon: <IconCar /> },
   { label: 'Restaurant', icon: <IconUtensils /> },
-  { label: 'Photography Allowed', icon: <IconImage /> },
+  { label: 'Photography Allowed', icon: <IconCamera /> },
+  { label: 'Nature Trails', icon: <IconTree /> },
+  { label: 'Water Activities', icon: <IconWater /> },
+  { label: 'Hiking', icon: <IconMountain /> },
+  { label: 'Guided Tours', icon: <IconCompass /> },
 ];
 
 const Facilities = ({ selectedFacilities, onToggle }) => {
   return (
     <div className="step-content">
-      <div className="card-title">Facilities & Amenities</div>
-      <p className="card-subtitle">Select all the facilities and amenities available at your centre</p>
-      
       <div className="facilities-grid">
         {facilityOptions.map((facility) => {
           const isSelected = selectedFacilities.includes(facility.label);

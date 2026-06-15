@@ -99,6 +99,74 @@ const AddCentre = () => {
     }));
   };
 
+  // ✅ NEW: Validate current step before proceeding
+  const validateCurrentStep = () => {
+    switch(currentStep) {
+      case 1: // Basic Information
+        if (!centreData.centreName) {
+          Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please enter centre name.', confirmButtonColor: '#ff6b35' });
+          return false;
+        }
+        if (!centreData.city) {
+          Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please enter city.', confirmButtonColor: '#ff6b35' });
+          return false;
+        }
+        if (!centreData.state) {
+          Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please select state.', confirmButtonColor: '#ff6b35' });
+          return false;
+        }
+        if (!centreData.streetAddress) {
+          Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please enter street address.', confirmButtonColor: '#ff6b35' });
+          return false;
+        }
+        if (!centreData.location) {
+          Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please provide location/GPS coordinates.', confirmButtonColor: '#ff6b35' });
+          return false;
+        }
+        if (!centreData.description) {
+          Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please enter description.', confirmButtonColor: '#ff6b35' });
+          return false;
+        }
+        return true;
+        
+      case 2: // Facilities
+        if (selectedFacilities.length === 0) {
+          Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please select at least one facility.', confirmButtonColor: '#ff6b35' });
+          return false;
+        }
+        return true;
+        
+      case 3: // Pricing
+        if (!pricingData.dailySlotCapacity) {
+          Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please enter daily slot capacity.', confirmButtonColor: '#ff6b35' });
+          return false;
+        }
+        if (!pricingData.adultPrice && !pricingData.childPrice && !pricingData.familyPackage) {
+          Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please add at least one pricing option.', confirmButtonColor: '#ff6b35' });
+          return false;
+        }
+        return true;
+        
+      case 4: // Images
+        const imageFiles = Object.values(uploadedImages).filter((image) => image?.file);
+        if (imageFiles.length < 3) {
+          Swal.fire({ icon: 'error', title: 'Missing Images', text: 'Please upload at least 3 centre images.', confirmButtonColor: '#ff6b35' });
+          return false;
+        }
+        if (!documents.termsAndCondition || !documents.privacyPolicy) {
+          Swal.fire({ icon: 'error', title: 'Missing Documents', text: 'Please upload terms and privacy policy documents.', confirmButtonColor: '#ff6b35' });
+          return false;
+        }
+        return true;
+        
+      case 5: // Hours - Optional, can proceed
+        return true;
+        
+      default:
+        return true;
+    }
+  };
+
   const validateCentre = () => {
     const imageFiles = Object.values(uploadedImages).filter((image) => image?.file);
 
@@ -166,7 +234,6 @@ const AddCentre = () => {
 
     const results = [];
     
-    // Create packages one by one to avoid overwhelming the API
     for (const packageData of packages) {
       try {
         const result = await dispatch(createPackage({ touristId, packageData })).unwrap();
@@ -200,7 +267,6 @@ const AddCentre = () => {
     return results;
   };
 
-  // ✅ ENHANCED: Handle submit with better error handling and user feedback
   const handleSubmit = async () => {
     const validationError = validateCentre();
     if (validationError) {
@@ -251,7 +317,6 @@ const AddCentre = () => {
       privacyPolicy: documents.privacyPolicy,
     };
 
-    // Show loading indicator
     Swal.fire({
       title: 'Creating Centre...',
       text: 'Please wait while we set up your tourism centre',
@@ -262,7 +327,6 @@ const AddCentre = () => {
     });
 
     try {
-      // Step 1: Register tourist center
       const response = await dispatch(
         registerTouristCenter({ vendorId, centreData: payload })
       ).unwrap();
@@ -273,7 +337,6 @@ const AddCentre = () => {
         throw new Error('No tourist centre ID returned from server');
       }
 
-      // Update loading message for package creation
       Swal.fire({
         title: 'Creating Packages...',
         text: 'Setting up ticket packages for your centre',
@@ -283,13 +346,11 @@ const AddCentre = () => {
         }
       });
 
-      // Step 2: Create packages
       const packageResults = await createPackagesForCentre(touristId);
       
       const successfulPackages = packageResults.filter(r => r.success);
       const failedPackages = packageResults.filter(r => !r.success);
 
-      // Store info for KYC
       localStorage.setItem('latestTouristId', touristId);
       localStorage.setItem('lastAddedCentre', JSON.stringify({
         centreName: centreData.centreName,
@@ -298,7 +359,6 @@ const AddCentre = () => {
         packagesFailed: failedPackages.length
       }));
       
-      // Show success message with package creation summary
       let successMessage = 'Your tourism centre has been submitted successfully!';
       if (successfulPackages.length > 0) {
         successMessage += `\n✅ ${successfulPackages.length} package(s) created.`;
@@ -328,17 +388,22 @@ const AddCentre = () => {
     }
   };
 
+  // ✅ UPDATED: Validate current step before moving to next
   const handleNext = () => {
-    if (currentStep < 6) {
-      setCurrentStep(currentStep + 1);
-      return;
+    if (validateCurrentStep()) {
+      if (currentStep < 6) {
+        setCurrentStep(currentStep + 1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        handleSubmit();
+      }
     }
-    handleSubmit();
   };
 
   const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       navigate('/vendor/dashboard');
     }
@@ -401,9 +466,32 @@ const AddCentre = () => {
       <Navbar />
       
       <div className="main-content">
-        <button className="btn-back" onClick={handleBack} disabled={loading}>
-          Back
-        </button>
+        {/* ✅ SMALL BACK BUTTON - Hidden on step 1, with orange color and margin-top */}
+        {currentStep > 1 && (
+          <button 
+            className="btn-back" 
+            onClick={handleBack} 
+            disabled={loading}
+            style={{
+              fontSize: "12px",
+              padding: "6px 16px",
+              width: "auto",
+              minWidth: "70px",
+              backgroundColor: "#ff5e3a",
+              border: "none",
+              borderRadius: "20px",
+              cursor: "pointer",
+              marginTop: "20px",
+              marginBottom: "25px",
+              color: "white",
+              transition: "all 0.3s ease",
+              fontWeight: "600",
+              display: "inline-block"
+            }}
+          >
+            ← Back
+          </button>
+        )}
         
         <h1>Add New Tourism Centre</h1>
         <p className="subtitle">
