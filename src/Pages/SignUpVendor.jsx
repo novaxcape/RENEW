@@ -17,6 +17,7 @@ import "../Styles/SignUpVendor.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
+
 // MOVE INTERCEPTORS OUTSIDE THE COMPONENT - PLACE THEM HERE
 axios.interceptors.request.use((request) => {
   console.log("Starting Request:", request.url, request.data);
@@ -95,6 +96,7 @@ const SignUpVendor = () => {
 
     if (!result.success) {
       const fieldErrors = {};
+      localStorage.setItem("centerName", formData.centerName)
       result.error.issues.forEach((issue) => {
         fieldErrors[issue.path[0]] = issue.message;
       });

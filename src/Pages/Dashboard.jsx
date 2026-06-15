@@ -13,7 +13,7 @@ const Dashboard = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="dashboard-content">
+    <>
       <div className="sticky-wrapper">
         <TopNavbar onMenuOpen={() => setMobileMenuOpen(true)} />
       </div>
@@ -38,7 +38,7 @@ const Dashboard = () => {
         <PerformanceInsight />
         <CapacityGoals />
       </div>
-    </div>
+    </>
   );
 };
 

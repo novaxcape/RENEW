@@ -69,11 +69,7 @@ const App = () => {
           {/* All pages inside here will get injected into the <Outlet /> */}
           {/* <Route index element={<Home />} /> */}
           <Route path="/" element={<LandingPage />} />
-          <Route path="discover" element={<Discover />} />
-          <Route path="centres" element={<Centres />} />
-          <Route path="about" element={<About />} />
-          <Route path="support" element={<Support />} />
-          {/* Add all other route tracks below */}
+        <Route path="/centres" element={<ForCentrePage/>} />
         </Route>
         {/* Client Protected Pages (Require login but keep the main header) */}
         <Route
@@ -288,7 +284,7 @@ const App = () => {
         }
       >
         <Route index element={<Dashboard />} />
-        <Route path="bookings" element={<DashboardBookingPage />} />
+        <Route path="bookings" element={<DashboardBookingPage/>} />
         <Route path="revenue" element={<RevenueTrendPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="support" element={<Support />} />
