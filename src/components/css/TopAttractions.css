@@ -14,7 +14,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 8px;
+  margin-bottom: 2px;
 }
 
 .header-arrow {
@@ -24,14 +24,17 @@
 }
 
 .header-title {
-  font-size: 32px;
-  font-weight: 700;
-  color: #111111;
+  font-size: 40px;
+  font-weight: 600;
+  color: #271A13;
   margin: 0;
   line-height: 1.2;
 }
 
 .header-subtitle {
+  font-size: 18px;
+  font-weight: 500;
+  color: #271A13;
   font-size: 22px;
   font-weight: 400;
   color: #555555;
@@ -49,6 +52,7 @@
   border-radius: 16px;
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
   overflow: hidden;
+  
   cursor: pointer;
   transition: transform 0.25s ease;
 }
@@ -60,7 +64,7 @@
 .card-image-wrapper {
   position: relative;
   width: 100%;
-  height: 220px;
+  height: 210px;
 }
 
 .card-image {
@@ -74,13 +78,13 @@
 .trending-badge {
   position: absolute;
   top: 14px;
-  left: 14px;
+  right: 14px;
   background: #ff6b35;
   color: #ffffff;
   border-radius: 50px;
-  padding: 6px 14px;
-  font-size: 13px;
-  font-weight: 600;
+  padding: 12px 14px;
+  font-size: 15px;
+  font-weight: 700;
   font-family: "Manrope", sans-serif;
   display: flex;
   align-items: center;
@@ -89,26 +93,28 @@
 }
 
 .badge-icon {
-  font-size: 13px;
+  font-size: 16px;
   flex-shrink: 0;
 }
 
 .card-info {
-  padding: 16px;
+  padding: 12px;
+  /* background-color: red; */
+  /* margin-top: 12px; */
 }
 
 .card-name {
   font-size: 18px;
   font-weight: 600;
-  color: #111111;
+  color: #271A13;
   margin: 0 0 4px 0;
   line-height: 1.3;
 }
 
 .card-city {
-  font-size: 16px;
-  font-weight: 500;
-  color: #111111;
+  font-size: 18px;
+  font-weight: 600;
+  color: #271A13;
   margin: 0 0 10px 0;
   line-height: 1.3;
 }
@@ -158,6 +164,7 @@
   .header-title-row {
     gap: 6px;
     margin-bottom: 4px;
+    text-align: center;
   }
 
   .header-arrow {
@@ -166,11 +173,12 @@
 
   .header-title {
     font-size: 20px;
+    text-align: center;
   }
 
   .header-subtitle {
-    font-size: 13px;
-    color: #666666;
+    font-size: 15px;
+    color: #271A13;
     padding: 0 20px;
     margin-bottom: 20px;
     text-align: center;
@@ -203,7 +211,7 @@
   }
 
   .card-image-wrapper {
-    height: 160px;
+    height: 190px;
   }
 
   .card-image {
@@ -212,9 +220,8 @@
 
   .trending-badge {
     top: 10px;
-    left: 10px;
-    font-size: 11px;
-    padding: 5px 10px;
+    font-size: 13px;
+    padding: 5px 9px;
   }
 
   .card-info {
@@ -222,12 +229,12 @@
   }
 
   .card-name {
-    font-size: 14px;
+    font-size: 16px;
     margin-bottom: 2px;
   }
 
   .card-city {
-    font-size: 13px;
+    font-size: 15px;
     margin-bottom: 8px;
   }
 
@@ -236,10 +243,10 @@
   }
 
   .rating-number {
-    font-size: 12px;
+    font-size: 14px;
   }
 
   .review-count {
-    font-size: 12px;
+    font-size: 14px;
   }
 }
