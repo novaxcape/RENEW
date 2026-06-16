@@ -1,58 +1,43 @@
+/* ===== GLOBAL HEADER CONTAINER ===== */
 .m-header {
-  /* Fixed positioning parameters */
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 1000; /* Stays mounted cleanly on top of page content layers */
+  z-index: 1000;
   width: 100%;
-  height: 80px;
-  background-color: #fff;
-  border-bottom: 2px solid #01388C;
+  height: 90px;
+  background-color: #ffffff;
+  /* Clean subtle white-gray split border line style instead of thick blue */
+  border-bottom: 1px solid #f0f0f0; 
   display: flex;
   justify-content: center;
   box-sizing: border-box;
-}
-
-/* Page Spacing Offset Helper Class */
-.has-fixed-header {
-  padding-top: 80px;
-}
-
-/* Style the links inside the list items */
-.m-link ul li a {
-  text-decoration: none;
-  color: #333;
-  transition: color 0.3s ease;
-}
-
-/* Style for the active state */
-.m-link ul li a.m-active-link,
-.m-overlay-links ul li a.m-active-link {
-  color: #246bff;
-  font-weight: bold;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .m-header-body {
   width: 90%;
+  max-width: 1400px;
   height: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
+/* ===== LOGO ===== */
 .m-logo {
   display: flex;
   align-items: center;
 }
 
 .m-header-logo-img {
-  width: 120px;
+  height: 38px;
   object-fit: contain;
 }
 
+/* ===== NAVIGATION LINKS ===== */
 .m-link {
   display: flex;
-  justify-content: center;
   align-items: center;
 }
 
@@ -60,233 +45,133 @@
   display: flex;
   align-items: center;
   list-style: none;
-  gap: 3rem;
+  gap: 2.5rem;
+  margin: 0;
+  padding: 0;
 }
 
-.m-link ul li {
-  color: #000;
-  font-size: 18px;
-  font-weight: 500;
-  cursor: pointer;
+.m-link ul li a {
+  text-decoration: none;
+  color: #4a4a4a;
+  font-size: 16px;
+  font-weight: 400;
+  transition: color 0.2s ease;
 }
 
+.m-link ul li a:hover {
+  color: #0B408C;
+}
+
+/* Exact UI Active State match */
+.m-link ul li a.m-active-link {
+  color: #0B408C; 
+  font-weight: 600;
+}
+
+/* ===== AUTH BUTTONS ===== */
 .m-button {
   display: flex;
   align-items: center;
+  background: red;
 }
 
-/* Desktop Buttons Container */
 .m-desktop-buttons {
   display: flex;
-  gap: 12px;
+  gap: 20px;
   align-items: center;
 }
 
-/* Transparent Sign In Button Style */
-.m-signin-btn {
-  width: 120px;
-  height: 44px;
-  border: 1px solid #FF5000;
-  border-radius: 20px;
-  background: transparent;
-  color: #FF6B35;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.1s ease;
-}
-
-.m-signin-btn:hover {
-  background: rgba(255, 80, 0, 0.05);
-  color: #FF5000;
-}
-
-/* RESTRUCTURED SOLID SIGN UP BUTTON */
+/* Solid Fill Sign Up Button styling */
 .m-signup-btn {
-  width: 120px;
-  height: 44px;
-  border: 1px solid #FF6B35;
-  border-radius: 20px;
+  width: 125px;
+  height: 45px;
+  border: none;
+  border-radius: 25px;
   background: #FF6B35;
   color: #ffffff;
   font-size: 16px;
   font-weight: 500;
+  margin-right: 25px;
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+  transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
 .m-signup-btn:hover {
   background-color: #e55a2b;
-  border-color: #e55a2b;
 }
 
-.m-signup-btn:active, .m-signin-btn:active {
-  transform: scale(0.98);
+/* Outline Thin Border Sign In Button styling */
+.m-signin-btn {
+  width: 125px;
+  height: 45px;
+  border: 1px solid #FF6B35;
+  border-radius: 25px;
+  background: transparent;
+  color: #271A13; /* Matches Dark neutral UI typography text color */
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
-/* HIDE MOBILE ICONS ON DESKTOP */
+.m-signin-btn:hover {
+  background: rgba(255, 107, 53, 0.04);
+}
+
+.m-signup-btn:active, 
+.m-signin-btn:active {
+  transform: scale(0.97);
+}
+
+/* ===== LOGGED IN ACCESSIBLE DROPDOWN STYLING ===== */
+.p-navbar-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #4a4a4a;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.p-user-menu-container {
+  position: relative;
+}
+
+.p-profile-dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 8px 0;
+  min-width: 160px;
+  z-index: 1010;
+}
+
+/* ===== MOBILE ADAPTIVITY ===== */
 .m-mobile-icons {
   display: none;
 }
 
-/* ===== MOBILE OVERLAY ===== */
-.m-mobile-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  background: #ffffff;
-  z-index: 9999;
-  transform: translateX(100%);
-  transition: transform 0.3s ease-in-out;
-  overflow-y: auto;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-.m-mobile-overlay.m-active {
-  transform: translateX(0);
-}
-
-.m-overlay-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #eee;
-}
-
-.m-overlay-logo img {
-  height: 40px;
-  object-fit: contain;
-}
-
-.m-close-btn {
-  background: #246bff;
+.m-hamburger {
+  background: none;
   border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  color: white;
-  font-size: 18px;
   cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: 0.3s ease;
-}
-
-.m-close-btn:hover {
-  background: #1a54cc;
-}
-
-.m-overlay-links {
-  margin-top: 40px;
-}
-
-.m-overlay-links ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-
-.m-overlay-links ul li a {
-  text-decoration: none;
   color: #271A13;
-  font-size: 5px;
-  font-weight: 300;
-  transition: 0.3s ease;
-  display: block;
 }
 
-.m-overlay-links ul li a:hover,
-.m-overlay-links ul li a.m-active-link {
-  color: #246bff;
-}
-
-/* Mobile Auth Link Formatting inside the Sidebar Menu */
-.m-mobile-auth-links {
-  margin-top: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.m-mobile-auth-links .m-mobile-signin {
-  text-align: center;
-  border: 2px solid #FF6B35 !important;
-  color: #FF6B35 !important;
-  padding: 10px;
-  border-radius: 20px;
-}
-
-.m-mobile-auth-links .m-mobile-signup {
-  text-align: center;
-  background: #FF6B35;
-  color: #fff !important;
-  padding: 10px;
-  border-radius: 20px;
-}
-
-/* =========================================
-    MEDIA QUERIES (Mobile Responsiveness)
-========================================= */
-
-@media (max-width: 768px) {
+@media (max-width: 868px) {
   .m-desktop-links {
     display: none;
   }
-  
   .m-desktop-buttons {
     display: none;
   }
-  
   .m-mobile-icons {
     display: flex;
-    align-items: center;
-    gap: 15px;
-  }
-  
-  .m-mobile-icons .m-hamburger {
-    cursor: pointer;
-    font-size: 20px;
-  }
-}
-
-/* Small screen optimization */
-@media (max-width: 400px) {
-  .m-header {
-    height: 60px;
-    border-bottom: 1px solid #01388C;
-  }
-  
-  .has-fixed-header {
-    padding-top: 60px;
-  }
-
-  .m-header-body {
-    width: 95%;
-  }
-
-  .m-header-logo-img {
-    width: 120px;
-  }
-
-  .m-mobile-icons {
-    gap: 14px;
-    font-size: 18px;
-    color: #000;
-  }
-}
-
-@media (min-width: 769px) {
-  .m-mobile-overlay {
-    display: none !important;
-  }
-  .m-mobile-icons .m-hamburger {
-    display: none;
   }
 }
