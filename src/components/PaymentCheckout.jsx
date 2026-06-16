@@ -2,13 +2,16 @@ import React from 'react';
 import './css/PaymentCheckout.css';
 import { LuShield } from 'react-icons/lu';
 import { CiCalendar } from "react-icons/ci";
+import { useNavigate } from 'react-router-dom';
 
 const PaymentCheckout = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="payment-page-wrapper">
       
       <div className="back-btn-container">
-        <button className="back-nav-btn">Back</button>
+        <button className="back-nav-btn" onClick={() => navigate(-1)}>Back</button>
       </div>
 
       <div className="payment-page-header">
@@ -19,7 +22,7 @@ const PaymentCheckout = () => {
       <div className="installment-banner-container">
         <div className="installment-banner-card">
           <div className="banner-icon-box">
-            <CiCalendar  size={28}/>
+            <CiCalendar size={28}/>
           </div>
           <h2 className="banner-title">Installment Payment</h2>
           <p className="banner-subtitle">Split payment into smaller amount</p>
@@ -107,7 +110,9 @@ const PaymentCheckout = () => {
             <span className="due-main-amount">₦3,667</span>
           </div>
 
-          <button className="checkout-submit-btn">Continue To Payment</button>
+          <button className="checkout-submit-btn" onClick={() => navigate("/payment-confirmation")}>
+            Continue To Payment
+          </button>
 
           <div className="security-notice-row">
             <LuShield className="security-shield-icon" />
