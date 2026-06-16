@@ -30,6 +30,19 @@ const PopularDestinations = () => {
     fetchCitiesData();
   }, []);
 
+  // ✅ Helper function to filter out empty objects
+  const getValidCentres = (centres) => {
+    if (!centres || !Array.isArray(centres)) return [];
+    return centres.filter(centre => {
+      if (!centre) return false;
+      const hasKeys = Object.keys(centre).length > 0;
+      const hasData = centre.centreName || centre.name || centre.title || 
+                      centre.id || centre._id || centre.centreId ||
+                      centre.city || centre.state || centre.location;
+      return hasKeys && hasData;
+    });
+  };
+
   const fetchCitiesData = async () => {
     setLoading(true);
     setError(null);
@@ -42,7 +55,10 @@ const PopularDestinations = () => {
           if (response.ok) {
             const data = await response.json();
             const centres = data?.data || [];
-            const count = centres.length;
+            
+            // ✅ Filter out empty objects before counting
+            const validCentres = getValidCentres(centres);
+            const count = validCentres.length;
             
             return {
               name: city,
@@ -50,10 +66,9 @@ const PopularDestinations = () => {
               image: cityImages[city] || "/novaxcape/placeholder.png"
             };
           } else {
-            // If API fails, use fallback with static count
             return {
               name: city,
-              centreCount: 5, // Default count
+              centreCount: 0,
               image: cityImages[city] || "/novaxcape/placeholder.png"
             };
           }
@@ -61,7 +76,7 @@ const PopularDestinations = () => {
           console.error(`Error fetching data for ${city}:`, err);
           return {
             name: city,
-            centreCount: 5, // Default count
+            centreCount: 0,
             image: cityImages[city] || "/novaxcape/placeholder.png"
           };
         }
@@ -73,10 +88,9 @@ const PopularDestinations = () => {
       console.error("Error fetching cities data:", err);
       setError("Failed to load destinations");
       
-      // Fallback to static data
       setCitiesData(popularCities.map(city => ({
         name: city,
-        centreCount: 5,
+        centreCount: 0,
         image: cityImages[city] || "/novaxcape/placeholder.png"
       })));
     } finally {
@@ -85,7 +99,6 @@ const PopularDestinations = () => {
   };
 
   const handleCityClick = (cityName) => {
-    // Navigate to discover page with the city search state
     navigate("/discover", { 
       state: { 
         searchState: cityName,

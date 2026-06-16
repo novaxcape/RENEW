@@ -46,6 +46,11 @@ import DashboardBookingPage from "./Pages/DashboardBookingPage";
 import SignUpScreen from "./Pages/SignUpScreen";
 import SignInScreen from "./Pages/SignInScreen";
 
+// ✅ Payment Pages - Import from components folder
+import PaymentCheckout from "./components/PaymentCheckout";
+import BookingSummaryPage from "./Pages/BookingSummaryPage";
+import BookingConfirmation from "./components/BookingConfirmation";
+
 // ========== VENDOR PAGES ==========
 // Vendor Auth Pages (Public - no login required)
 import SignUpVendor from "./Pages/SignUpVendor";
@@ -56,9 +61,6 @@ import VendorResetPassword from "./Pages/VendorResetPassword";
 import VendorChangePassword from "./Pages/VendorChangePassword";
 import DashboardPackageActive from "./Pages/DashboardPackageActive";
 import DashboardPackageInactive from "./Pages/DashboardPackageInactive";
-
-// Booking Summary Page
-import BookingSummaryPage from "./Pages/BookingSummaryPage";
 
 // Shared layout configuration to render Fixed Header automatically
 
@@ -89,6 +91,16 @@ const App = () => {
           </PrivateRoute>
         }
       />
+      
+      {/* ✅ PAYMENT CHECKOUT ROUTE - Using touristId and packageId */}
+      <Route
+        path="/payment-checkout/:touristId/:packageId"
+        element={
+          <PrivateRoute>
+            <PaymentCheckout />
+          </PrivateRoute>
+        }
+      />
 
       <Route
         path="/payment"
@@ -98,6 +110,17 @@ const App = () => {
           </PrivateRoute>
         }
       />
+      
+      {/* ✅ BOOKING CONFIRMATION ROUTE - From components */}
+      <Route
+        path="/booking-confirmation/:bookingId"
+        element={
+          <PrivateRoute>
+            <BookingConfirmation />
+          </PrivateRoute>
+        }
+      />
+      
       <Route
         path="/my-bookings"
         element={
@@ -114,6 +137,7 @@ const App = () => {
           </PrivateRoute>
         }
       />
+        
       <Route
         path="/settings"
         element={
@@ -275,6 +299,17 @@ const App = () => {
           </PrivateRoute>
         }
       />
+
+      {/* ✅ BOOKING SUMMARY ROUTE */}
+      <Route
+        path="/booking-summary/:touristId/:packageId"
+        element={
+          <PrivateRoute>
+            <BookingSummaryPage />
+          </PrivateRoute>
+        }
+      />
+
       {/* ========== VENDOR DASHBOARD ROUTES (Protected) ========== */}
       <Route
         path="/vendor/dashboard"
@@ -285,7 +320,7 @@ const App = () => {
         }
       >
         <Route index element={<Dashboard />} />
-        <Route path="bookings" element={<DashboardBookingPage/>} />
+        <Route path="bookings" element={<DashboardBookingPage />} />
         <Route path="revenue" element={<RevenueTrendPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="support" element={<Support />} />
