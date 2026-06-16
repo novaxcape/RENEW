@@ -9,6 +9,8 @@ const authSlice = createSlice({
     userToken: null,
     loading: false,
     error: null,
+    // ✅ Add isAuthenticated
+    isAuthenticated: false,
     // Vendor State
     vendorDetails: null,
     isVendor: false,
@@ -18,21 +20,33 @@ const authSlice = createSlice({
     setUserDetails: (state, action) => {
       state.loggedInUser = action.payload;
       state.isVendor = false;
+      state.isAuthenticated = true; // ✅ Set authenticated when user details are set
     },
     updateToken: (state, action) => {
       state.userToken = action.payload;
       if (action.payload) {
         localStorage.setItem("token", action.payload);
+        state.isAuthenticated = true; // ✅ Set authenticated when token is updated
       } else {
         localStorage.removeItem("token");
+        state.isAuthenticated = false;
       }
+    },
+    // ✅ Add loginSuccess reducer
+    loginSuccess: (state) => {
+      state.isAuthenticated = true;
+      state.loading = false;
+      state.error = null;
     },
     logout: (state) => {
       state.loggedInUser = null;
       state.userToken = null;
       state.vendorDetails = null;
       state.isVendor = false;
+      state.isAuthenticated = false; // ✅ Set to false on logout
       localStorage.removeItem("token");
+      localStorage.removeItem("userToken");
+      localStorage.removeItem("vendorToken");
     },
     setLoading: (state, action) => {
       state.loading = action.payload;
@@ -73,15 +87,18 @@ const authSlice = createSlice({
       state.vendorDetails = action.payload;
       state.loggedInUser = action.payload;
       state.isVendor = true;
+      state.isAuthenticated = true; // ✅ Set authenticated when vendor details are set
     },
     updateVendorToken: (state, action) => {
       state.userToken = action.payload;
       if (action.payload) {
         localStorage.setItem("token", action.payload);
         localStorage.setItem("vendorToken", action.payload);
+        state.isAuthenticated = true; // ✅ Set authenticated when vendor token is updated
       } else {
         localStorage.removeItem("token");
         localStorage.removeItem("vendorToken");
+        state.isAuthenticated = false;
       }
     },
     vendorLogout: (state) => {
@@ -89,6 +106,7 @@ const authSlice = createSlice({
       state.loggedInUser = null;
       state.userToken = null;
       state.isVendor = false;
+      state.isAuthenticated = false; // ✅ Set to false on vendor logout
       localStorage.removeItem("token");
       localStorage.removeItem("vendorToken");
     },
@@ -133,6 +151,8 @@ export const {
   verifyAdmin,
   verifyAdminSuccess,
   verifyAdminFail,
+  // ✅ Export loginSuccess
+  loginSuccess,
   // Vendor Actions
   setVendorDetails,
   updateVendorToken,

@@ -57,7 +57,7 @@ import VendorChangePassword from "./Pages/VendorChangePassword";
 import DashboardPackageActive from "./Pages/DashboardPackageActive";
 import DashboardPackageInactive from "./Pages/DashboardPackageInactive";
 
-// Booking Summary Page
+// ✅ Booking Summary Page
 import BookingSummaryPage from "./Pages/BookingSummaryPage";
 
 // Shared layout configuration to render Fixed Header automatically
@@ -274,6 +274,17 @@ const App = () => {
           </PrivateRoute>
         }
       />
+
+      {/* ✅ BOOKING SUMMARY ROUTE */}
+      <Route
+        path="/booking-summary/:touristId/:packageId"
+        element={
+          <PrivateRoute>
+            <BookingSummaryPage />
+          </PrivateRoute>
+        }
+      />
+
       {/* ========== VENDOR DASHBOARD ROUTES (Protected) ========== */}
       <Route
         path="/vendor/dashboard"
@@ -284,7 +295,7 @@ const App = () => {
         }
       >
         <Route index element={<Dashboard />} />
-        <Route path="bookings" element={<DashboardBookingPage/>} />
+        <Route path="bookings" element={<DashboardBookingPage />} />
         <Route path="revenue" element={<RevenueTrendPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="support" element={<Support />} />

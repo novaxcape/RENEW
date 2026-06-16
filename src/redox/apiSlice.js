@@ -187,14 +187,38 @@ export const deletePackage = createThunk(
 );
 
 // ========== TOURIST CENTRE API THUNKS ==========
+// ✅ FIXED: registerTouristCenter with proper FormData handling
 export const registerTouristCenter = createThunk(
   "api/touristCentre/register",
-  ({ vendorId, centreData }, { getState }) =>
-    axios.post(
-      `${API_BASE_URL}/tourist/register/${vendorId}`,
-      toFormData(centreData),
-      authConfig(getState())
-    )
+  async ({ vendorId, centreData }, { getState, rejectWithValue }) => {
+    try {
+      // Determine if we're sending FormData or JSON
+      const isFormData = centreData instanceof FormData;
+      
+      // Get auth config
+      const token = getToken(getState());
+      
+      const headers = {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
+      
+      // If not FormData, set Content-Type to application/json
+      if (!isFormData) {
+        headers['Content-Type'] = 'application/json';
+      }
+      // If FormData, let the browser set the Content-Type with boundary
+      
+      const response = await axios.post(
+        `${API_BASE_URL}/tourist/register/${vendorId}`,
+        centreData,
+        { headers }
+      );
+      
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(getErrorMessage(error));
+    }
+  }
 );
 
 // Updated getTouristCentersByState with proper data extraction and filtering

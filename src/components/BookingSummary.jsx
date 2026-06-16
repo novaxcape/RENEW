@@ -1,7 +1,10 @@
 import React from "react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import Swal from "sweetalert2";
 import "./css/BookingSummary.css";
+import { createBooking } from "../redox/apiSlice";
 
 const ticketTypes = [
   {
@@ -26,14 +29,70 @@ const ticketTypes = [
 
 const SERVICE_FEE = 500;
 
-export default function BookingSummary() {
+export default function BookingSummaryPage() {
   const navigate = useNavigate();
+  const { touristId, packageId } = useParams();
+  const location = useLocation();
+  const dispatch = useDispatch();
+  
+  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { bookingLoading, bookingError } = useSelector((state) => state.api);
+
+  // Get package and centre details from location state or localStorage
+  const [bookingData, setBookingData] = useState({
+    packageDetails: location.state?.packageDetails || null,
+    centreDetails: location.state?.centreDetails || null,
+  });
+
   const [date, setDate] = useState("");
   const [quantities, setQuantities] = useState({
     adult: 1,
     child: 1,
     family: 1,
   });
+
+  useEffect(() => {
+    // If no data in state, try to get from localStorage
+    if (!bookingData.packageDetails) {
+      const pendingBooking = localStorage.getItem('pendingBooking');
+      if (pendingBooking) {
+        try {
+          const parsed = JSON.parse(pendingBooking);
+          setBookingData({
+            packageDetails: parsed.packageDetails,
+            centreDetails: parsed.centreDetails,
+          });
+        } catch (e) {
+          console.error("Error parsing pending booking:", e);
+        }
+      }
+    }
+  }, [bookingData.packageDetails]);
+
+  // ✅ Check authentication - check both Redux state and localStorage
+  useEffect(() => {
+    const token = localStorage.getItem('token') || localStorage.getItem('userToken');
+    const isLoggedIn = isAuthenticated || !!token;
+    
+    if (!isLoggedIn) {
+      console.log("📄 Not authenticated, redirecting to login");
+      Swal.fire({
+        icon: 'warning',
+        title: 'Login Required',
+        text: 'Please login to complete your booking',
+        confirmButtonColor: '#ff6b35',
+      }).then(() => {
+        navigate('/signin', { 
+          state: { 
+            from: `/booking-summary/${touristId}/${packageId}`,
+            bookingData: bookingData 
+          } 
+        });
+      });
+    } else {
+      console.log("📄 User is authenticated!");
+    }
+  }, [isAuthenticated, navigate, touristId, packageId, bookingData]);
 
   const increment = (id) =>
     setQuantities((prev) => ({ ...prev, [id]: prev[id] + 1 }));
@@ -54,55 +113,158 @@ export default function BookingSummary() {
 
   const summaryItems = ticketTypes.filter((t) => quantities[t.id] > 0);
 
+  const handleContinueToPayment = async () => {
+    if (!date) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Missing Date',
+        text: 'Please select a visit date.',
+        confirmButtonColor: '#ff6b35',
+      });
+      return;
+    }
+
+    if (summaryItems.length === 0) {
+      Swal.fire({
+        icon: 'error',
+        title: 'No Tickets Selected',
+        text: 'Please select at least one ticket.',
+        confirmButtonColor: '#ff6b35',
+      });
+      return;
+    }
+
+    try {
+      const bookingDataPayload = {
+        date: date,
+        numberOfPeople: summaryItems.reduce((sum, t) => sum + quantities[t.id], 0),
+        specialRequests: "",
+        ticketDetails: summaryItems.map(t => ({
+          ticketType: t.id,
+          quantity: quantities[t.id],
+          price: t.price,
+        })),
+        totalAmount: total,
+      };
+
+      const result = await dispatch(createBooking({
+        touristId: touristId,
+        packageId: packageId,
+        bookingData: bookingDataPayload,
+      })).unwrap();
+
+      localStorage.removeItem('pendingBooking');
+
+      const bookingId = result?.data?.id || result?.booking?.id || result?.id;
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Booking Created!',
+        text: 'Your booking has been created. Proceed to payment.',
+        confirmButtonColor: '#ff6b35',
+        confirmButtonText: 'Proceed to Payment'
+      }).then(() => {
+        navigate(`/payment/${bookingId}`, {
+          state: {
+            bookingId,
+            amount: total,
+            bookingDetails: result,
+            centreDetails: bookingData.centreDetails,
+            packageDetails: bookingData.packageDetails,
+          }
+        });
+      });
+
+    } catch (error) {
+      console.error("Booking error:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Booking Failed',
+        text: error?.message || 'Unable to create booking. Please try again.',
+        confirmButtonColor: '#ff6b35',
+      });
+    }
+  };
+
+  if (!bookingData.packageDetails) {
+    return (
+      <div className="bp-page">
+        <div className="bp-header">
+          <h1 className="bp-title">Complete Your Booking</h1>
+          <p className="bp-subtitle">Just a few more steps to your booking</p>
+        </div>
+        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+          <h2>No Booking Data Found</h2>
+          <p>Please select a package to book.</p>
+          <button 
+            onClick={() => navigate('/discover')}
+            style={{
+              background: '#ff6b35',
+              color: 'white',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              marginTop: '16px'
+            }}
+          >
+            Browse Centres
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bp-page">
       <div className="bp-header">
-        <h1 className="bp-title">Complete Your booking</h1>
-        <p className="bp-subtitle">Just a few more step to your booking</p>
+        <h1 className="bp-title">Complete Your Booking</h1>
+        <p className="bp-subtitle">Just a few more steps to your booking</p>
+        
+        {bookingData.centreDetails && (
+          <div className="bp-booking-info" style={{ 
+            background: '#f8f9fa', 
+            padding: '16px 24px', 
+            borderRadius: '12px',
+            marginTop: '16px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap'
+          }}>
+            <div>
+              <strong>{bookingData.centreDetails.centreName || bookingData.centreDetails.name}</strong>
+              <span style={{ marginLeft: '16px', color: '#666' }}>
+                {bookingData.centreDetails.city}, {bookingData.centreDetails.state}
+              </span>
+            </div>
+            <div>
+              <span style={{ color: '#666' }}>
+                Package: {bookingData.packageDetails.packageName}
+              </span>
+              <span style={{ marginLeft: '16px', fontWeight: 600, color: '#ff6b35' }}>
+                ₦{bookingData.packageDetails.amount.toLocaleString()}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="bp-layout">
         {/* Left Card */}
         <div className="bp-card bp-left-card">
-          {/* Date Section */}
           <section className="bp-section">
             <h2 className="bp-section-title">Select Visit Date</h2>
             <div className="bp-date-input-wrapper">
               <input
-                type="text"
+                type="date"
                 className="bp-date-input"
-                placeholder="mm/dd/yyyy"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                onFocus={(e) => (e.target.type = "date")}
-                onBlur={(e) => {
-                  if (!e.target.value) e.target.type = "text";
-                }}
+                min={new Date().toISOString().split('T')[0]}
               />
-              <span className="bp-calendar-icon">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <rect
-                    x="2"
-                    y="3"
-                    width="16"
-                    height="15"
-                    rx="2"
-                    stroke="#271A13"
-                    strokeWidth="1.5"
-                  />
-                  <path d="M2 7h16" stroke="#271A13" strokeWidth="1.5" />
-                  <path
-                    d="M6 1v4M14 1v4"
-                    stroke="#271A13"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>
             </div>
           </section>
 
-          {/* Ticket Section */}
           <section className="bp-section">
             <h2 className="bp-section-title">Select Ticket</h2>
             <div className="bp-tickets">
@@ -199,7 +361,19 @@ export default function BookingSummary() {
             <span className="bp-total-value">{formatNaira(total)}</span>
           </div>
 
-          <button className="bp-cta-btn">Continue To Payment</button>
+          <button 
+            className="bp-cta-btn" 
+            onClick={handleContinueToPayment}
+            disabled={bookingLoading}
+          >
+            {bookingLoading ? 'Creating Booking...' : 'Continue To Payment'}
+          </button>
+
+          {bookingError && (
+            <p className="bp-error" style={{ color: 'red', textAlign: 'center', marginTop: '12px' }}>
+              {bookingError}
+            </p>
+          )}
 
           <p className="bp-installment">
             Or{" "}

@@ -1,17 +1,17 @@
 // SignUp.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { z } from "zod";
-import Swal from "sweetalert2"; // UNCOMMENT THIS LINE
+import Swal from "sweetalert2";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { setUserDetails, updateToken, setLoading, setError, clearError } from "../redox/authSlice";
 import "../Styles/Signup.css";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ;
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-// MOVE INTERCEPTORS OUTSIDE THE COMPONENT - PLACE THEM HERE
+// Interceptors
 axios.interceptors.request.use(request => {
   console.log('Starting Request:', request.url, request.data);
   return request;
@@ -48,8 +48,9 @@ const signUpSchema = z.object({
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
-  const { loading: reduxLoading, error } = useSelector((state) => state.auth);
+  const { loading: reduxLoading, error, isAuthenticated } = useSelector((state) => state.auth);
   
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -65,6 +66,73 @@ const SignUp = () => {
 
   const [errors, setErrors] = useState({});
 
+  // Get booking data from location state or localStorage
+  const bookingData = location.state?.bookingData || null;
+  const from = location.state?.from || "/";
+
+  // Check for pending booking in localStorage if not in state
+  useEffect(() => {
+    if (!bookingData) {
+      const pendingBooking = localStorage.getItem('pendingBooking');
+      if (pendingBooking) {
+        try {
+          const parsed = JSON.parse(pendingBooking);
+          // Store it in a ref for later use
+          window._pendingBooking = parsed;
+        } catch (e) {
+          console.error('Error parsing pending booking:', e);
+        }
+      }
+    }
+  }, [bookingData]);
+
+  // ✅ Redirect after successful signup
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log("✅ User authenticated, checking for pending booking...");
+      
+      // Check for pending booking
+      const pendingBooking = bookingData || window._pendingBooking || localStorage.getItem('pendingBooking');
+      
+      if (pendingBooking) {
+        let booking;
+        if (typeof pendingBooking === 'string') {
+          try {
+            booking = JSON.parse(pendingBooking);
+          } catch (e) {
+            booking = pendingBooking;
+          }
+        } else {
+          booking = pendingBooking;
+        }
+        
+        console.log("📦 Pending booking found:", booking);
+        
+        // Clear the pending booking
+        localStorage.removeItem('pendingBooking');
+        window._pendingBooking = null;
+        
+        // Navigate to booking summary
+        if (booking.touristId && booking.packageId) {
+          console.log("➡️ Redirecting to booking summary");
+          navigate(`/booking-summary/${booking.touristId}/${booking.packageId}`, {
+            state: {
+              touristId: booking.touristId,
+              packageDetails: booking.packageDetails,
+              centreDetails: booking.centreDetails,
+            },
+            replace: true
+          });
+          return;
+        }
+      }
+      
+      // If no booking, navigate to the page they came from or home
+      console.log("➡️ No booking found, redirecting to:", from);
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, from, bookingData]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -74,6 +142,20 @@ const SignUp = () => {
     if (error) {
       dispatch(clearError());
     }
+  };
+
+  // ✅ Handle navigation to Login with booking data
+  const handleSignInClick = () => {
+    // Get the current pending booking
+    const pendingBooking = bookingData || window._pendingBooking || localStorage.getItem('pendingBooking');
+    
+    // Navigate to login with booking data
+    navigate("/signin", {
+      state: {
+        from: from,
+        bookingData: pendingBooking
+      }
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -112,13 +194,14 @@ const SignUp = () => {
     };
     
     try {
-      // API CALL DIRECTLY IN COMPONENT
       const response = await axios.post(`${API_BASE_URL}/client/register`, userData);
       
       console.log("API Response:", response.data);
       
+      // Store token if received
       if (response.data.token) {
         dispatch(updateToken(response.data.token));
+        localStorage.setItem("token", response.data.token);
       }
       
       if (response.data.user) {
@@ -127,31 +210,35 @@ const SignUp = () => {
       
       Swal.fire({
         icon: "success",
-        title: "Success!",
-        text: "Account created successfully. Please verify your email.",
+        title: "Account Created!",
+        text: "Your account has been created successfully. Please verify your email.",
         confirmButtonColor: "#ff6b35",
+        confirmButtonText: "Verify Email"
+      }).then(() => {
+        // Navigate to verify email with booking data
+        navigate("/verify-email", { 
+          state: { 
+            email: formData.email,
+            from: from,
+            bookingData: bookingData || window._pendingBooking
+          } 
+        });
       });
-      
-      navigate("/verify-email", { state: { email: formData.email } });
       
     } catch (error) {
       console.error("Full error object:", error);
       
-      // Better error handling
       let errorMessage = "Something went wrong. Please try again.";
       
       if (error.response) {
-        // Server responded with error
         console.error("Error response data:", error.response.data);
         errorMessage = error.response.data?.message || 
                       error.response.data?.error || 
                       `Server error: ${error.response.status}`;
       } else if (error.request) {
-        // Request made but no response
         console.error("No response received:", error.request);
         errorMessage = "Cannot connect to server. Please check your connection.";
       } else {
-        // Other errors
         errorMessage = error.message;
       }
       
@@ -289,7 +376,7 @@ const SignUp = () => {
 
             <p className="signinText">
               Have an account?
-              <span onClick={() => navigate("/signin")} style={{ cursor: "pointer" }}> Sign In</span>
+              <span onClick={handleSignInClick} style={{ cursor: "pointer" }}> Sign In</span>
             </p>
           </form>
         </div>
