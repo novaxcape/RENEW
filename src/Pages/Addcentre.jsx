@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import Navbar from '../components/Navbar';
-import Footer2 from '../components/Footer2';
+import Footer from '../components/Footer';
 import Stepper from '../components/Stepper';
 import "../Styles/Addcenter.css";
 
@@ -539,7 +539,7 @@ const AddCentre = () => {
         </div>
       </div>
 
-      <Footer2 />
+      <Footer />
     </div>
   );
 };

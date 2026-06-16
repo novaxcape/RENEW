@@ -12,8 +12,19 @@ const TopNavbar = ({ onMenuOpen }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [vendorName, setVendorName] = useState("Lekki CC"); // Default fallback
   const notifRef = useRef(null);
+  const dropdownRef = useRef(null);
 
+  // Get vendor name from localStorage on component mount
+  useEffect(() => {
+    const storedName = localStorage.getItem("Names");
+    if (storedName) {
+      setVendorName(storedName);
+    }
+  }, []);
+
+  // Handle click outside for notifications
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (notifRef.current && !notifRef.current.contains(e.target)) {
@@ -23,6 +34,26 @@ const TopNavbar = ({ onMenuOpen }) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Handle click outside for profile dropdown
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Handle logout
+  const handleLogout = () => {
+    // Clear user data from localStorage
+    localStorage.removeItem("Names");
+    // Add any other cleanup (tokens, etc.)
+    // Redirect to login page
+    window.location.href = "/login";
+  };
 
   return (
     <div className="top-navbar">
@@ -68,11 +99,11 @@ const TopNavbar = ({ onMenuOpen }) => {
           )}
         </div>
 
-        <div className="profile" onClick={() => setShowDropdown(!showDropdown)}>
+        <div className="profile" onClick={() => setShowDropdown(!showDropdown)} ref={dropdownRef}>
           <img src="/novaxcape/profile.png" alt="Admin" />
           <div className="profile-info">
             <span className="profile-name">
-              Lekki CC <FiChevronDown size={13} color="#334155" />
+              {vendorName} <FiChevronDown size={13} color="#334155" />
             </span>
             <span className="profile-role">Admin</span>
           </div>
@@ -94,7 +125,7 @@ const TopNavbar = ({ onMenuOpen }) => {
             <span>Settings</span>
           </a>
           <hr />
-          <a href="#logout">
+          <a href="#logout" onClick={handleLogout}>
             <i className="fas fa-sign-out-alt"></i>
             <span>Logout</span>
           </a>

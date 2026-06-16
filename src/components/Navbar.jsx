@@ -1,13 +1,16 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { IconCheck } from "./Icon";
+import { CgProfile } from "react-icons/cg"
 
 const Navbar = () => {
   return (
     <nav className="navbar">
-      <div className="nav-brand">
-        <span className="logo-mark">N</span>
-        <span className="logo-text">Novaxcape</span>
+   <div className="nav_holder">   <div className="nav-brand">
+       <img
+          src="/novaxcape/logo.png"
+          alt="novaxcape"
+          className="p-navbar-brand-logo"
+        />
       </div>
       <div className="nav-links">
         <Link to="/">Home</Link>
@@ -18,8 +21,8 @@ const Navbar = () => {
         <Link to="/kyc">KYC Verification</Link>
       </div>
       <div className="nav-user">
-        <IconCheck />
-      </div>
+   <CgProfile />
+      </div></div>
     </nav>
   );
 };
