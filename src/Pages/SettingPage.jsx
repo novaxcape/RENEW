@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import TopNavbar2 from "../components/TopNavbar2";
 import { useDispatch, useSelector } from "react-redux";
 import Swal from "sweetalert2";
 import { FaEyeSlash, FaSave, FaEye } from "react-icons/fa";
@@ -208,6 +209,10 @@ const SettingsPage = () => {
   };
 
   return (
+    <>
+    <div className="sticky-wrapper">
+        <TopNavbar2  />
+      </div>
     <div className="settings-page">
       {/* Business Information */}
       <form className="settings-card" onSubmit={handleBusinessSubmit}>
@@ -410,6 +415,8 @@ const SettingsPage = () => {
         </button>
       </div>
     </div>
+    </>
+    
   );
 };
 

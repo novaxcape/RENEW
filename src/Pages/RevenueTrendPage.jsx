@@ -7,7 +7,7 @@ const RevenueTrendPage = () => {
   return (
     <>
       <div className="sticky-wrapper">
-        <TopNavbar />
+        <TopNavbar   />
       </div>
 
       <div className="page-heading">

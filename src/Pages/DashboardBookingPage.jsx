@@ -7,7 +7,7 @@ const DashboardBookingPage = () => {
   return (
     <>
       <div className="sticky-wrapper">
-        <TopNavbar2/>
+        <TopNavbar2  />
       </div>
 
       <BookingManagement/>

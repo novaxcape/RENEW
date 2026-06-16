@@ -295,6 +295,7 @@ const App = () => {
         <Route path="revenue" element={<RevenueTrendPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="support" element={<Support />} />
+        
       </Route>
 
       <Route

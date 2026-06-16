@@ -25,6 +25,17 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
       path: "/vendor/dashboard/revenue",
     },
     {
+      icon: <img
+              src="/novaxcape/pack.png"
+              alt="exit"
+              style={{ width: "20px", height: "20px" }}
+            /> ,
+      label: "Packages",
+      path: "/vendor/dashboard/package",
+    },
+
+
+    {
       icon: <FiSettings />,
       label: "Settings",
       path: "/vendor/dashboard/settings",

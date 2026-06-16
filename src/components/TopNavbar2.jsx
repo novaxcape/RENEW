@@ -9,6 +9,7 @@ const notifications = [
 ];
 
 const TopNavbar2 = ({ onMenuOpen }) => {
+  
   const [showNotifications, setShowNotifications] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,11 +46,11 @@ const TopNavbar2 = ({ onMenuOpen }) => {
       </div>
 
       <div className="top-right">
-        <div className="bell-wrapper" ref={notifRef}>
-          <div className="bell-icon" onClick={() => setShowNotifications(!showNotifications)}>
-            <FiBell size={20} color="#334155" />
-            <span className="bell-dot"></span>
-          </div>
+        <div className="iconwrapper" ref={notifRef}>
+        <div className="iconbell" onClick={() => setShowNotifications(!showNotifications)}>
+          <FiBell size={20} color="#334155" />
+        </div>
+        <span className="icondot"></span>
 
           {showNotifications && (
             <div className="notification-dropdown">

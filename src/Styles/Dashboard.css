@@ -428,16 +428,16 @@
   padding-right: 40px;
 }
 
-.bell-wrapper {
-  position: relative;
+.iconwrapper {
+  position: relative;  /* ← must have this */
   cursor: pointer;
   flex-shrink: 0;
   width: 44px;
   height: 44px;
 }
 
-.bell-icon {
-  position: relative;
+.iconbell {
+  position: relative; /* make sure this is here */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -447,16 +447,18 @@
   background-color: #F3F5F5;
 }
 
-.bell-dot {
+
+.icondot {
   position: absolute;
-  top: 9px;
-  right: 12px;
-  width: 9px;
-  height: 9px;
+  top: 10px;
+  right: 14px;
+  width: 8px;
+  height: 8px;
   background: #ef4444;
   border-radius: 50%;
   border: 1.5px solid white;
   z-index: 2;
+  pointer-events: none;
 }
 
 .notification-dropdown {
