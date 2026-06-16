@@ -197,10 +197,21 @@ export const registerTouristCenter = createThunk(
     )
 );
 
+// Updated getTouristCentersByState with better error handling for 404
 export const getTouristCentersByState = createThunk(
   "api/touristCentre/getByState",
-  (state) =>
-    axios.get(`${API_BASE_URL}/tourist/get-all-state/${encodeURIComponent(state)}`)
+  async (state, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/tourist/get-all-state/${encodeURIComponent(state)}`);
+      return response.data;
+    } catch (error) {
+      // For 404 errors, return empty data instead of rejecting
+      if (error.response?.status === 404) {
+        return { data: [], count: 0, message: "No centers found in this state" };
+      }
+      return rejectWithValue(getErrorMessage(error));
+    }
+  }
 );
 
 export const getTouristCenterById = createThunk(
@@ -634,14 +645,24 @@ const apiSlice = createSlice({
       
       .addCase(getTouristCentersByState.pending, (state) => {
         state.touristCentresLoading = true;
+        state.touristCentresError = null;
       })
       .addCase(getTouristCentersByState.fulfilled, (state, action) => {
         state.touristCentresLoading = false;
-        state.touristCentres = action.payload?.data || action.payload?.tourists || action.payload || [];
+        // Handle both success and 404 fallback responses
+        const centres = action.payload?.data || action.payload?.tourists || [];
+        state.touristCentres = centres;
+        state.touristCentresError = null;
       })
       .addCase(getTouristCentersByState.rejected, (state, action) => {
         state.touristCentresLoading = false;
-        state.touristCentresError = action.payload;
+        // Don't set error for 404 since we handled it in the thunk
+        if (action.payload?.status !== 404) {
+          state.touristCentresError = action.payload;
+        } else {
+          state.touristCentres = [];
+          state.touristCentresError = null;
+        }
       })
       
       .addCase(getTouristCenterById.pending, (state) => {
