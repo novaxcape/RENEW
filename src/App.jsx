@@ -89,6 +89,7 @@ const App = () => {
           </PrivateRoute>
         }
       />
+
       <Route
         path="/payment"
         element={
