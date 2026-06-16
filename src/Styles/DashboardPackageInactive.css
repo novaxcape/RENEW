@@ -6,10 +6,6 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-body {
-  background-color: #f8fafc;
-  color: #1e293b;
-}
 
 /* Primary Page Layout setup */
 .admin-container {
@@ -82,9 +78,9 @@ body {
 }
 
 .brand-sub {
-  font-size: 0.75rem;
+  font-size: 16px;
   font-weight: 600;
-  color: #64748b;
+  color: #271A13;
 }
 
 .sidebar-menu {
@@ -174,6 +170,7 @@ body {
   flex-grow: 1;
   min-height: 100vh;
   display: flex;
+  backround-color: red;
   flex-direction: column;
 }
 
@@ -196,9 +193,9 @@ body {
 }
 
 .page-context {
-  font-weight: 600;
-  color: #334155;
-  font-size: 0.95rem;
+  font-weight: 500;
+  color: #271A13;
+  font-size: 20px;
 }
 
 .search-ticket-wrapper {
@@ -223,9 +220,10 @@ body {
   border: 1px solid transparent;
   background-color: #e2e8f0;
   border-radius: 30px;
-  font-size: 0.875rem;
+  font-size: 15px;
+  font-weight:500;
   outline: none;
-  color: #334155;
+  color: #171A1F;
   transition: all 0.2s ease;
 }
 
@@ -292,8 +290,9 @@ body {
 }
 
 .user-role {
-  font-size: 0.75rem;
-  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 400;
+  color: #002422;
 }
 
 /* Main inner working wrapper container */
@@ -313,15 +312,16 @@ body {
 }
 
 .main-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #0f172a;
+  font-size: 36px;
+  font-weight: 600;
+  color: #271A13;
   margin-bottom: 0.5rem;
 }
 
 .subtitle {
-  color: #64748b;
-  font-size: 0.95rem;
+  color: #271A13;
+  font-weight: 400;
+  font-size: 23px;
 }
 
 .add-package-btn {
@@ -399,8 +399,9 @@ body {
 
 .packages-count {
   margin-left: auto;
-  font-size: 0.9rem;
-  color: #64748b;
+  font-size: 18px;
+  font-weight:400;
+  color: #717182;
 }
 
 /* Metric Stats Display Cards Grid layout */

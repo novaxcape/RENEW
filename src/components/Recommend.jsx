@@ -20,9 +20,9 @@ const Recommend = () => {
 
             <h2>
               We Recommend
-              <br />
+              
               Beautiful Destinations
-              Every Month
+              Every <br />Month
             </h2>
 
             <p>

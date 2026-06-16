@@ -7,7 +7,7 @@ import {
   handleImagePaste,
 } from "../utils/imageUpload";
 
-const Images = ({ uploadedImages, documents, onImagesChange, onDocumentsChange }) => {
+const Images = ({ uploadedImages, onImagesChange }) => {
   const [localImages, setLocalImages] = useState(uploadedImages || {});
   const [errors, setErrors] = useState({});
   const fileInputsRef = useRef({});
@@ -54,6 +54,8 @@ const Images = ({ uploadedImages, documents, onImagesChange, onDocumentsChange }
   };
 
   const handleDrop = (event, boxId) => {
+    event.preventDefault();
+    event.stopPropagation();
     try {
       const imageData = handleImageDrop(event);
 
@@ -101,20 +103,14 @@ const Images = ({ uploadedImages, documents, onImagesChange, onDocumentsChange }
     }));
   };
 
-  const handleDocumentSelect = (event, field) => {
-    onDocumentsChange({
-      ...documents,
-      [field]: event.target.files?.[0] || null,
-    });
+  const triggerFileInput = (boxId) => {
+    if (fileInputsRef.current[boxId]) {
+      fileInputsRef.current[boxId].click();
+    }
   };
 
   return (
     <div className="step-content">
-      <div className="card-title">Images & Media</div>
-      <p className="card-subtitle">
-        Upload high-quality images of your tourism centre (minimum 3 images recommended)
-      </p>
-
       {[1, 2, 3, 4, 5].map((i) => {
         const imageData = localImages[i];
 
@@ -125,9 +121,11 @@ const Images = ({ uploadedImages, documents, onImagesChange, onDocumentsChange }
             onPaste={(e) => handlePaste(e, i)}
             onDrop={(e) => handleDrop(e, i)}
             onDragOver={handleDragOver}
+            onClick={() => triggerFileInput(i)}
             tabIndex="0"
             role="button"
             aria-label={`Upload image ${i}`}
+            style={{ cursor: "pointer" }}
           >
             {imageData ? (
               <div className="upload-preview">
@@ -145,10 +143,13 @@ const Images = ({ uploadedImages, documents, onImagesChange, onDocumentsChange }
                 <button
                   type="button"
                   className="remove-image-btn"
-                  onClick={() => handleRemoveImage(i)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemoveImage(i);
+                  }}
                   aria-label={`Remove image ${i}`}
                 >
-                  x
+                  ×
                 </button>
               </div>
             ) : (
@@ -167,44 +168,12 @@ const Images = ({ uploadedImages, documents, onImagesChange, onDocumentsChange }
                   onChange={(e) => handleFileSelect(e, i)}
                   style={{ display: "none" }}
                 />
-                <button
-                  type="button"
-                  className="hidden-upload-trigger"
-                  onClick={() => fileInputsRef.current[i]?.click()}
-                  style={{
-                    position: "absolute",
-                    width: "100%",
-                    height: "100%",
-                    opacity: 0,
-                    cursor: "pointer",
-                  }}
-                />
               </>
             )}
             {errors[i] && <div className="upload-error">{errors[i]}</div>}
           </div>
         );
       })}
-
-      <div className="row">
-        {[
-          { field: "termsAndCondition", label: "Terms and Conditions *" },
-          { field: "privacyPolicy", label: "Privacy Policy *" },
-        ].map((document) => (
-          <div className="form-group half" key={document.field}>
-            <label>{document.label}</label>
-            <input
-              type="file"
-              accept=".pdf,.doc,.docx,image/png,image/jpeg,image/jpg"
-              className="input-field"
-              onChange={(event) => handleDocumentSelect(event, document.field)}
-            />
-            {documents[document.field] && (
-              <p className="upload-sub">{documents[document.field].name}</p>
-            )}
-          </div>
-        ))}
-      </div>
     </div>
   );
 };
