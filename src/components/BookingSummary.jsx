@@ -35,10 +35,9 @@ export default function BookingSummaryPage() {
   const location = useLocation();
   const dispatch = useDispatch();
   
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { loggedInUser, userToken } = useSelector((state) => state.auth);
   const { bookingLoading, bookingError } = useSelector((state) => state.api);
 
-  // Get package and centre details from location state or localStorage
   const [bookingData, setBookingData] = useState({
     packageDetails: location.state?.packageDetails || null,
     centreDetails: location.state?.centreDetails || null,
@@ -51,10 +50,51 @@ export default function BookingSummaryPage() {
     family: 1,
   });
 
+  const getClientIdFromToken = () => {
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('userToken');
+      if (!token) return null;
+      
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      
+      const decoded = JSON.parse(jsonPayload);
+      return decoded.id || decoded.sub || decoded.userId;
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      return null;
+    }
+  };
+
+  const clientId = localStorage.getItem('clientId') || 
+                   getClientIdFromToken() ||
+                   loggedInUser?.id || 
+                   loggedInUser?._id;
+
+  console.log("📄 BookingSummaryPage - Mounted");
+  console.log("📄 touristId:", touristId);
+  console.log("📄 packageId:", packageId);
+  console.log("📄 location.state:", location.state);
+  console.log("📄 clientId:", clientId);
+  console.log("📄 userToken:", userToken);
+
   useEffect(() => {
-    // If no data in state, try to get from localStorage
+    if (!localStorage.getItem('clientId') && userToken) {
+      const tokenClientId = getClientIdFromToken();
+      if (tokenClientId) {
+        localStorage.setItem('clientId', tokenClientId);
+        console.log("✅ clientId stored from token:", tokenClientId);
+      }
+    }
+  }, [userToken]);
+
+  useEffect(() => {
     if (!bookingData.packageDetails) {
       const pendingBooking = localStorage.getItem('pendingBooking');
+      console.log("📄 pendingBooking from localStorage:", pendingBooking);
       if (pendingBooking) {
         try {
           const parsed = JSON.parse(pendingBooking);
@@ -68,31 +108,6 @@ export default function BookingSummaryPage() {
       }
     }
   }, [bookingData.packageDetails]);
-
-  // ✅ Check authentication - check both Redux state and localStorage
-  useEffect(() => {
-    const token = localStorage.getItem('token') || localStorage.getItem('userToken');
-    const isLoggedIn = isAuthenticated || !!token;
-    
-    if (!isLoggedIn) {
-      console.log("📄 Not authenticated, redirecting to login");
-      Swal.fire({
-        icon: 'warning',
-        title: 'Login Required',
-        text: 'Please login to complete your booking',
-        confirmButtonColor: '#ff6b35',
-      }).then(() => {
-        navigate('/signin', { 
-          state: { 
-            from: `/booking-summary/${touristId}/${packageId}`,
-            bookingData: bookingData 
-          } 
-        });
-      });
-    } else {
-      console.log("📄 User is authenticated!");
-    }
-  }, [isAuthenticated, navigate, touristId, packageId, bookingData]);
 
   const increment = (id) =>
     setQuantities((prev) => ({ ...prev, [id]: prev[id] + 1 }));
@@ -113,6 +128,7 @@ export default function BookingSummaryPage() {
 
   const summaryItems = ticketTypes.filter((t) => quantities[t.id] > 0);
 
+  // ✅ FIXED: Proper payload structure for booking
   const handleContinueToPayment = async () => {
     if (!date) {
       Swal.fire({
@@ -134,18 +150,36 @@ export default function BookingSummaryPage() {
       return;
     }
 
+    const clientIdToUse = localStorage.getItem('clientId') || 
+                          getClientIdFromToken() ||
+                          loggedInUser?.id || 
+                          loggedInUser?._id;
+    
+    console.log("📄 clientIdToUse:", clientIdToUse);
+    
+    if (!clientIdToUse) {
+      Swal.fire({
+        icon: 'error',
+        title: 'User Not Found',
+        text: 'Please log in again to continue.',
+        confirmButtonColor: '#ff6b35',
+      }).then(() => {
+        navigate('/signin');
+      });
+      return;
+    }
+
     try {
+      // ✅ Simplified payload - only what the API expects
       const bookingDataPayload = {
         date: date,
         numberOfPeople: summaryItems.reduce((sum, t) => sum + quantities[t.id], 0),
         specialRequests: "",
-        ticketDetails: summaryItems.map(t => ({
-          ticketType: t.id,
-          quantity: quantities[t.id],
-          price: t.price,
-        })),
         totalAmount: total,
+        // clientId is added by the thunk
       };
+
+      console.log("📄 Booking Payload:", bookingDataPayload);
 
       const result = await dispatch(createBooking({
         touristId: touristId,
@@ -153,9 +187,27 @@ export default function BookingSummaryPage() {
         bookingData: bookingDataPayload,
       })).unwrap();
 
-      localStorage.removeItem('pendingBooking');
+      console.log("📄 Full API Response:", JSON.stringify(result, null, 2));
 
-      const bookingId = result?.data?.id || result?.booking?.id || result?.id;
+      if (!result) {
+        throw new Error('No response from server');
+      }
+
+      // Extract booking ID from response
+      const bookingId = result?.data?.id || 
+                        result?.booking?.id || 
+                        result?.id ||
+                        result?.data?.bookingId ||
+                        result?.bookingId;
+
+      console.log("📄 Extracted Booking ID:", bookingId);
+
+      if (!bookingId) {
+        console.error("❌ No booking ID found in response:", JSON.stringify(result, null, 2));
+        throw new Error('Could not retrieve booking ID from server response');
+      }
+
+      localStorage.removeItem('pendingBooking');
 
       Swal.fire({
         icon: 'success',
@@ -166,7 +218,7 @@ export default function BookingSummaryPage() {
       }).then(() => {
         navigate(`/payment/${bookingId}`, {
           state: {
-            bookingId,
+            bookingId: bookingId,
             amount: total,
             bookingDetails: result,
             centreDetails: bookingData.centreDetails,
@@ -177,13 +229,44 @@ export default function BookingSummaryPage() {
 
     } catch (error) {
       console.error("Booking error:", error);
+      console.error("Error details:", error);
+      
+      let errorMessage = 'Unable to create booking. Please try again.';
+      if (error === 'Client not found' || error?.message === 'Client not found') {
+        errorMessage = 'Your account was not found. Please log in again.';
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
       Swal.fire({
         icon: 'error',
         title: 'Booking Failed',
-        text: error?.message || 'Unable to create booking. Please try again.',
+        text: errorMessage,
         confirmButtonColor: '#ff6b35',
       });
     }
+  };
+
+  const handleInstallmentClick = () => {
+    navigate(`/payment-checkout/${touristId}/${packageId}`, {
+      state: {
+        bookingId: `pending-${Date.now()}`,
+        totalAmount: total,
+        subtotal: subtotal,
+        serviceFee: SERVICE_FEE,
+        centreDetails: bookingData.centreDetails,
+        packageDetails: bookingData.packageDetails,
+        date: date,
+        isInstallment: true,
+        clientId: clientId,
+        ticketDetails: summaryItems.map(t => ({
+          ticketType: t.id,
+          quantity: quantities[t.id],
+          price: t.price,
+        })),
+        numberOfPeople: summaryItems.reduce((sum, t) => sum + quantities[t.id], 0),
+      }
+    });
   };
 
   if (!bookingData.packageDetails) {
@@ -250,7 +333,6 @@ export default function BookingSummaryPage() {
       </div>
 
       <div className="bp-layout">
-        {/* Left Card */}
         <div className="bp-card bp-left-card">
           <section className="bp-section">
             <h2 className="bp-section-title">Select Visit Date</h2>
@@ -318,7 +400,6 @@ export default function BookingSummaryPage() {
           </section>
         </div>
 
-        {/* Right Card — Booking Summary */}
         <div className="bp-card bp-right-card">
           <h2 className="bp-summary-title">Booking Summary</h2>
 
@@ -379,7 +460,7 @@ export default function BookingSummaryPage() {
             Or{" "}
             <span
               className="bp-installment-link"
-              onClick={() => navigate("/payment/instalment")}
+              onClick={handleInstallmentClick}
               style={{ cursor: "pointer" }}
             >
               Pay Instalmentally

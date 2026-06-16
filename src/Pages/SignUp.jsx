@@ -202,10 +202,16 @@ const SignUp = () => {
       if (response.data.token) {
         dispatch(updateToken(response.data.token));
         localStorage.setItem("token", response.data.token);
+        localStorage.setItem("userToken", response.data.token);
       }
       
       if (response.data.user) {
         dispatch(setUserDetails(response.data.user));
+        // ✅ Store client ID in localStorage
+        const clientId = response.data.user.id || response.data.user._id;
+        if (clientId) {
+          localStorage.setItem('clientId', clientId);
+        }
       }
       
       Swal.fire({

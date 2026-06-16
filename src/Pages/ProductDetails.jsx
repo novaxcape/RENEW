@@ -28,11 +28,25 @@ const ProductDetails = () => {
 
   const { selectedTouristCenter, touristCentresLoading, touristCentresError } =
     useSelector((state) => state.api);
-  const { isAuthenticated, userToken } = useSelector((state) => state.auth);
+  const { isAuthenticated, userToken, loggedInUser } = useSelector((state) => state.auth);
+
+  // ✅ Restore auth state from localStorage if Redux state is empty
+  useEffect(() => {
+    const token = localStorage.getItem('token') || localStorage.getItem('userToken');
+    const storedClientId = localStorage.getItem('clientId');
+    
+    // If Redux doesn't have auth but localStorage does, we're still authenticated
+    if (token && !isAuthenticated) {
+      console.log("🔐 Restoring auth state from localStorage");
+      // You could dispatch an action here to restore the state
+    }
+  }, [isAuthenticated]);
 
   // Debug authentication state
   console.log("🔐 Auth State - isAuthenticated:", isAuthenticated);
   console.log("🔐 Auth State - userToken:", userToken);
+  console.log("🔐 Auth State - loggedInUser:", loggedInUser);
+  console.log("🔐 localStorage token:", localStorage.getItem('token'));
 
   // Get passed centre from navigation state
   const passedCentre = location.state?.centre || location.state?.centreDetails;
@@ -126,11 +140,11 @@ const ProductDetails = () => {
     return pkg.amount || pkg.price || 0;
   };
 
-  // ✅ Updated handleBookNow - Redirect to Sign In instead of Sign Up
+  // ✅ Updated handleBookNow - uses localStorage as primary auth check
   const handleBookNow = (pkg) => {
     console.log("🛒 handleBookNow called for package:", pkg);
-    console.log("🔐 isAuthenticated:", isAuthenticated);
-    console.log("🔐 userToken:", userToken);
+    console.log("🔐 isAuthenticated (Redux):", isAuthenticated);
+    console.log("🔐 userToken (Redux):", userToken);
     
     // Check if package is valid
     if (!pkg) {
@@ -153,15 +167,15 @@ const ProductDetails = () => {
     localStorage.setItem('pendingBooking', JSON.stringify(bookingData));
     console.log("💾 Booking saved to localStorage:", bookingData);
 
-    // Check if user is authenticated (check both Redux state and localStorage)
-    const token = userToken || localStorage.getItem('token') || localStorage.getItem('userToken');
-    const isLoggedIn = isAuthenticated || !!token;
+    // ✅ PRIMARY AUTH CHECK: Check localStorage first (more reliable)
+    const token = localStorage.getItem('token') || localStorage.getItem('userToken');
+    const isLoggedIn = !!token; // If token exists, user is logged in
     
-    console.log("🔐 Is logged in?", isLoggedIn);
+    console.log("🔐 token from localStorage:", token);
+    console.log("🔐 Is logged in (localStorage check)?", isLoggedIn);
 
     if (!isLoggedIn) {
       console.log("➡️ Not authenticated, redirecting to signin");
-      // ✅ Changed from "/signup" to "/signin"
       navigate("/signin", { 
         state: { 
           from: `/centre/${id}`,

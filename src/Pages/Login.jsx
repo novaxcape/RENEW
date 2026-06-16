@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { z } from "zod";
@@ -20,7 +20,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const { loading: reduxLoading, error } = useSelector((state) => state.auth);
+  const { loading: reduxLoading, error, isAuthenticated } = useSelector((state) => state.auth);
   
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -39,6 +39,53 @@ const Login = () => {
 
   console.log("🔐 Login - location.state:", location.state);
   console.log("🔐 Login - bookingData from state:", bookingData);
+  console.log("🔐 Login - from:", from);
+
+  // ✅ Redirect after successful login - runs when isAuthenticated becomes true
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log("✅ Login - User authenticated, checking for redirect...");
+      
+      // Check for pending booking from state or localStorage
+      const pendingBooking = bookingData || localStorage.getItem('pendingBooking');
+      
+      console.log("📦 Login - pendingBooking:", pendingBooking);
+      
+      if (pendingBooking) {
+        let booking = pendingBooking;
+        if (typeof booking === 'string') {
+          try {
+            booking = JSON.parse(booking);
+          } catch (e) {
+            booking = pendingBooking;
+          }
+        }
+        
+        console.log("📦 Login - Parsed booking:", booking);
+        
+        // Clear the pending booking from localStorage
+        localStorage.removeItem('pendingBooking');
+        
+        // Navigate to booking summary
+        if (booking.touristId && booking.packageId) {
+          console.log("➡️ Login - Redirecting to booking summary:", `/booking-summary/${booking.touristId}/${booking.packageId}`);
+          navigate(`/booking-summary/${booking.touristId}/${booking.packageId}`, {
+            state: {
+              touristId: booking.touristId,
+              packageDetails: booking.packageDetails,
+              centreDetails: booking.centreDetails,
+            },
+            replace: true
+          });
+          return;
+        }
+      }
+      
+      // If no booking, navigate to the page they came from
+      console.log("➡️ Login - No booking found, redirecting to:", from);
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, from, bookingData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -101,6 +148,10 @@ const Login = () => {
 
       if (response.data.user) {
         dispatch(setUserDetails(response.data.user));
+        const clientId = response.data.user.id || response.data.user._id;
+        if (clientId) {
+          localStorage.setItem('clientId', clientId);
+        }
       }
 
       // ✅ Set login success to update isAuthenticated
@@ -117,44 +168,7 @@ const Login = () => {
         showConfirmButton: false,
       });
 
-      // ✅ Check for pending booking immediately after login
-      const pendingBooking = bookingData || localStorage.getItem('pendingBooking');
-      
-      console.log("📦 Login - Checking for pending booking:", pendingBooking);
-      
-      if (pendingBooking) {
-        let booking = pendingBooking;
-        if (typeof booking === 'string') {
-          try {
-            booking = JSON.parse(booking);
-          } catch (e) {
-            booking = pendingBooking;
-          }
-        }
-        
-        console.log("📦 Login - Parsed booking:", booking);
-        
-        // Clear the pending booking
-        localStorage.removeItem('pendingBooking');
-        
-        // Navigate to booking summary
-        if (booking.touristId && booking.packageId) {
-          console.log("➡️ Login - Redirecting to booking summary:", `/booking-summary/${booking.touristId}/${booking.packageId}`);
-          navigate(`/booking-summary/${booking.touristId}/${booking.packageId}`, {
-            state: {
-              touristId: booking.touristId,
-              packageDetails: booking.packageDetails,
-              centreDetails: booking.centreDetails,
-            },
-            replace: true
-          });
-          return;
-        }
-      }
-      
-      // If no booking, navigate to the page they came from
-      console.log("➡️ Login - No booking found, redirecting to:", from);
-      navigate(from, { replace: true });
+      // ✅ The useEffect will handle the redirect
 
     } catch (error) {
       console.error("Login error:", error.response?.data);

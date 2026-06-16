@@ -58,12 +58,16 @@ const toFormData = (payload) => {
   return formData;
 };
 
+// ✅ UPDATED: createThunk with better logging
 const createThunk = (type, request) =>
   createAsyncThunk(type, async (payload, thunkApi) => {
     try {
       const response = await request(payload, thunkApi);
+      console.log(`✅ ${type} - Response:`, response.data);
       return response.data;
     } catch (error) {
+      console.error(`❌ ${type} - Error:`, error);
+      console.error(`❌ ${type} - Error response:`, error.response?.data);
       return thunkApi.rejectWithValue(getErrorMessage(error));
     }
   });
@@ -187,26 +191,20 @@ export const deletePackage = createThunk(
 );
 
 // ========== TOURIST CENTRE API THUNKS ==========
-// ✅ FIXED: registerTouristCenter with proper FormData handling
 export const registerTouristCenter = createThunk(
   "api/touristCentre/register",
   async ({ vendorId, centreData }, { getState, rejectWithValue }) => {
     try {
-      // Determine if we're sending FormData or JSON
       const isFormData = centreData instanceof FormData;
-      
-      // Get auth config
       const token = getToken(getState());
       
       const headers = {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       };
       
-      // If not FormData, set Content-Type to application/json
       if (!isFormData) {
         headers['Content-Type'] = 'application/json';
       }
-      // If FormData, let the browser set the Content-Type with boundary
       
       const response = await axios.post(
         `${API_BASE_URL}/tourist/register/${vendorId}`,
@@ -221,17 +219,13 @@ export const registerTouristCenter = createThunk(
   }
 );
 
-// Updated getTouristCentersByState with proper data extraction and filtering
 export const getTouristCentersByState = createThunk(
   "api/touristCentre/getByState",
   async (state, { rejectWithValue }) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/tourist/get-all-state/${encodeURIComponent(state)}`);
-      
-      // Log the raw response to debug
       console.log("API Response for", state, ":", response.data);
       
-      // Extract centres from response - try multiple possible data paths
       let centres = [];
       if (response.data?.data && Array.isArray(response.data.data)) {
         centres = response.data.data;
@@ -241,7 +235,6 @@ export const getTouristCentersByState = createThunk(
         centres = response.data.tourists;
       }
       
-      // Filter out empty objects and invalid centres
       const validCentres = centres.filter(centre => 
         centre && 
         typeof centre === 'object' &&
@@ -336,14 +329,52 @@ export const getPaymentPlans = createThunk(
 );
 
 // ========== BOOKING API THUNKS ==========
+// ✅ UPDATED: createBooking with better error handling and logging
 export const createBooking = createThunk(
   "api/booking/create",
-  ({ touristId, packageId, bookingData }, { getState }) =>
-    axios.post(
-      `${API_BASE_URL}/booking/create/${touristId}/${packageId}`,
-      bookingData,
-      authConfig(getState())
-    )
+  async ({ touristId, packageId, bookingData }, { getState, rejectWithValue }) => {
+    try {
+      const state = getState();
+      const token = getToken(state);
+      
+      const clientId = state.auth?.loggedInUser?.id || 
+                       state.auth?.loggedInUser?._id || 
+                       localStorage.getItem('clientId');
+      
+      const payload = {
+        ...bookingData,
+        clientId: clientId,
+      };
+      
+      console.log("📦 Creating booking with payload:", JSON.stringify(payload, null, 2));
+      console.log("📦 Tourist ID:", touristId);
+      console.log("📦 Package ID:", packageId);
+      console.log("📦 Token:", token ? "Present" : "Missing");
+      
+      const response = await axios.post(
+        `${API_BASE_URL}/booking/create/${touristId}/${packageId}`,
+        payload,
+        {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      
+      console.log("✅ Booking API Response Status:", response.status);
+      console.log("✅ Booking API Response Data:", response.data);
+      
+      return response.data;
+    } catch (error) {
+      console.error("❌ Booking creation error:", error);
+      if (error.response) {
+        console.error("❌ Error response data:", error.response.data);
+        console.error("❌ Error response status:", error.response.status);
+      }
+      return rejectWithValue(getErrorMessage(error));
+    }
+  }
 );
 
 export const getAllClientBookings = createThunk(
@@ -414,7 +445,6 @@ export const getPaymentStatus = createThunk(
 
 // ========== INITIAL STATE ==========
 const initialState = {
-  // Client State
   clientLoading: false,
   clientError: null,
   clientProfile: null,
@@ -422,7 +452,6 @@ const initialState = {
   clientResetLoading: false,
   clientResetError: null,
   
-  // Vendor State
   vendorLoading: false,
   vendorError: null,
   vendorProfile: null,
@@ -431,31 +460,26 @@ const initialState = {
   vendorResetLoading: false,
   vendorResetError: null,
   
-  // Package State
   packagesLoading: false,
   packagesError: null,
   packages: [],
   selectedPackage: null,
   
-  // Tourist Centre State
   touristCentresLoading: false,
   touristCentresError: null,
   touristCentres: [],
   selectedTouristCenter: null,
   createdTouristCenter: null,
   
-  // KYC State
   kycLoading: false,
   kycError: null,
   kyc: null,
   
-  // Payment Plan State
   paymentPlanLoading: false,
   paymentPlanError: null,
   paymentPlan: null,
   paymentPlans: [],
   
-  // Booking State
   bookingLoading: false,
   bookingError: null,
   booking: null,
@@ -463,17 +487,14 @@ const initialState = {
   vendorBookings: [],
   clientBookings: [],
   
-  // Payment State
   paymentLoading: false,
   paymentError: null,
   paymentReference: null,
   paymentVerified: false,
   paymentData: null,
   
-  // Google Auth State
   googleCallback: null,
   
-  // Common State
   loading: false,
   error: null,
   successMessage: null,
@@ -484,23 +505,18 @@ const apiSlice = createSlice({
   name: "api",
   initialState,
   reducers: {
-    // Client Actions
     clearClientError: (state) => {
       state.clientError = null;
     },
     clearClientSuccess: (state) => {
       state.clientSuccessMessage = null;
     },
-    
-    // Vendor Actions
     clearVendorError: (state) => {
       state.vendorError = null;
     },
     clearVendorSuccess: (state) => {
       state.vendorSuccessMessage = null;
     },
-    
-    // Common Actions
     clearApiError: (state) => {
       state.error = null;
       state.clientError = null;
@@ -523,7 +539,6 @@ const apiSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // ========== CLIENT PROFILE ==========
       .addCase(updateClientProfile.fulfilled, (state, action) => {
         state.clientProfile = action.payload?.data || action.payload?.user || action.payload;
         state.clientSuccessMessage = "Profile updated successfully";
@@ -532,7 +547,6 @@ const apiSlice = createSlice({
         state.clientError = action.payload;
       })
       
-      // ========== CLIENT PASSWORD ==========
       .addCase(forgotClientPassword.fulfilled, (state, action) => {
         state.clientSuccessMessage = action.payload?.message || "Password reset OTP sent";
       })
@@ -559,7 +573,6 @@ const apiSlice = createSlice({
         state.clientError = action.payload;
       })
       
-      // ========== VENDOR PROFILE ==========
       .addCase(updateVendorProfile.fulfilled, (state, action) => {
         state.vendorProfile = action.payload?.data || action.payload?.vendor || action.payload;
         state.vendorSuccessMessage = "Vendor profile updated successfully";
@@ -575,7 +588,6 @@ const apiSlice = createSlice({
         state.vendorError = action.payload;
       })
       
-      // ========== VENDOR PASSWORD ==========
       .addCase(forgotVendorPassword.fulfilled, (state, action) => {
         state.vendorSuccessMessage = action.payload?.message || "Password reset OTP sent";
       })
@@ -602,12 +614,10 @@ const apiSlice = createSlice({
         state.vendorError = action.payload;
       })
       
-      // ========== GOOGLE CALLBACK ==========
       .addCase(getGoogleCallback.fulfilled, (state, action) => {
         state.googleCallback = action.payload;
       })
       
-      // ========== PACKAGES ==========
       .addCase(createPackage.pending, (state) => {
         state.packagesLoading = true;
       })
@@ -681,7 +691,6 @@ const apiSlice = createSlice({
         state.packagesError = action.payload;
       })
       
-      // ========== TOURIST CENTRES ==========
       .addCase(registerTouristCenter.pending, (state) => {
         state.touristCentresLoading = true;
       })
@@ -702,18 +711,14 @@ const apiSlice = createSlice({
       })
       .addCase(getTouristCentersByState.fulfilled, (state, action) => {
         state.touristCentresLoading = false;
-        // Get the validated data from the response
         const centres = action.payload?.data || [];
         state.touristCentres = centres;
         state.touristCentresError = null;
-        
-        // Log to debug
         console.log("Stored in Redux - touristCentres:", centres);
       })
       .addCase(getTouristCentersByState.rejected, (state, action) => {
         state.touristCentresLoading = false;
         state.touristCentres = [];
-        // Don't set error for 404
         if (action.payload?.status !== 404) {
           state.touristCentresError = action.payload;
         } else {
@@ -787,7 +792,6 @@ const apiSlice = createSlice({
         state.touristCentresError = action.payload;
       })
       
-      // ========== KYC ==========
       .addCase(createKyc.pending, (state) => {
         state.kycLoading = true;
       })
@@ -813,7 +817,6 @@ const apiSlice = createSlice({
         state.kycError = action.payload;
       })
       
-      // ========== PAYMENT PLANS ==========
       .addCase(createPaymentPlan.pending, (state) => {
         state.paymentPlanLoading = true;
       })
@@ -840,19 +843,22 @@ const apiSlice = createSlice({
         state.paymentPlanError = action.payload;
       })
       
-      // ========== BOOKINGS ==========
+      // ========== BOOKINGS REDUCERS ==========
       .addCase(createBooking.pending, (state) => {
         state.bookingLoading = true;
+        state.bookingError = null;
       })
       .addCase(createBooking.fulfilled, (state, action) => {
         state.bookingLoading = false;
         state.booking = action.payload?.booking || action.payload?.data || action.payload;
         state.userBookings = [state.booking, ...state.userBookings];
         state.successMessage = "Booking created successfully";
+        console.log("✅ Booking created in Redux:", state.booking);
       })
       .addCase(createBooking.rejected, (state, action) => {
         state.bookingLoading = false;
         state.bookingError = action.payload;
+        console.error("❌ Booking rejected in Redux:", action.payload);
       })
       
       .addCase(getAllClientBookings.pending, (state) => {
@@ -922,7 +928,7 @@ const apiSlice = createSlice({
         state.bookingError = action.payload;
       })
       
-      // ========== PAYMENTS ==========
+      // ========== PAYMENTS REDUCERS ==========
       .addCase(initializePayment.pending, (state) => {
         state.paymentLoading = true;
         state.paymentError = null;
@@ -980,7 +986,6 @@ export const {
 } = apiSlice.actions;
 
 // ========== SELECTORS ==========
-// Client Selectors
 export const selectClientProfile = (state) => state.api.clientProfile;
 export const selectClientLoading = (state) => state.api.clientLoading;
 export const selectClientError = (state) => state.api.clientError;
@@ -988,7 +993,6 @@ export const selectClientSuccess = (state) => state.api.clientSuccessMessage;
 export const selectClientResetLoading = (state) => state.api.clientResetLoading;
 export const selectClientResetError = (state) => state.api.clientResetError;
 
-// Vendor Selectors
 export const selectVendorProfile = (state) => state.api.vendorProfile;
 export const selectVendorLoading = (state) => state.api.vendorLoading;
 export const selectVendorError = (state) => state.api.vendorError;
@@ -997,31 +1001,26 @@ export const selectVendorCentres = (state) => state.api.vendorCentres;
 export const selectVendorResetLoading = (state) => state.api.vendorResetLoading;
 export const selectVendorResetError = (state) => state.api.vendorResetError;
 
-// Package Selectors
 export const selectPackages = (state) => state.api.packages;
 export const selectSelectedPackage = (state) => state.api.selectedPackage;
 export const selectPackagesLoading = (state) => state.api.packagesLoading;
 export const selectPackagesError = (state) => state.api.packagesError;
 
-// Tourist Centre Selectors
 export const selectTouristCentres = (state) => state.api.touristCentres;
 export const selectSelectedTouristCenter = (state) => state.api.selectedTouristCenter;
 export const selectTouristCentresLoading = (state) => state.api.touristCentresLoading;
 export const selectTouristCentresError = (state) => state.api.touristCentresError;
 export const selectCreatedTouristCenter = (state) => state.api.createdTouristCenter;
 
-// KYC Selectors
 export const selectKyc = (state) => state.api.kyc;
 export const selectKycLoading = (state) => state.api.kycLoading;
 export const selectKycError = (state) => state.api.kycError;
 
-// Payment Plan Selectors
 export const selectPaymentPlans = (state) => state.api.paymentPlans;
 export const selectPaymentPlan = (state) => state.api.paymentPlan;
 export const selectPaymentPlanLoading = (state) => state.api.paymentPlanLoading;
 export const selectPaymentPlanError = (state) => state.api.paymentPlanError;
 
-// Booking Selectors
 export const selectUserBookings = (state) => state.api.userBookings;
 export const selectVendorBookings = (state) => state.api.vendorBookings;
 export const selectClientBookings = (state) => state.api.clientBookings;
@@ -1029,17 +1028,14 @@ export const selectBooking = (state) => state.api.booking;
 export const selectBookingLoading = (state) => state.api.bookingLoading;
 export const selectBookingError = (state) => state.api.bookingError;
 
-// Payment Selectors
 export const selectPaymentLoading = (state) => state.api.paymentLoading;
 export const selectPaymentError = (state) => state.api.paymentError;
 export const selectPaymentReference = (state) => state.api.paymentReference;
 export const selectPaymentVerified = (state) => state.api.paymentVerified;
 export const selectPaymentData = (state) => state.api.paymentData;
 
-// Google Auth Selector
 export const selectGoogleCallback = (state) => state.api.googleCallback;
 
-// Common Selectors
 export const selectApiLoading = (state) => 
   state.api.loading || 
   state.api.clientLoading || 
