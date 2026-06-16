@@ -58,14 +58,13 @@ const Discoverpagehero = ({
 
         <p>Discover amazing tourism centres across Nigeria</p>
 
-        {/* Location Dropdown */}
         <div className="destination_btn" onClick={() => setLocationDropdownOpen(!locationDropdownOpen)}>
           <IoLocationOutline />
           <span>{selectedLocation || "Choose Destination"}</span>
           <IoChevronDown />
         </div>
 
-        {/* Dropdown Menu */}
+  
         {locationDropdownOpen && (
           <div className="location-dropdown-menu">
             {LOCATIONS.map((location) => (
@@ -80,7 +79,6 @@ const Discoverpagehero = ({
           </div>
         )}
 
-        {/* Search Bar */}
         <div className="search_container">
           <div className="search_input">
             <IoSearchOutline />

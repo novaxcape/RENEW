@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useLocation } from "react-router-dom";
 import Discoverpagehero from "../components/Discoverpagehero";
 import Discoversection from "../components/Discoversection";
 import Footer from "../components/Footer";
@@ -13,6 +14,7 @@ import {
 
 const Discoverpage = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const [searchState, setSearchState] = useState("");
   const [searchSubmitted, setSearchSubmitted] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState("");
@@ -20,6 +22,20 @@ const Discoverpage = () => {
   const touristCentres = useSelector(selectTouristCentres);
   const loading = useSelector(selectTouristCentresLoading);
   const error = useSelector(selectTouristCentresError);
+
+  // Handle state passed from PopularDestinations or other components
+  useEffect(() => {
+    if (location.state) {
+      const { searchState: stateSearch, selectedLocation: stateLocation, searchSubmitted: stateSubmitted } = location.state;
+      if (stateSearch) {
+        setSearchState(stateSearch);
+        setSelectedLocation(stateLocation || stateSearch);
+        setSearchSubmitted(true);
+        dispatch(clearApiError());
+        dispatch(getTouristCentersByState(stateSearch));
+      }
+    }
+  }, [location.state, dispatch]);
 
   const handleSearch = (searchTerm) => {
     const term = (searchTerm || searchState).trim();
@@ -40,6 +56,7 @@ const Discoverpage = () => {
         selectedLocation={selectedLocation}
         setSelectedLocation={setSelectedLocation}
         onSearch={handleSearch}
+        loading={loading}
       />
       <Discoversection
         searchState={searchState}

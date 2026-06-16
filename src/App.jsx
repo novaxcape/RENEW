@@ -23,7 +23,7 @@ import ResetPassword from "./Pages/ResetPassword";
 import LandingPage from "./Pages/LandingPage";
 import About from "./Pages/Aboutpage";
 import ForCentrePage from "./Pages/ForCentrePage";
-import Centres from "./Pages/ForCentrePage";
+// import Centres from "./Pages/ForCentrePage";
 import Support from "./Pages/Supportpage";
 import Discover from "./Pages/Discoverpage";
 import ProductDetails from "./Pages/ProductDetails";
@@ -64,67 +64,68 @@ const App = () => {
   return (
     <Routes>
     
-{/* The RootLayout houses the conditional header switcher */}
-        <Route path="/" element={<RootLayout />}>
-          {/* All pages inside here will get injected into the <Outlet /> */}
-          {/* <Route index element={<Home />} /> */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="discover" element={<Discover />} />
-          <Route path="centres" element={<Centres />} />
-          <Route path="about" element={<About />} />
-          <Route path="support" element={<Support />} />
-          {/* Add all other route tracks below */}
-        </Route>
-        {/* Client Protected Pages (Require login but keep the main header) */}
-        <Route
-          path="/wishlist"
-          element={
-            <PrivateRoute>
-              <WishList />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/payment"
-          element={
-            <PrivateRoute>
-              <PaymentOptionPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/my-bookings"
-          element={
-            <PrivateRoute>
-              <MyBookingsPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/payment-confirmation"
-          element={
-            <PrivateRoute>
-              <PaymentConfirmationPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <PrivateRoute>
-              <SettingsPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/profile-settings"
-          element={
-            <PrivateRoute>
-              <ProfileSettingPage />
-            </PrivateRoute>
-          }
-        />
-      {/* </Routes> */}
+      {/* The RootLayout houses the conditional header switcher */}
+      <Route path="/" element={<RootLayout />}>
+        {/* All pages inside here will get injected into the <Outlet /> */}
+        <Route index element={<LandingPage />} />
+        <Route path="discover" element={<Discover />} />
+        <Route path="centres" element={<ForCentrePage />} />
+        <Route path="about" element={<About />} />
+        <Route path="support" element={<Support />} />
+        {/* ✅ ADDED: Product Detail Page Route */}
+        <Route path="centre/:id" element={<ProductDetails />} />
+        {/* Add all other route tracks below */}
+      </Route>
+      
+      {/* Client Protected Pages (Require login but keep the main header) */}
+      <Route
+        path="/wishlist"
+        element={
+          <PrivateRoute>
+            <WishList />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/payment"
+        element={
+          <PrivateRoute>
+            <PaymentOptionPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/my-bookings"
+        element={
+          <PrivateRoute>
+            <MyBookingsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/payment-confirmation"
+        element={
+          <PrivateRoute>
+            <PaymentConfirmationPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <PrivateRoute>
+            <SettingsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/profile-settings"
+        element={
+          <PrivateRoute>
+            <ProfileSettingPage />
+          </PrivateRoute>
+        }
+      />
 
       <Route
         path="/signupscreen"
@@ -342,10 +343,6 @@ const App = () => {
           </PrivateRoute>
         }
       />
-
-      
-
-      {/* Fallback 404 */}
 
       {/* ========== FALLBACK for 404 ========== */}
       <Route

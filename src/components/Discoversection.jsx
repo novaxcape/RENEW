@@ -128,6 +128,27 @@ const Discoversection = ({
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("All");
 
+  // ✅ FILTER OUT EMPTY/INVALID CENTRES - Check if object has keys
+  const getValidCentres = (centres) => {
+    if (!centres || !Array.isArray(centres)) return [];
+    return centres.filter(centre => {
+      if (!centre) return false;
+      // Check if object has any keys (not empty object)
+      const hasKeys = Object.keys(centre).length > 0;
+      // Check if it has any identifying field
+      const hasData = centre.centreName || centre.name || centre.title || centre.id || centre._id || centre.centreId;
+      return hasKeys && hasData;
+    });
+  };
+
+  const validTouristCentres = getValidCentres(touristCentres);
+  const hasValidCentres = validTouristCentres.length > 0;
+
+  // Debug logs to see what's happening
+  console.log("Raw touristCentres:", touristCentres);
+  console.log("Valid touristCentres:", validTouristCentres);
+  console.log("Has valid centres:", hasValidCentres);
+
   const handleViewDetails = (centre) => {
     const centreId = centre.id || centre._id || centre.centreId;
     if (!centreId) return;
@@ -138,7 +159,7 @@ const Discoversection = ({
   };
 
   const handleBookNow = (e, centre) => {
-    e.stopPropagation(); // Prevents triggering the card click
+    e.stopPropagation();
     const centreId = centre.id || centre._id || centre.centreId;
     if (!centreId) return;
 
@@ -184,10 +205,13 @@ const Discoversection = ({
 
   // Determine what to display
   const hasActiveSearch = searchSubmitted && searchState;
+  
+  // ✅ Only use API data if we have VALID centres
   const displayCenters =
-    hasActiveSearch && touristCentres?.length > 0
-      ? touristCentres
+    hasActiveSearch && hasValidCentres
+      ? validTouristCentres
       : staticAttractions;
+      
   const filteredCenters = filterByCategory(displayCenters);
 
   return (
@@ -213,6 +237,7 @@ const Discoversection = ({
               ? `Searching for "${searchState}"...`
               : `Search results for "${searchState}"`}
           </h2>
+          {/* ✅ Show count of VALID centres, not total */}
           {!loading && !error && (
             <p>{filteredCenters.length} centre(s) found</p>
           )}
@@ -244,11 +269,11 @@ const Discoversection = ({
         </div>
       )}
 
-      {/* No Results */}
+      {/* No Results - Only show when NO VALID centres */}
       {!loading &&
         hasActiveSearch &&
         !error &&
-        touristCentres?.length === 0 && (
+        !hasValidCentres && (
           <div className="no-results-container">
             <p className="no-results-text">
               No centres found in "{searchState}". Try a different state or
@@ -264,7 +289,7 @@ const Discoversection = ({
         )}
 
       {/* Cards Grid */}
-      {!loading && !error && (
+      {!loading && !error && filteredCenters.length > 0 && (
         <div className="attractions_grid">
           {filteredCenters.map((place) => {
             // Check if this is static data (has title property) or API data
