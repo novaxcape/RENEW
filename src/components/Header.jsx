@@ -1,162 +1,99 @@
-import React, { useState } from "react";
-import "../components/css/Header.css";
-import { FaHeart, FaUser, FaBars, FaTimes } from "react-icons/fa";
-import { Link, NavLink } from "react-router-dom";
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate, Link, NavLink } from "react-router-dom";
+import "./css/PaymentHeader.css"; 
+import "./css/Header.css"
+import { FiUser, FiHeart, FiMenu, FiLogOut, FiSettings } from "react-icons/fi";
 
 const Header = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-    document.body.style.overflow = menuOpen ? "auto" : "hidden";
+  const token = localStorage.getItem("token");
+  const isLoggedIn = !!token;
+
+  const navLinks = [
+    { name: "Home", to: "/", end: true, requiresAuth: false },
+    { name: "Discover", to: "/discover", requiresAuth: false },
+    { name: "For Centres", to: "/centres", requiresAuth: false },
+    { name: "About us", to: "/about", requiresAuth: false },
+    { name: "Support", to: "/support", requiresAuth: false },
+  ];
+
+  const visibleLinks = navLinks.filter(link => !link.requiresAuth || isLoggedIn);
+
+  const toggleDropdown = (e) => {
+    e.stopPropagation();
+    setDropdownOpen(!dropdownOpen);
   };
 
-  const closeMenu = () => {
-    setMenuOpen(false);
-    document.body.style.overflow = "auto";
+  useEffect(() => {
+    const closeDropdownOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("click", closeDropdownOutside);
+    return () => document.removeEventListener("click", closeDropdownOutside);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setDropdownOpen(false);
+    navigate("/");
+    window.location.reload();
   };
 
   return (
-    <>
-      <div className="m-header">
-        <div className="m-header-body">
-          {/* LOGO */}
-          <div className="m-logo">
-            <Link to="/" onClick={closeMenu}>
-              <img
-                src="/novaxcape/logo.png"
-                alt="Novaxcape"
-                className="m-header-logo-img"
-              />
-            </Link>
-          </div>
+   <header className="payment-navbar-header">
+  <div className="p-navbar-inner-container">
 
-          {/* NAV LINKS - Desktop */}
-          <div className="m-link m-desktop-links">
-            <ul>
-              <li>
-                <NavLink
-                  to="/"
-                  end
-                  className={({ isActive }) => (isActive ? "m-active-link" : "")}
-                >
-                  Home
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/discover"
-                  className={({ isActive }) => (isActive ? "m-active-link" : "")}
-                >
-                  Discover
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/centres"
-                  className={({ isActive }) => (isActive ? "m-active-link" : "")}
-                >
-                  For Centres
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/about"
-                  className={({ isActive }) => (isActive ? "m-active-link" : "")}
-                >
-                  About us
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/support"
-                  className={({ isActive }) => (isActive ? "m-active-link" : "")}
-                >
-                  Support
-                </NavLink>
-              </li>
-            </ul>
-          </div>
+    {/* Logo */}
+    <div className="p-navbar-logo-wrapper">
+      <Link to="/">
+        <img
+          src="/novaxcape/logo.png"
+          alt="novaxcape"
+          className="p-navbar-brand-logo"
+        />
+      </Link>
+    </div>
 
-          {/* RIGHT SIDE / ACTION BUTTONS */}
-          <div className="m-button">
-            {/* MOBILE ICONS */}
-            <div className="m-mobile-icons">
-              <FaHeart />
-              <FaUser />
-              <FaBars className="m-hamburger" onClick={toggleMenu} />
-            </div>
+    {/* Center Navigation */}
+    <nav className="p-navbar-navigation-links">
+      {visibleLinks.map((link) => (
+        <NavLink
+          key={link.to}
+          to={link.to}
+          end={link.end}
+          className={({ isActive }) =>
+            `p-nav-item-link ${isActive ? "p-nav-active" : ""}`
+          }
+        >
+          {link.name}
+        </NavLink>
+      ))}
+    </nav>
 
-            {/* DESKTOP BUTTONS */}
-            <div className="m-desktop-buttons">
-              <Link to="/signinscreen">
-                <button className="m-signin-btn">Sign In</button>
-              </Link>
-              <Link to="/signupscreen">
-                <button className="m-signup-btn">Sign Up</button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ===== MOBILE OVERLAY MENU ===== */}
-      <div className={`m-mobile-overlay ${menuOpen ? "m-active" : ""}`}>
-        <div className="m-overlay-header">
-          <div className="m-overlay-logo">
-            <img src="/novaxcape/logo.png" alt="Novaxcape" />
-          </div>
-          <button className="m-close-btn" onClick={toggleMenu}>
-            <FaTimes />
+    {/* Right Buttons */}
+    {!isLoggedIn && (
+      <div className="p-desktop-auth-buttons">
+        <Link to="/signupscreen">
+          <button className="m-signup-btn">
+            Sign Up
           </button>
-        </div>
+        </Link>
 
-        <div className="m-overlay-links">
-          <ul>
-            <li>
-              <NavLink to="/" onClick={closeMenu} end className={({ isActive }) => (isActive ? "m-active-link" : "")}>
-                Home
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/discover" onClick={closeMenu} className={({ isActive }) => (isActive ? "m-active-link" : "")}>
-                Discover
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/my-bookings" onClick={closeMenu} className={({ isActive }) => (isActive ? "m-active-link" : "")}>
-                My Bookings
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/centres" onClick={closeMenu} className={({ isActive }) => (isActive ? "m-active-link" : "")}>
-                For Centres
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/about" onClick={closeMenu} className={({ isActive }) => (isActive ? "m-active-link" : "")}>
-                About Us
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/support" onClick={closeMenu} className={({ isActive }) => (isActive ? "m-active-link" : "")}>
-                Support
-              </NavLink>
-            </li>
-            
-            {/* MOBILE AUTH LINKS */}
-            <li className="m-mobile-auth-links">
-              <NavLink to="/signup" onClick={closeMenu} className="m-mobile-signup">
-                Sign Up
-              </NavLink>
-              <NavLink to="/signinscreen" onClick={closeMenu} className="m-mobile-signin">
-                Sign In
-              </NavLink>
-            </li>
-          </ul>
-        </div>
+        <Link to="/signinscreen">
+          <button className="m-signin-btn">
+            Sign In
+          </button>
+        </Link>
       </div>
-    </>
+    )}
+
+  </div>
+</header>
   );
 };
 

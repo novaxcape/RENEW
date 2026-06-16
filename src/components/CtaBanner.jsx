@@ -11,7 +11,7 @@ const CtaBanner = () => {
         <div className="circle-bottom-right-inner"></div>
 
         <div className="cta-content">
-          <div className="badge-wrapper">
+          <div className="cta-badge-wrapper">
             <span className="cta-badge">Start Your Adventure today</span>
           </div>
           

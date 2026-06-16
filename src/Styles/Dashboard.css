@@ -12,11 +12,14 @@
 
 .dashboard-content {
   flex: 1;
-  padding: 10px;
+  min-width: 0;
+  overflow-y: auto;
+  height: 100vh;
+  padding: 0;
   position: relative;
   display: flex;
   flex-direction: column;
-  min-width: 0;
+  margin-left: 260px;
 }
 
 .sticky-wrapper {
@@ -72,11 +75,12 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
   height: 100vh;
-  overflow: hidden;
-  z-index: 100;
+  overflow-y: auto;
+  z-index: 50;
 }
 
 .sidebar-top {
@@ -95,13 +99,12 @@
 }
 
 .logo-img {
-  width: 100%;         /* fill available space */
-  max-width: 180px;    /* cap it so it doesn't overflow */
+  width: 100%;
+  max-width: 180px;
   height: auto;
   margin-bottom: 6px;
   object-fit: contain;
 }
-
 
 .admin-portal-text {
   font-size: 15px;
@@ -381,6 +384,7 @@
 
 .search-bar {
   width: 500px;
+  max-width: 100%;
   height: 44px;
   background: #CCE0EC;
   border: none;
@@ -390,7 +394,7 @@
   gap: 10px;
   padding: 0 20px;
   transition: all 0.25s ease;
-  flex-shrink: 0;
+  flex-shrink: 1;
   margin-left: 8px;
 }
 
@@ -1230,6 +1234,7 @@ tbody tr:hover td {
   .dashboard-content {
     padding: 0;
     width: 100%;
+    margin-left: 0;
   }
 
   .top-navbar {

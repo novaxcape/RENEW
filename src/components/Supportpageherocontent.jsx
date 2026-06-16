@@ -20,7 +20,7 @@ const Supportpageherocontent = () => {
 
       <section className="support-content-image">
         <div className="support-image">
-          <img src="/novaxcape/supportheroimage.png" alt="" />
+          <img src="/novaxcape/supportImg.png" alt="" />
         </div>
       </section>
     </main>

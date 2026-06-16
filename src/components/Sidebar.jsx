@@ -72,7 +72,7 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
               alt="exit"
               style={{ width: "20px", height: "20px" }}
             />
-            <span>Exit Patner Portal</span>
+            <span>Exit Partner Portal</span>
           </div>
         </div>
       </aside>
