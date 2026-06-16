@@ -8,6 +8,7 @@ import {
   FaCheckCircle,
   FaHeart,
   FaRegHeart,
+  FaShareAlt,
 } from "react-icons/fa";
 
 import "../Styles/Product.css";
@@ -21,6 +22,7 @@ const ProductDetails = () => {
   const location = useLocation();
   const dispatch = useDispatch();
   const [isWishlist, setIsWishlist] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
 
   const { selectedTouristCenter, touristCentresLoading, touristCentresError } =
     useSelector((state) => state.api);
@@ -148,6 +150,36 @@ const ProductDetails = () => {
     return stars;
   };
 
+  // Get truncated description
+  const getDescription = () => {
+    if (showFullDescription || description.length <= 200) {
+      return description;
+    }
+    return description.slice(0, 200) + "...";
+  };
+
+  // Sample reviews (will be replaced with API data)
+  const reviews = [
+    {
+      id: 1,
+      name: "Nnaneme D.",
+      rating: 5,
+      comment: "Absolutely loved the canopy walkway! It was so long and the view from the top is breathtaking. A must-visit for anyone in Lagos. Very well maintained."
+    },
+    {
+      id: 2,
+      name: "Tunde S.",
+      rating: 4,
+      comment: "Perfect for a family outing. My kids enjoyed the canopy walk and the playground area. The boardwalks are clean and safe. Highly recommended!"
+    },
+    {
+      id: 3,
+      name: "Salewa Ahmed",
+      rating: 4,
+      comment: "The place is beautiful and peaceful. Saw so many monkeys and birds. However, the ticket price is a bit high compared to other parks. Still worth it though."
+    }
+  ];
+
   return (
     <>
       <Header />
@@ -180,9 +212,75 @@ const ProductDetails = () => {
                 onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1506744038136-46273834b3fb"; }}
               />
             </div>
+            <div className="side-images">
+              {images.slice(1, 3).map((img, index) => (
+                <img
+                  key={index}
+                  src={img || "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee"}
+                  alt=""
+                  onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee"; }}
+                />
+              ))}
+              {images.length < 2 && (
+                <>
+                  <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee" alt="" />
+                  <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e" alt="" />
+                </>
+              )}
+            </div>
           </section>
 
           <hr className="divider" />
+
+          {/* FEATURES */}
+          <section className="features">
+            <div className="feature">
+              <FaCheckCircle className="feature-icon" />
+              <div>
+                <h4>Duration</h4>
+                <p>1 Day</p>
+              </div>
+            </div>
+            <div className="feature">
+              <FaCheckCircle className="feature-icon" />
+              <div>
+                <h4>Activity Level</h4>
+                <p>Topnotch</p>
+              </div>
+            </div>
+            <div className="feature">
+              <FaCheckCircle className="feature-icon" />
+              <div>
+                <h4>Includes</h4>
+                <p>Ticket, Transportation, Equipment</p>
+              </div>
+            </div>
+          </section>
+
+          {/* DESCRIPTION */}
+          <section className="description-section">
+            <div className="description">
+              <h2>Description</h2>
+              <p>{getDescription()}</p>
+              {description.length > 200 && (
+                <button 
+                  className="readmore-btn"
+                  onClick={() => setShowFullDescription(!showFullDescription)}
+                >
+                  {showFullDescription ? "Read Less" : "Read More"}
+                </button>
+              )}
+              <div className="actions">
+                <button className="book-btn" onClick={() => packages.length > 0 && handleBookNow(packages[0])}>
+                  Book Now
+                </button>
+                <button className="fav-btn" onClick={() => setIsWishlist(!isWishlist)}>
+                  {isWishlist ? "Remove from Favourite" : "Add to Favourite"}
+                  {isWishlist ? <FaHeart color="#ff6b35" /> : <FaRegHeart />}
+                </button>
+              </div>
+            </div>
+          </section>
 
           {/* PACKAGES SECTION */}
           {packages.length > 0 && (
@@ -204,19 +302,52 @@ const ProductDetails = () => {
             </section>
           )}
 
-          {/* DESCRIPTION */}
-          <section className="description-section">
-            <div className="description">
-              <h2>Description</h2>
-              <p>{description}</p>
-              <div className="actions">
-                <button className="book-btn" onClick={() => packages.length > 0 && handleBookNow(packages[0])}>
-                  Book Now
-                </button>
-                <button className="fav-btn" onClick={() => setIsWishlist(!isWishlist)}>
-                  {isWishlist ? "Remove from Favourite" : "Add to Favourite"}
-                  {isWishlist ? <FaHeart color="#ff6b35" /> : <FaRegHeart />}
-                </button>
+          {/* REVIEWS */}
+          <section className="reviews">
+            <h2>View all Reviews</h2>
+            <div className="review-grid">
+              {reviews.map((review) => (
+                <div className="review-card" key={review.id}>
+                  <h4>{review.name}</h4>
+                  <div className="review-stars">
+                    {[...Array(5)].map((_, i) => (
+                      <FaStar 
+                        key={i} 
+                        color={i < review.rating ? "#ff6b35" : "#ddd"} 
+                      />
+                    ))}
+                  </div>
+                  <p>{review.comment}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* DESTINATIONS YOU MAY ALSO LIKE */}
+          <section className="recommendations">
+            <h2>Destinations you may also like</h2>
+            <div className="destination-grid">
+              <div className="destination-card">
+                <img src="https://images.unsplash.com/photo-1511497584788-876760111969" alt="" />
+                <div className="card-content">
+                  <h4>Olumo Rock</h4>
+                  <p>Abeokuta</p>
+                  <div className="card-footer">
+                    <span>From ₦2,000</span>
+                    <button>Book Now</button>
+                  </div>
+                </div>
+              </div>
+              <div className="destination-card">
+                <img src="https://images.unsplash.com/photo-1511818966892-d7d671e672a2" alt="" />
+                <div className="card-content">
+                  <h4>Mapo Hall</h4>
+                  <p>Ibadan</p>
+                  <div className="card-footer">
+                    <span>From ₦1,500</span>
+                    <button>Book Now</button>
+                  </div>
+                </div>
               </div>
             </div>
           </section>

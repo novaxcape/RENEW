@@ -17,7 +17,7 @@ const WhyPartner = () => {
         <div className="why-partner-column-left">
           <div className="partner-feature-card blue-border">
             <div className="feature-icon-box blue-bg">
-              <FiUsers className="feature-icon blue-text" />
+              <FiUsers className="feature-icon" />
             </div>
             <h3 className="feature-title">Reach More Visitors</h3>
             <p className="feature-description">
@@ -27,7 +27,7 @@ const WhyPartner = () => {
 
           <div className="partner-feature-card orange-border">
             <div className="feature-icon-box blue-bg">
-              <FiDollarSign className="feature-icon blue-text" />
+              <FiDollarSign className="feature-icon" />
             </div>
             <h3 className="feature-title">Increase Revenue</h3>
             <p className="feature-description">
@@ -49,7 +49,7 @@ const WhyPartner = () => {
         <div className="why-partner-column-right">
           <div className="partner-feature-card blue-border">
             <div className="feature-icon-box blue-bg">
-              <FiTrendingUp className="feature-icon blue-text" />
+              <FiTrendingUp className="feature-icon" />
             </div>
             <h3 className="feature-title">Grow Your Business</h3>
             <p className="feature-description">
@@ -59,7 +59,7 @@ const WhyPartner = () => {
 
           <div className="partner-feature-card orange-border">
             <div className="feature-icon-box blue-bg">
-              <FiShield className="feature-icon blue-text" />
+              <FiShield className="feature-icon" />
             </div>
             <h3 className="feature-title">Secure Payments</h3>
             <p className="feature-description">

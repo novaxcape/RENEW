@@ -5,7 +5,7 @@ import "../Styles/Dashboard.css";
 
 const RevenueTrendPage = () => {
   return (
-    <div className="dashboard-content">
+    <>
       <div className="sticky-wrapper">
         <TopNavbar />
       </div>
@@ -19,7 +19,7 @@ const RevenueTrendPage = () => {
         <RevenueChart />
         <TicketDonutChart />
       </div>
-    </div>
+    </>
   );
 };
 

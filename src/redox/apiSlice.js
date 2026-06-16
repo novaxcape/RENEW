@@ -197,15 +197,44 @@ export const registerTouristCenter = createThunk(
     )
 );
 
-// Updated getTouristCentersByState with better error handling for 404
+// Updated getTouristCentersByState with proper data extraction and filtering
 export const getTouristCentersByState = createThunk(
   "api/touristCentre/getByState",
   async (state, { rejectWithValue }) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/tourist/get-all-state/${encodeURIComponent(state)}`);
-      return response.data;
+      
+      // Log the raw response to debug
+      console.log("API Response for", state, ":", response.data);
+      
+      // Extract centres from response - try multiple possible data paths
+      let centres = [];
+      if (response.data?.data && Array.isArray(response.data.data)) {
+        centres = response.data.data;
+      } else if (Array.isArray(response.data)) {
+        centres = response.data;
+      } else if (response.data?.tourists && Array.isArray(response.data.tourists)) {
+        centres = response.data.tourists;
+      }
+      
+      // Filter out empty objects and invalid centres
+      const validCentres = centres.filter(centre => 
+        centre && 
+        typeof centre === 'object' &&
+        Object.keys(centre).length > 0 &&
+        (centre.centreName || centre.name || centre.id || centre._id || centre.title)
+      );
+      
+      console.log("Valid centres after filtering:", validCentres);
+      
+      return { 
+        data: validCentres, 
+        count: validCentres.length,
+        originalCount: centres.length,
+        message: response.data?.message || "Centers found"
+      };
     } catch (error) {
-      // For 404 errors, return empty data instead of rejecting
+      console.error("Error fetching centres:", error);
       if (error.response?.status === 404) {
         return { data: [], count: 0, message: "No centers found in this state" };
       }
@@ -649,18 +678,21 @@ const apiSlice = createSlice({
       })
       .addCase(getTouristCentersByState.fulfilled, (state, action) => {
         state.touristCentresLoading = false;
-        // Handle both success and 404 fallback responses
-        const centres = action.payload?.data || action.payload?.tourists || [];
+        // Get the validated data from the response
+        const centres = action.payload?.data || [];
         state.touristCentres = centres;
         state.touristCentresError = null;
+        
+        // Log to debug
+        console.log("Stored in Redux - touristCentres:", centres);
       })
       .addCase(getTouristCentersByState.rejected, (state, action) => {
         state.touristCentresLoading = false;
-        // Don't set error for 404 since we handled it in the thunk
+        state.touristCentres = [];
+        // Don't set error for 404
         if (action.payload?.status !== 404) {
           state.touristCentresError = action.payload;
         } else {
-          state.touristCentres = [];
           state.touristCentresError = null;
         }
       })

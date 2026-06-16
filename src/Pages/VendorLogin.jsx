@@ -31,7 +31,7 @@ const VendorLogin = () => {
   const [loading, setLoadingState] = useState(false);
   const [error, setErrorState] = useState("");
   const [formData, setFormData] = useState({ email: "", password: "" });
-
+  const center = localStorage.getItem("centerName")
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));

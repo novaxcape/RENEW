@@ -5,7 +5,7 @@ import PaymentHeader from '../components/PaymentHeader'
 const PaymentOptionPage = () => {
   return (
     <div>
-      <PaymentHeader/>
+      
       <PaymentCheckout/>
       <Footer/>
     </div>
