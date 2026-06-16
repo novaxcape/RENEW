@@ -57,6 +57,9 @@ import VendorChangePassword from "./Pages/VendorChangePassword";
 import DashboardPackageActive from "./Pages/DashboardPackageActive";
 import DashboardPackageInactive from "./Pages/DashboardPackageInactive";
 
+// Booking Summary Page
+import BookingSummaryPage from "./Pages/BookingSummaryPage";
+
 // Shared layout configuration to render Fixed Header automatically
 
 
@@ -69,12 +72,11 @@ const App = () => {
           {/* All pages inside here will get injected into the <Outlet /> */}
           {/* <Route index element={<Home />} /> */}
           <Route path="/" element={<LandingPage />} />
-          <Route path="discover" element={<Discover />} />
-          <Route path="centres" element={<Centres />} />
-          <Route path="about" element={<About />} />
-          <Route path="support" element={<Support />} />
-          {/* Add all other route tracks below */}
-        </Route>
+          <Route path="/centres" element={<ForCentrePage/>} />
+          <Route path="/about" element={<About/>} />
+          <Route path="/discover" element={<Discover/>} />
+          <Route path="/support" element={<Support/>} />
+
         {/* Client Protected Pages (Require login but keep the main header) */}
         <Route
           path="/wishlist"
@@ -85,7 +87,15 @@ const App = () => {
           }
         />
         <Route
-          path="/payment"
+          path="/booking-summary"
+          element={
+            <PrivateRoute>
+              <BookingSummaryPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/payment/:packageId"
           element={
             <PrivateRoute>
               <PaymentOptionPage />
@@ -124,6 +134,7 @@ const App = () => {
             </PrivateRoute>
           }
         />
+        </Route>
       {/* </Routes> */}
 
       <Route
@@ -255,14 +266,6 @@ const App = () => {
         }
       />
       <Route
-        path="/payment/:packageId"
-        element={
-          <PrivateRoute>
-            <PaymentOptionPage />
-          </PrivateRoute>
-        }
-      />
-      <Route
         path="/my-bookings"
         element={
           <PrivateRoute>
@@ -342,8 +345,6 @@ const App = () => {
           </PrivateRoute>
         }
       />
-
-      
 
       {/* Fallback 404 */}
 

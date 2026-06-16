@@ -5,7 +5,7 @@ import Footer from '../components/Footer'
 const BookingSummaryPage = () => {
   return (
     <div>
-      <PaymentHeader/>
+      
       <BookingSummary/>
        <Footer/>
     </div>
