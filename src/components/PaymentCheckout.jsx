@@ -5,48 +5,54 @@ import { CiCalendar } from "react-icons/ci";
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
-import { getPaymentPlans, createBooking } from '../redox/apiSlice';
+import { getPaymentPlans, initializePayment } from '../redox/apiSlice';
 
 const PaymentCheckout = () => {
   const navigate = useNavigate();
-  const { touristId, packageId } = useParams();
+  const { bookingId } = useParams();
   const location = useLocation();
   const dispatch = useDispatch();
   
   const [selectedPlanId, setSelectedPlanId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
+  const [paymentInitialized, setPaymentInitialized] = useState(false);
   
+  // ✅ Get state from Redux
   const { paymentPlans, paymentPlanLoading } = useSelector((state) => state.api);
-  const { bookingLoading } = useSelector((state) => state.api);
-  const { loggedInUser } = useSelector((state) => state.auth);
+  const { loggedInUser, userToken } = useSelector((state) => state.auth);
+  const { paymentLoading, paymentError, paymentData } = useSelector((state) => state.api);
 
   // Get booking data from location state
   const bookingData = location.state || {};
-  const totalAmount = bookingData.totalAmount || 0;
+  const totalAmount = bookingData.amount || bookingData.totalAmount || 0;
   const subtotal = bookingData.subtotal || 0;
   const serviceFee = bookingData.serviceFee || 0;
   const centreDetails = bookingData.centreDetails || {};
   const packageDetails = bookingData.packageDetails || {};
-  const clientId = bookingData.clientId || loggedInUser?.id || localStorage.getItem('clientId');
-  const date = bookingData.date || '';
-  const ticketDetails = bookingData.ticketDetails || [];
+  const packageId = packageDetails?.id || bookingData.packageId;
+  const clientId = loggedInUser?.id || localStorage.getItem('clientId');
 
   console.log("📄 PaymentCheckout - Mounted");
-  console.log("📄 touristId:", touristId);
-  console.log("📄 packageId:", packageId);
+  console.log("📄 bookingId from URL:", bookingId);
   console.log("📄 bookingData:", bookingData);
-  console.log("📄 clientId:", clientId);
-  console.log("📄 date:", date);
+  console.log("📄 totalAmount:", totalAmount);
+  console.log("📄 isInstallment:", bookingData.isInstallment);
 
-  // Fetch payment plans when component mounts
+  // Fetch payment plans when component mounts (for installment)
   useEffect(() => {
-    if (packageId) {
+    if (bookingData.isInstallment && packageId) {
       dispatch(getPaymentPlans(packageId));
-    } else {
-      console.warn("⚠️ No packageId found, using static data");
     }
-  }, [dispatch, packageId]);
+  }, [dispatch, packageId, bookingData.isInstallment]);
+
+  // ✅ Auto-initialize payment for non-installment bookings
+  useEffect(() => {
+    if (bookingId && !bookingData.isInstallment && !paymentInitialized && !paymentLoading) {
+      // Auto-init payment for regular bookings
+      handleContinueToPayment(true);
+    }
+  }, [bookingId, bookingData.isInstallment, paymentInitialized, paymentLoading]);
 
   // Format currency
   const formatNaira = (amount) => {
@@ -69,13 +75,26 @@ const PaymentCheckout = () => {
     setSelectedPlan(plan);
   };
 
-  // Handle continue to payment - create booking first then go to payment
-  const handleContinueToPayment = async () => {
-    if (!selectedPlanId) {
+  // ✅ Main handler for continue to payment using Redux thunk
+  const handleContinueToPayment = async (autoInit = false) => {
+    // For installment, validate plan selection
+    if (bookingData.isInstallment && !autoInit) {
+      if (!selectedPlanId) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Select a Plan',
+          text: 'Please select an installment plan to continue.',
+          confirmButtonColor: '#ff6b35',
+        });
+        return;
+      }
+    }
+
+    if (!bookingId) {
       Swal.fire({
-        icon: 'warning',
-        title: 'Select a Plan',
-        text: 'Please select an installment plan to continue.',
+        icon: 'error',
+        title: 'Booking Not Found',
+        text: 'Invalid booking. Please try again.',
         confirmButtonColor: '#ff6b35',
       });
       return;
@@ -92,99 +111,187 @@ const PaymentCheckout = () => {
       return;
     }
 
-    if (!date) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Missing Date',
-        text: 'Please select a visit date.',
-        confirmButtonColor: '#ff6b35',
-      });
-      return;
-    }
-
     setLoading(true);
 
     try {
-      // ✅ Create booking with installment plan
-      const bookingDataPayload = {
-        date: date,
-        numberOfPeople: bookingData.numberOfPeople || 1,
-        specialRequests: "",
-        ticketDetails: ticketDetails,
-        totalAmount: totalAmount,
-        clientId: clientId,
-        isInstallment: true,
-        paymentPlanId: selectedPlanId,
-        paymentPlan: selectedPlan,
+      // ✅ Prepare payment data
+      const paymentDataPayload = {
+        amount: totalAmount,
+        currency: 'NGN',
+        // If installment, include plan details
+        ...(selectedPlanId && {
+          planId: selectedPlanId,
+          isInstallment: true,
+        }),
+        callbackUrl: `${window.location.origin}/booking-confirmation/${bookingId}`,
+        metadata: {
+          bookingId: bookingId,
+          isInstallment: !!selectedPlanId,
+          planDetails: selectedPlan,
+          centreName: centreDetails?.centreName || centreDetails?.name,
+          packageName: packageDetails?.packageName,
+          clientId: clientId,
+        }
       };
 
-      console.log("📄 Creating booking with installment plan:", bookingDataPayload);
+      console.log("📄 Initializing payment with:", paymentDataPayload);
 
-      const result = await dispatch(createBooking({
-        touristId: touristId,
-        packageId: packageId,
-        bookingData: bookingDataPayload,
+      // ✅ Dispatch the Redux thunk
+      const result = await dispatch(initializePayment({
+        bookingId: bookingId,
+        paymentData: paymentDataPayload,
       })).unwrap();
 
-      console.log("✅ Booking created:", result);
+      console.log("✅ Payment initialized:", result);
 
-      if (!result) {
-        throw new Error('No response from server');
+      setPaymentInitialized(true);
+
+      // ✅ Extract data from response
+      const paymentResult = result?.data || result;
+      const redirectUrl = paymentResult?.redirect_url || 
+                         paymentResult?.authorization_url ||
+                         paymentResult?.paymentUrl ||
+                         result?.redirect_url;
+
+      const paymentReference = paymentResult?.reference || result?.reference;
+      const paymentStatus = paymentResult?.status || result?.status;
+
+      // ✅ Handle redirect to payment gateway
+      if (redirectUrl) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Redirecting to Payment Gateway',
+          text: 'You will be redirected to complete your payment.',
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        
+        window.location.href = redirectUrl;
+        
+      } else if (paymentReference) {
+        // Payment initialized but no redirect URL
+        Swal.fire({
+          icon: 'info',
+          title: 'Payment Initiated',
+          html: `
+            <p>Your payment has been initiated.</p>
+            <p><strong>Reference:</strong> ${paymentReference}</p>
+            <p><strong>Status:</strong> ${paymentStatus || 'Pending'}</p>
+            <p>Please check your email for payment instructions.</p>
+          `,
+          confirmButtonColor: '#ff6b35',
+        }).then(() => {
+          navigate(`/booking-confirmation/${bookingId}`, {
+            state: {
+              bookingId: bookingId,
+              amount: totalAmount,
+              paymentReference: paymentReference,
+              selectedPlanId: selectedPlanId,
+              selectedPlan: selectedPlan,
+              centreDetails: centreDetails,
+              packageDetails: packageDetails,
+              isInstallment: !!selectedPlanId,
+            }
+          });
+        });
+        
+      } else {
+        // Fallback - show success
+        Swal.fire({
+          icon: 'success',
+          title: 'Booking Confirmed!',
+          text: 'Your booking has been confirmed. Please check your email for details.',
+          confirmButtonColor: '#ff6b35',
+        }).then(() => {
+          navigate(`/booking-confirmation/${bookingId}`, {
+            state: {
+              bookingId: bookingId,
+              amount: totalAmount,
+              selectedPlanId: selectedPlanId,
+              selectedPlan: selectedPlan,
+              centreDetails: centreDetails,
+              packageDetails: packageDetails,
+              isInstallment: !!selectedPlanId,
+            }
+          });
+        });
       }
-
-      const bookingId = result?.data?.id || 
-                        result?.booking?.id || 
-                        result?.id ||
-                        result?.data?.bookingId ||
-                        result?.bookingId;
-
-      console.log("📄 Booking ID:", bookingId);
-
-      if (!bookingId) {
-        throw new Error('Could not retrieve booking ID from server response');
-      }
-
-      // ✅ Navigate to payment with the booking ID
-      navigate(`/payment/${bookingId}`, {
-        state: {
-          bookingId: bookingId,
-          amount: totalAmount,
-          selectedPlanId: selectedPlanId,
-          selectedPlan: selectedPlan,
-          bookingDetails: result,
-          centreDetails: centreDetails,
-          packageDetails: packageDetails,
-          isInstallment: true,
-        }
-      });
 
     } catch (error) {
-      console.error("Payment error:", error);
+      console.error("❌ Payment error:", error);
+      
+      let errorMessage = 'Unable to process payment. Please try again.';
+      if (error === 'Please log in to continue' || error?.message?.includes('login')) {
+        errorMessage = 'Please log in to continue with payment.';
+      } else if (error?.message?.includes('404') || error?.message?.includes('not found')) {
+        errorMessage = 'Booking not found. Please try again.';
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
       Swal.fire({
         icon: 'error',
         title: 'Payment Error',
-        text: error?.message || 'Unable to process payment. Please try again.',
+        text: errorMessage,
         confirmButtonColor: '#ff6b35',
+        confirmButtonText: 'Try Again',
       });
     } finally {
       setLoading(false);
     }
   };
 
-  // Get plans from API or use static fallback
+  // Get plans from API or use fallback
   const plans = paymentPlans && paymentPlans.length > 0 ? paymentPlans : [
     { id: '1', durationInMonths: 1, frequency: 'monthly', installmentAmount: Math.ceil(totalAmount / 1) },
     { id: '2', durationInMonths: 2, frequency: 'monthly', installmentAmount: Math.ceil(totalAmount / 2) },
     { id: '3', durationInMonths: 3, frequency: 'monthly', installmentAmount: Math.ceil(totalAmount / 3) },
   ];
 
-  // Render loading state
-  if (paymentPlanLoading) {
+  // Loading state for auto-init
+  if (loading && !bookingData.isInstallment) {
+    return (
+      <div className="payment-page-wrapper">
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p>Initializing payment...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state for installment plans
+  if (bookingData.isInstallment && paymentPlanLoading) {
     return (
       <div className="payment-page-wrapper">
         <div className="loading-container">
           <div className="spinner"></div>
           <p>Loading payment plans...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Payment error display
+  if (paymentError && !bookingData.isInstallment) {
+    return (
+      <div className="payment-page-wrapper">
+        <div className="error-container">
+          <h2>Payment Error</h2>
+          <p>{paymentError}</p>
+          <button 
+            className="checkout-submit-btn" 
+            onClick={() => handleContinueToPayment(true)}
+          >
+            Retry Payment
+          </button>
+          <button 
+            className="back-nav-btn" 
+            onClick={() => navigate(-1)}
+            style={{ marginTop: '12px' }}
+          >
+            Go Back
+          </button>
         </div>
       </div>
     );
@@ -199,63 +306,75 @@ const PaymentCheckout = () => {
 
       <div className="payment-page-header">
         <h1 className="main-title">Payment</h1>
-        <p className="main-subtitle">Choose your payment plan and complete your booking</p>
+        <p className="main-subtitle">
+          {bookingData.isInstallment 
+            ? 'Choose your payment plan and complete your booking'
+            : 'Complete your payment to confirm your booking'
+          }
+        </p>
       </div>
 
-      <div className="installment-banner-container">
-        <div className="installment-banner-card">
-          <div className="banner-icon-box">
-            <CiCalendar size={28}/>
+      {/* Installment Banner - Only for installment bookings */}
+      {bookingData.isInstallment && (
+        <div className="installment-banner-container">
+          <div className="installment-banner-card">
+            <div className="banner-icon-box">
+              <CiCalendar size={28}/>
+            </div>
+            <h2 className="banner-title">Installment Payment</h2>
+            <p className="banner-subtitle">Split payment into smaller amount</p>
+            <span className="banner-badge">Flexible plan Available</span>
           </div>
-          <h2 className="banner-title">Installment Payment</h2>
-          <p className="banner-subtitle">Split payment into smaller amount</p>
-          <span className="banner-badge">Flexible plan Available</span>
         </div>
-      </div>
+      )}
 
       <div className="payment-layout-container">
         
-        <div className="plan-selector-card">
-          <h3 className="card-section-heading">Choose Installment Plan</h3>
+        {/* Plan Selector - Only for installment bookings */}
+        {bookingData.isInstallment && (
+          <div className="plan-selector-card">
+            <h3 className="card-section-heading">Choose Installment Plan</h3>
 
-          <div className="plans-list-wrapper">
-            {plans.map((plan) => {
-              const installmentAmount = plan.installmentAmount || calculateInstallment(plan);
-              const isSelected = selectedPlanId === plan.id;
-              const frequency = plan.frequency || 'monthly';
-              const duration = plan.durationInMonths || 1;
-              
-              return (
-                <div 
-                  key={plan.id}
-                  className={`plan-option-row ${isSelected ? 'selected' : ''}`}
-                  onClick={() => handlePlanSelect(plan.id)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <div className="plan-left-meta">
-                    <span className="plan-duration-title">{duration} Month{duration > 1 ? 's' : ''}</span>
-                    <span className="plan-interval-subtitle">{frequency} payment</span>
+            <div className="plans-list-wrapper">
+              {plans.map((plan) => {
+                const installmentAmount = plan.installmentAmount || calculateInstallment(plan);
+                const isSelected = selectedPlanId === plan.id;
+                const frequency = plan.frequency || 'monthly';
+                const duration = plan.durationInMonths || 1;
+                
+                return (
+                  <div 
+                    key={plan.id}
+                    className={`plan-option-row ${isSelected ? 'selected' : ''}`}
+                    onClick={() => handlePlanSelect(plan.id)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <div className="plan-left-meta">
+                      <span className="plan-duration-title">{duration} Month{duration > 1 ? 's' : ''}</span>
+                      <span className="plan-interval-subtitle">{frequency} payment</span>
+                    </div>
+                    <div className="plan-right-price">
+                      <span className="plan-price-value">{formatNaira(installmentAmount)}</span>
+                      <span className="plan-price-label">Per {frequency}</span>
+                    </div>
                   </div>
-                  <div className="plan-right-price">
-                    <span className="plan-price-value">{formatNaira(installmentAmount)}</span>
-                    <span className="plan-price-label">Per {frequency}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="plan-info-alert-box">
-            <div className="info-alert-header">
-              <LuShield className="info-alert-icon" />
-              <span className="info-alert-title">Installment plan detail</span>
+                );
+              })}
             </div>
-            <p className="info-alert-text">
-              First payment due today. Subsequent payments will be automatically charged {selectedPlan?.frequency || 'monthly'}.
-            </p>
-          </div>
-        </div>
 
+            <div className="plan-info-alert-box">
+              <div className="info-alert-header">
+                <LuShield className="info-alert-icon" />
+                <span className="info-alert-title">Installment plan detail</span>
+              </div>
+              <p className="info-alert-text">
+                First payment due today. Subsequent payments will be automatically charged {selectedPlan?.frequency || 'monthly'}.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Booking Summary Card */}
         <div className="booking-summary-card">
           <h3 className="summary-card-title">Booking Summary</h3>
 
@@ -294,11 +413,18 @@ const PaymentCheckout = () => {
 
           <button 
             className="checkout-submit-btn" 
-            onClick={handleContinueToPayment}
-            disabled={loading || bookingLoading}
+            onClick={() => handleContinueToPayment(false)}
+            disabled={loading || paymentLoading}
           >
-            {loading || bookingLoading ? 'Processing...' : 'Continue To Payment'}
+            {loading || paymentLoading ? 'Processing...' : 
+             bookingData.isInstallment ? 'Continue To Payment' : 'Pay Now'}
           </button>
+
+          {paymentError && (
+            <p className="payment-error-text" style={{ color: 'red', textAlign: 'center', marginTop: '12px' }}>
+              {paymentError}
+            </p>
+          )}
 
           <div className="security-notice-row">
             <LuShield className="security-shield-icon" />
