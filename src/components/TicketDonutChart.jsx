@@ -1,4 +1,5 @@
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { useEffect, useState } from "react";
 
 const data = [
   { name: "Family Pack",     value: 22, color: "#f4622a" },
@@ -15,20 +16,35 @@ const legend = [
 ];
 
 const TicketDonutChart = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  const chartSize = isMobile ? 156 : 300;
+  const innerRadius = isMobile ? 56 : 108;
+  const outerRadius = isMobile ? 72 : 140;
+  const valueFontSize = isMobile ? 22 : 40;
+  const labelFontSize = isMobile ? 10 : 15;
+
   return (
     <div className="ticket-chart">
       <h3 className="ticket-chart-title">Ticket sold by type</h3>
 
       <div className="donut-wrapper">
         <div className="donut-chart-container">
-          <ResponsiveContainer width={300} height={300}>
+          <ResponsiveContainer width={chartSize} height={chartSize}>
             <PieChart>
               <Pie
                 data={data}
                 cx="50%"
                 cy="50%"
-                innerRadius={108}
-                outerRadius={140}
+                innerRadius={innerRadius}
+                outerRadius={outerRadius}
                 paddingAngle={0}
                 dataKey="value"
                 startAngle={90}
@@ -39,8 +55,8 @@ const TicketDonutChart = () => {
                   <Cell key={index} fill={entry.color} stroke="none" />
                 ))}
               </Pie>
-              <text x="50%" y="46%" textAnchor="middle" dominantBaseline="middle" fontSize="40" fontWeight="700" fontFamily="Manrope" fill="#0f172a">88</text>
-              <text x="50%" y="57%" textAnchor="middle" dominantBaseline="middle" fontSize="15" fontFamily="Manrope" fill="#64748b">Total</text>
+              <text x="50%" y="46%" textAnchor="middle" dominantBaseline="middle" fontSize={valueFontSize} fontWeight="700" fontFamily="Manrope" fill="#0f172a">88</text>
+              <text x="50%" y="57%" textAnchor="middle" dominantBaseline="middle" fontSize={labelFontSize} fontFamily="Manrope" fill="#64748b">Total</text>
             </PieChart>
           </ResponsiveContainer>
         </div>

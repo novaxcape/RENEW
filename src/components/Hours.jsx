@@ -3,7 +3,7 @@ const Hours = ({ openingHours, onChange }) => {
   
   return (
     <div className="step-content">
-      <div className="card-title">Operating Hours</div>
+      {/* <div className="card-title">Operating Hours</div> */}
       <p className="card-subtitle">Set your opening and closing hours of each day of the week.</p>
       
       {days.map((day) => (

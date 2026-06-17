@@ -31,11 +31,12 @@
   background: transparent;
 }
 
-.stats-grid {
+.dashboard-stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 5px;
-  padding: 20px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 80px;
+  padding: 20px 22px 32px;
+  align-items: stretch;
 }
 
 .chart-section {
@@ -81,6 +82,10 @@
   height: 100vh;
   overflow-y: auto;
   z-index: 50;
+}
+
+.mobile-sidebar-close {
+  display: none;
 }
 
 .sidebar-top {
@@ -428,16 +433,16 @@
   padding-right: 40px;
 }
 
-.bell-wrapper {
-  position: relative;
+.iconwrapper {
+  position: relative;  /* ← must have this */
   cursor: pointer;
   flex-shrink: 0;
   width: 44px;
   height: 44px;
 }
 
-.bell-icon {
-  position: relative;
+.iconbell {
+  position: relative; /* make sure this is here */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -447,16 +452,18 @@
   background-color: #F3F5F5;
 }
 
-.bell-dot {
+
+.icondot {
   position: absolute;
-  top: 9px;
-  right: 12px;
-  width: 9px;
-  height: 9px;
+  top: 10px;
+  right: 14px;
+  width: 8px;
+  height: 8px;
   background: #ef4444;
   border-radius: 50%;
   border: 1.5px solid white;
   z-index: 2;
+  pointer-events: none;
 }
 
 .notification-dropdown {
@@ -692,7 +699,7 @@
    STAT CARD
    ========================= */
 
-.stat-card {
+.dashboard-stat-card {
   background: white;
   padding: 15px 15px;
   border-radius: 16px;
@@ -702,8 +709,10 @@
   flex-direction: column;
   gap: 10px;
   font-family: 'Manrope', sans-serif;
-  width: 80%;
+  width: 100%;
   height: 100%;
+  min-height: 132px;
+  box-sizing: border-box;
 }
 
 .stat-header {
@@ -1182,13 +1191,13 @@ tbody tr:hover td {
    ========================= */
 
 @media (max-width: 1200px) {
-  .stats-grid {
+  .dashboard-stats-grid {
     grid-template-columns: repeat(2, 1fr);
     padding: 16px;
     gap: 12px;
   }
 
-  .stat-card {
+  .dashboard-stat-card {
     width: 100%;
   }
 
@@ -1224,7 +1233,90 @@ tbody tr:hover td {
 @media (max-width: 768px) {
 
   .sidebar {
+    display: flex;
+    position: fixed;
+    top: 58px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: calc(100vh - 58px);
+    padding: 56px 18px 24px;
+    border-right: 0;
+    border-top: 1px solid #cbd5e1;
+    background: #ffffff;
+    transform: translateX(100%);
+    transition: transform 0.2s ease;
+    z-index: 1200;
+    overflow-y: auto;
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .mobile-sidebar-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 18px;
+    right: 16px;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    background: #01388c;
+    color: #ffffff;
+    font-size: 19px;
+    cursor: pointer;
+  }
+
+  .sidebar .logo-section {
     display: none;
+  }
+
+  .sidebar-nav {
+    padding: 0;
+  }
+
+  .sidebar .nav-item {
+    margin: 0 0 22px;
+    padding: 0 16px;
+    background: transparent;
+    color: #1a1a1a;
+    border-radius: 0;
+    font-size: 16px;
+    font-weight: 400;
+  }
+
+  .sidebar .nav-item.active {
+    background: transparent;
+    color: #01388c;
+    font-weight: 400;
+  }
+
+  .sidebar .nav-item.active::before,
+  .sidebar .nav-icon {
+    display: none;
+  }
+
+  .sidebar-footer {
+    display: block;
+    border-top: 0;
+    padding: 0 16px;
+    margin-top: 0;
+  }
+
+  .sidebar-footer .account-title,
+  .sidebar-footer img {
+    display: none;
+  }
+
+  .sidebar-footer .logout-btn {
+    padding: 0;
+    color: #1a1a1a;
+    font-size: 16px;
+    font-weight: 400;
   }
 
   .dashboard {
@@ -1235,12 +1327,18 @@ tbody tr:hover td {
     padding: 0;
     width: 100%;
     margin-left: 0;
+    height: auto;
+    min-height: 100vh;
+    overflow-y: visible;
   }
 
   .top-navbar {
-    padding: 10px 16px;
-    gap: 8px;
+    min-height: 58px;
+    padding: 8px 16px;
+    gap: 6px;
     margin-bottom: 0;
+    border-bottom: 1px solid #cbd5e1;
+    overflow: visible;
   }
 
   .navbar-left {
@@ -1249,60 +1347,63 @@ tbody tr:hover td {
 
   .navbar-mobile1-logo {
     display: flex;
-    
     align-items: center;
-    
-    
+    flex: 0 0 auto;
   }
 
-  .navbar-mobile-logo img {
-    height: 28px;
-    width: auto;
-   
+  .navbar-mobile1-logo img {
+    width: 62px;
+    max-height: 22px;
+    object-fit: contain;
   }
 
   .search-bar {
-    flex: 1;
+    flex: 1 1 auto;
+    max-width: 132px;
     width: auto;
-    height: 36px;
+    height: 13px;
     margin-left: 0;
-    padding: 0 14px;
+    padding: 0 6px;
+    gap: 3px;
   }
 
   .search-bar input {
-    font-size: 13px;
+    font-size: 6px;
+    font-weight: 500;
+  }
+
+  .search-bar input::placeholder {
+    font-size: 6px;
+    font-weight: 500;
   }
 
   .top-right {
     padding-right: 0;
-    gap: 8px;
+    gap: 6px;
+    margin-left: auto;
   }
 
-  .bell-wrapper {
-    width: 32px;
-    height: 32px;
+  .iconwrapper,
+  .iconbell {
+    width: 18px;
+    height: 18px;
   }
 
-  .bell-icon {
-    width: 32px;
-    height: 32px;
+  .iconbell svg {
+    width: 10px;
+    height: 10px;
   }
 
-  .bell-icon svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  .bell-dot {
-    top: 5px;
+  .icondot {
+    top: 3px;
     right: 5px;
-    width: 7px;
-    height: 7px;
+    width: 4px;
+    height: 4px;
   }
 
   .profile img {
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
   }
 
   .profile-info {
@@ -1313,6 +1414,15 @@ tbody tr:hover td {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    flex: 0 0 auto;
+  }
+
+  .hamburger-btn svg {
+    width: 16px;
+    height: 16px;
   }
 
   .notification-dropdown {
@@ -1321,18 +1431,20 @@ tbody tr:hover td {
   }
 
   .welcome-section {
-    padding: 20px 16px;
+    padding: 18px 16px 12px;
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
   }
 
   .welcome-section h1 {
-    font-size: 20px;
+    font-size: 18px;
+    line-height: 1.25;
   }
 
   .welcome-section p {
     font-size: 14px;
+    line-height: 1.25;
   }
 
   .manage-centre-btn {
@@ -1340,33 +1452,59 @@ tbody tr:hover td {
     font-size: 14px;
   }
 
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .dashboard-stats-grid {
+    grid-template-columns: none;
     padding: 12px 16px;
-    gap: 10px;
+    gap: 12px;
     overflow-x: auto;
     flex-wrap: nowrap;
     display: flex;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 
-  .stat-card {
-    min-width: 160px;
-    width: 160px;
+  .dashboard-stats-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .dashboard-stat-card {
+    min-width: 144px;
+    width: 144px;
+    min-height: 86px;
+    padding: 10px 9px;
+    border-radius: 8px;
     flex-shrink: 0;
+    gap: 7px;
+  }
+
+  .stat-header {
+    gap: 6px;
   }
 
   .stat-title {
-    font-size: 13px;
-    line-height: 18px;
+    font-size: 12px;
+    line-height: 16px;
   }
 
   .stat-value {
-    font-size: 20px;
+    font-size: 16px;
+    line-height: 18px;
+  }
+
+  .stat-icon-img {
+    width: 20px;
+    height: 20px;
+  }
+
+  .stat-percent {
+    font-size: 6px;
+    padding: 2px 5px;
+    gap: 1px;
   }
 
   .stat-previous {
-    font-size: 12px;
-    line-height: 18px;
+    font-size: 11px;
+    line-height: 14px;
   }
 
   .chart-section {
@@ -1381,18 +1519,59 @@ tbody tr:hover td {
     border-radius: 12px;
   }
 
+  .chart-title,
+  .ticket-chart-title {
+    font-size: 16px;
+  }
+
+  .chart-subtitle {
+    font-size: 13px;
+  }
+
   .ticket-chart {
     padding: 20px 16px;
     border-radius: 12px;
   }
 
   .donut-wrapper {
-    gap: 16px;
+    gap: 12px;
+    justify-content: flex-start;
+  }
+
+  .donut-chart-container {
+    width: 156px;
+    flex: 0 0 156px;
+  }
+
+  .donut-chart-container .recharts-responsive-container {
+    width: 156px !important;
+    height: 156px !important;
+  }
+
+  .donut-legend {
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .legend-row {
+    gap: 7px;
+  }
+
+  .legend-dot {
+    width: 7px;
+    height: 7px;
+  }
+
+  .legend-name,
+  .legend-pct {
+    font-size: 11px;
   }
 
   .single-booking-container {
     border-radius: 12px;
     margin: 0 16px;
+    width: auto;
   }
 
   .booking-top-header {

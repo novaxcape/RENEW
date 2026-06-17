@@ -6,7 +6,7 @@ const Review = ({ centreData, pricingData, selectedFacilities, uploadedImages, d
 
   return (
     <div className="step-content">
-      <div className="card-title">Review & Submit</div>
+      {/* <div className="card-title">Review & Submit</div> */}
       <p className="card-subtitle">Please review all information before submitting</p>
       
       <div className="review-section">
