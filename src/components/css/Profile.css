@@ -11,6 +11,7 @@
   width: 100%;
   background-color: #FFFFFF;
   display: flex;
+  margin-top: 70px;
   flex-direction: column;
 }
 
@@ -26,16 +27,16 @@
 }
 
 .settings-title {
-  font-size: 26px;
+  font-size: 32px;
   font-weight: 600;
-  color: #111111;
+  color:#1A0800;
   letter-spacing: -0.5px;
   margin-bottom: 8px;
 }
 
 .settings-subtitle {
-  font-size: 13.5px;
-  color: #666666;
+  font-size: 16px;
+  color: #1A0800;
   font-weight: 400;
 }
 
@@ -67,9 +68,9 @@
 }
 
 .profile-label {
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 600;
-  color: #111111;
+  color: #271A13;
   margin-bottom: 12px;
 }
 
@@ -195,9 +196,9 @@
 }
 
 .form-group label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #111111;
+  font-size: 18px;
+  font-weight: 600;
+  color: #271A13;
 }
 
 .input-wrapper {
