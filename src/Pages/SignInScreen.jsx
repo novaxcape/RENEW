@@ -40,7 +40,7 @@ const SignUpScreen = () => {
         {/* Vendor Sign Up Card */}
         <div 
           className="signup-card-vendor" 
-          onClick={() => navigate("/signupvendor")}
+          onClick={() => navigate("/vendor/login")}
           style={{ cursor: "pointer" }}
         >
           <div className="icon-circle vendor-icon">

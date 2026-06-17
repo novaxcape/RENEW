@@ -25,56 +25,90 @@ const ProductDetails = () => {
   const [isWishlist, setIsWishlist] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const { selectedTouristCenter, touristCentresLoading, touristCentresError } =
     useSelector((state) => state.api);
   const { isAuthenticated, userToken, loggedInUser } = useSelector((state) => state.auth);
 
-  // ✅ Restore auth state from localStorage if Redux state is empty
-  useEffect(() => {
-    const token = localStorage.getItem('token') || localStorage.getItem('userToken');
-    const storedClientId = localStorage.getItem('clientId');
-    
-    // If Redux doesn't have auth but localStorage does, we're still authenticated
-    if (token && !isAuthenticated) {
-      console.log("🔐 Restoring auth state from localStorage");
-      // You could dispatch an action here to restore the state
+  // ✅ Debug logging
+  console.log("🔍 ProductDetails - URL Params:", { id });
+  console.log("🔍 ProductDetails - Location State:", location.state);
+  console.log("🔍 ProductDetails - Selected Centre from API:", selectedTouristCenter);
+
+  // ✅ Validate centre data
+  const validateCentre = (data) => {
+    if (!data) return false;
+    // Check if it has required fields
+    const hasName = data.centreName || data.name;
+    const hasId = data.id || data._id;
+    return !!(hasName && hasId);
+  };
+
+  // ✅ Get centre data from multiple sources
+  const getCentreData = () => {
+    // 1. Check location state first (passed from previous page)
+    if (location.state?.centre) {
+      console.log("✅ Using centre from location.state");
+      return location.state.centre;
     }
-  }, [isAuthenticated]);
+    if (location.state?.centreDetails) {
+      console.log("✅ Using centreDetails from location.state");
+      return location.state.centreDetails;
+    }
 
-  // Debug authentication state
-  console.log("🔐 Auth State - isAuthenticated:", isAuthenticated);
-  console.log("🔐 Auth State - userToken:", userToken);
-  console.log("🔐 Auth State - loggedInUser:", loggedInUser);
-  console.log("🔐 localStorage token:", localStorage.getItem('token'));
+    // 2. Check Redux store
+    if (selectedTouristCenter) {
+      console.log("✅ Using centre from Redux store");
+      // Handle different response formats
+      return selectedTouristCenter?.data || 
+             selectedTouristCenter?.tourist || 
+             selectedTouristCenter;
+    }
 
-  // Get passed centre from navigation state
-  const passedCentre = location.state?.centre || location.state?.centreDetails;
+    // 3. Check localStorage for pending booking
+    const pendingBooking = localStorage.getItem('pendingBooking');
+    if (pendingBooking) {
+      try {
+        const parsed = JSON.parse(pendingBooking);
+        if (parsed.centreDetails) {
+          console.log("✅ Using centre from localStorage");
+          return parsed.centreDetails;
+        }
+      } catch (e) {
+        console.error("Error parsing pending booking:", e);
+      }
+    }
 
-  console.log("ProductDetails Page Loaded");
-  console.log("ID from URL:", id);
-  console.log("Passed Centre:", passedCentre);
+    console.log("❌ No centre data found");
+    return null;
+  };
 
+  // ✅ Get packages from centre data
+  const getPackages = (centre) => {
+    if (!centre) return [];
+    // Check different possible locations for packages
+    return centre.packages || centre.Packages || centre.package || [];
+  };
+
+  // ✅ Centre data source
+  const centre = getCentreData();
+  const packages = getPackages(centre);
+
+  console.log("📦 Packages found:", packages.length);
+  console.log("📦 Packages data:", packages);
+
+  // ✅ Fetch centre if not available
   useEffect(() => {
-    if (!passedCentre && id) {
-      console.log("Fetching centre from API with ID:", id);
+    if (!centre && id) {
+      console.log("🔄 Fetching centre from API with ID:", id);
       dispatch(getTouristCenterById(id));
     }
-  }, [dispatch, id, passedCentre]);
+    setIsLoading(false);
+  }, [dispatch, id, centre]);
 
-  // Determine centre data source
-  let centre = null;
-  
-  if (passedCentre) {
-    centre = passedCentre;
-    console.log("Using passed centre data");
-  } else if (selectedTouristCenter) {
-    centre = selectedTouristCenter?.data || selectedTouristCenter?.tourist || selectedTouristCenter;
-    console.log("Using API centre data:", centre);
-  }
-
-  // Show loading state
-  if (!passedCentre && touristCentresLoading) {
+  // ✅ Handle loading state
+  if (touristCentresLoading || isLoading) {
     return (
       <>
         <Header />
@@ -87,15 +121,27 @@ const ProductDetails = () => {
     );
   }
 
-  // Show error state
-  if (!passedCentre && touristCentresError) {
+  // ✅ Handle error state
+  if (touristCentresError && !centre) {
     return (
       <>
         <Header />
         <div className="error-container" style={{ textAlign: "center", padding: "100px 20px" }}>
           <h2>Centre Not Found</h2>
           <p>{typeof touristCentresError === "string" ? touristCentresError : "Unable to load centre details"}</p>
-          <button onClick={() => navigate("/discover")} className="back-btn" style={{ background: "#ff6b35", color: "white", border: "none", padding: "10px 24px", borderRadius: "8px", cursor: "pointer" }}>
+          <button 
+            onClick={() => navigate("/discover")} 
+            className="back-btn" 
+            style={{ 
+              background: "#ff6b35", 
+              color: "white", 
+              border: "none", 
+              padding: "10px 24px", 
+              borderRadius: "8px", 
+              cursor: "pointer",
+              marginTop: "16px"
+            }}
+          >
             Back to Discover
           </button>
         </div>
@@ -104,7 +150,7 @@ const ProductDetails = () => {
     );
   }
 
-  // Show not found if no centre
+  // ✅ Validate centre exists
   if (!centre) {
     return (
       <>
@@ -112,7 +158,19 @@ const ProductDetails = () => {
         <div className="error-container" style={{ textAlign: "center", padding: "100px 20px" }}>
           <h2>No Centre Data</h2>
           <p>Unable to load centre information. Please try again.</p>
-          <button onClick={() => navigate("/discover")} className="back-btn" style={{ background: "#ff6b35", color: "white", border: "none", padding: "10px 24px", borderRadius: "8px", cursor: "pointer" }}>
+          <button 
+            onClick={() => navigate("/discover")} 
+            className="back-btn" 
+            style={{ 
+              background: "#ff6b35", 
+              color: "white", 
+              border: "none", 
+              padding: "10px 24px", 
+              borderRadius: "8px", 
+              cursor: "pointer",
+              marginTop: "16px"
+            }}
+          >
             Back to Discover
           </button>
         </div>
@@ -121,7 +179,7 @@ const ProductDetails = () => {
     );
   }
 
-  // Extract centre data
+  // ✅ Extract centre data with validation
   const centreName = centre.centreName || centre.name || "Tourist Centre";
   const centreLocation = [centre.city, centre.state].filter(Boolean).join(", ") || "Location not specified";
   const openingHours = centre.openingHours || "Hours not specified";
@@ -130,72 +188,119 @@ const ProductDetails = () => {
   const description = centre.description || "No description available";
   const facilities = centre.facilitiesAndAmenities?.split(", ") || centre.facilities || [];
   const images = centre.images || [];
-  const packages = centre.packages || [];
 
-  console.log("Rendering centre:", centreName);
-  console.log("Packages found:", packages.length);
-  console.log("Packages data:", packages);
+  console.log("✅ Rendering centre:", centreName);
+  console.log("✅ Available packages:", packages.length);
 
   const getPackagePrice = (pkg) => {
     return pkg.amount || pkg.price || 0;
   };
 
-  // ✅ Updated handleBookNow - uses localStorage as primary auth check
+  // ✅ UPDATED: Handle Book Now with proper validation
   const handleBookNow = (pkg) => {
-    console.log("🛒 handleBookNow called for package:", pkg);
-    console.log("🔐 isAuthenticated (Redux):", isAuthenticated);
-    console.log("🔐 userToken (Redux):", userToken);
+    console.log("🛒 handleBookNow called with package:", pkg);
     
-    // Check if package is valid
+    // ✅ Validate package
     if (!pkg) {
       console.error("❌ No package selected");
+      Swal.fire({
+        icon: "warning",
+        title: "No Package Selected",
+        text: "Please select a package to book.",
+        confirmButtonColor: "#ff6b35",
+      });
+      return;
+    }
+
+    // ✅ Validate package has ID
+    if (!pkg.id) {
+      console.error("❌ Package missing ID:", pkg);
+      Swal.fire({
+        icon: "error",
+        title: "Invalid Package",
+        text: "The selected package is invalid. Please try again.",
+        confirmButtonColor: "#ff6b35",
+      });
+      return;
+    }
+
+    // ✅ Validate centre has ID
+    const centreId = centre.id || centre._id || id;
+    if (!centreId) {
+      console.error("❌ Centre missing ID:", centre);
+      Swal.fire({
+        icon: "error",
+        title: "Invalid Centre",
+        text: "Unable to identify the centre. Please try again.",
+        confirmButtonColor: "#ff6b35",
+      });
       return;
     }
     
     setSelectedPackage(pkg);
     
-    // Store booking details in localStorage for after login
+    // ✅ Store booking details in localStorage
     const bookingData = {
-      touristId: id,
+      touristId: centreId,
       packageId: pkg.id,
-      packageDetails: pkg,
-      centreDetails: centre,
-      centreId: id,
+      packageDetails: {
+        id: pkg.id,
+        packageName: pkg.packageName || pkg.name || "Package",
+        amount: getPackagePrice(pkg),
+        price: getPackagePrice(pkg),
+        packageType: pkg.packageType || "Standard",
+        numberOfPeople: pkg.numberOfPeople || 1,
+        description: pkg.description || "",
+      },
+      centreDetails: {
+        id: centreId,
+        centreName: centreName,
+        name: centreName,
+        city: centre.city || "",
+        state: centre.state || "",
+        openingHours: openingHours,
+        description: description,
+        images: images,
+      },
+      centreId: centreId,
       centreName: centreName,
-      returnUrl: `/booking-summary/${id}/${pkg.id}`
+      returnUrl: `/booking-summary/${centreId}/${pkg.id}`
     };
     localStorage.setItem('pendingBooking', JSON.stringify(bookingData));
     console.log("💾 Booking saved to localStorage:", bookingData);
 
-    // ✅ PRIMARY AUTH CHECK: Check localStorage first (more reliable)
+    // ✅ Check authentication
     const token = localStorage.getItem('token') || localStorage.getItem('userToken');
-    const isLoggedIn = !!token; // If token exists, user is logged in
+    const isLoggedIn = !!token;
     
-    console.log("🔐 token from localStorage:", token);
-    console.log("🔐 Is logged in (localStorage check)?", isLoggedIn);
+    console.log("🔐 Is logged in?", isLoggedIn);
 
     if (!isLoggedIn) {
       console.log("➡️ Not authenticated, redirecting to signin");
       navigate("/signin", { 
         state: { 
-          from: `/centre/${id}`,
+          from: `/centre/${centreId}`,
           bookingData: bookingData
         } 
       });
       return;
     }
 
-    // If authenticated, proceed to booking summary
+    // ✅ If authenticated, navigate to booking summary
     console.log("✅ Authenticated, proceeding to booking summary");
-    navigate(`/booking-summary/${id}/${pkg.id}`, {
+    navigate(`/booking-summary/${centreId}/${pkg.id}`, {
       state: {
-        touristId: id,
-        packageDetails: pkg,
-        centreDetails: centre,
+        touristId: centreId,
+        packageId: pkg.id,
+        packageDetails: bookingData.packageDetails,
+        centreDetails: bookingData.centreDetails,
+        centreId: centreId,
+        centreName: centreName,
       },
     });
   };
 
+  // ✅ Render stars
   const renderStars = (ratingValue) => {
     const stars = [];
     const fullStars = Math.floor(ratingValue);
@@ -213,7 +318,7 @@ const ProductDetails = () => {
     return stars;
   };
 
-  // Get truncated description
+  // ✅ Get truncated description
   const getDescription = () => {
     if (showFullDescription || description.length <= 200) {
       return description;
@@ -221,7 +326,7 @@ const ProductDetails = () => {
     return description.slice(0, 200) + "...";
   };
 
-  // Sample reviews (will be replaced with API data)
+  // Sample reviews
   const reviews = [
     {
       id: 1,
@@ -338,10 +443,10 @@ const ProductDetails = () => {
                   className="book-btn" 
                   onClick={() => {
                     console.log("📖 Main Book Now button clicked");
-                    console.log("Packages available:", packages);
-                    if (packages && packages.length > 0) {
-                      handleBookNow(packages[0]);
-                    } else {
+                    console.log("📦 Available packages:", packages);
+                    
+                    // ✅ Validate packages exist
+                    if (!packages || packages.length === 0) {
                       console.warn("❌ No packages available");
                       Swal.fire({
                         icon: "info",
@@ -350,7 +455,23 @@ const ProductDetails = () => {
                         confirmButtonColor: "#ff6b35",
                         confirmButtonText: "OK"
                       });
+                      return;
                     }
+                    
+                    // ✅ Validate first package
+                    const firstPackage = packages[0];
+                    if (!firstPackage.id) {
+                      console.error("❌ First package missing ID:", firstPackage);
+                      Swal.fire({
+                        icon: "error",
+                        title: "Invalid Package",
+                        text: "The package data is invalid. Please try again later.",
+                        confirmButtonColor: "#ff6b35",
+                      });
+                      return;
+                    }
+                    
+                    handleBookNow(firstPackage);
                   }}
                 >
                   Book Now
@@ -363,40 +484,7 @@ const ProductDetails = () => {
             </div>
           </section>
 
-          {/* PACKAGES SECTION */}
-          {packages && packages.length > 0 ? (
-            <section className="packages-section">
-              <h2>Available Packages</h2>
-              <div className="packages-grid">
-                {packages.map((pkg) => (
-                  <div key={pkg.id || Math.random()} className="package-card">
-                    <h3>{pkg.packageName || "Package"}</h3>
-                    <p className="package-type">{pkg.packageType || "Standard"}</p>
-                    <p className="package-people">Up to {pkg.numberOfPeople || 1} people</p>
-                    <p className="package-price">₦{getPackagePrice(pkg).toLocaleString()}</p>
-                    <button 
-                      className="book-now-btn" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        console.log("📦 Package Book Now clicked for:", pkg.packageName);
-                        handleBookNow(pkg);
-                      }}
-                    >
-                      Book Now
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </section>
-          ) : (
-            <section className="packages-section">
-              <h2>Available Packages</h2>
-              <div className="no-packages-message" style={{ textAlign: "center", padding: "40px 20px", color: "#666" }}>
-                <p>No packages available for this centre at the moment.</p>
-                <p style={{ fontSize: "14px", marginTop: "10px" }}>Please check back later.</p>
-              </div>
-            </section>
-          )}
+          {/* ✅ REMOVED PACKAGES SECTION */}
 
           {/* REVIEWS */}
           <section className="reviews">

@@ -210,11 +210,11 @@ const SignUpVendor = () => {
             )}
 
             <div className="field">
-              <label>Center Name</label>
+              <label>Centre Name</label>
               <input
                 type="text"
                 name="centerName"
-                placeholder="Enter your center name"
+                placeholder="Enter your centre name"
                 value={formData.centerName}
                 onChange={handleChange}
               />
@@ -224,11 +224,11 @@ const SignUpVendor = () => {
             </div>
 
             <div className="field">
-              <label>Center Email</label>
+              <label>Centre Email</label>
               <input
                 type="email"
                 name="email"
-                placeholder="Enter your center email"
+                placeholder="Enter your centre email"
                 value={formData.email}
                 onChange={handleChange}
               />
@@ -236,11 +236,11 @@ const SignUpVendor = () => {
             </div>
 
             <div className="field">
-              <label>Center Phone Number</label>
+              <label>Centre Phone Number</label>
               <input
                 type="text"
                 name="phoneNumber"
-                placeholder="Enter your center phone number"
+                placeholder="Enter your centre phone number"
                 value={formData.phoneNumber}
                 onChange={handleChange}
               />
