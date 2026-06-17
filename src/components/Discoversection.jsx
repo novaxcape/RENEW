@@ -15,7 +15,7 @@ import nikeGallery from "/novaxcape/nikeGallery.png";
 import agodi from "/novaxcape/agodi.png";
 
 const categories = [
-  "All",
+  
   "Park & Recreation",
   "Art Gallery",
   "Beach",

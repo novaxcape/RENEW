@@ -21,7 +21,7 @@
 }
 
 .signupLeft {
-  width: 45%;
+  width: 50%;
   border-radius: 20px;
   overflow: hidden;
 }
@@ -33,7 +33,7 @@
 }
 
 .signupRight {
-  width: 55%;
+  width: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -170,14 +170,14 @@
 
 .googleBtn {
   width: 100%;
-  height: 50px;
+  height: 40px;
   border: 1px solid #ddd;
   border-radius: 50px;
   background: white;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   cursor: pointer;
   font-size: 15px;
   font-weight: 500;

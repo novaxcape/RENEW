@@ -10,7 +10,7 @@
   flex-wrap: nowrap;          
   overflow-x: auto;           
   white-space: nowrap;        
-  gap: 30px;
+  gap: 45px;
   margin-bottom: 50px;
   padding-bottom: 8px;
   scrollbar-width: none;      
@@ -152,9 +152,8 @@
   cursor: pointer;
 }
 
-
 /* =========================================================
-   UPDATED MOBILE RESPONSIVENESS (Strict 3x2 Grid Layout)
+   UPDATED MOBILE RESPONSIVENESS - EXACTLY 2 LINES
 ========================================================= */
 
 @media (max-width: 768px) {
@@ -162,24 +161,78 @@
     padding: 30px 20px;
   }
 
-  /* FIXED: Strict 3 columns and 2 rows configuration */
+  /* 
+    FIXED: Category buttons limited to exactly 2 lines 
+    The first 6 categories will show (3 per row × 2 rows)
+    Any additional categories will be hidden
+  */
   .category_container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);  /* Exactly 3 equal columns */
-    grid-template-rows: repeat(2, 44px);    /* Exactly 2 rows, each 44px tall */
-    overflow: hidden;                       /* Cuts off any extra elements past 6 buttons */
-    gap: 16px 12px;                         
+    grid-template-columns: repeat(3, 1fr);     /* Exactly 3 columns */
+    grid-template-rows: repeat(2, auto);       /* Exactly 2 rows */
+    gap: 12px 10px;
     margin-bottom: 35px;
+    overflow: hidden;                          /* Hide any extra items */
+    max-height: 120px;                         /* Cap height to prevent overflow */
+    padding-bottom: 0;
   }
 
-  /* FIXED: Sizing handles the fixed row height configuration flawlessly */
+  /* Each category button fills its grid cell */
   .category_btn {
-    width: 100%;             
-    height: 100%;            /* Fills out the grid template row height safely */
-    padding: 0 4px;          
-    font-size: 13px;         /* Keeps font sized well for tight layouts */
-    text-overflow: clip;     
+    width: 100%;
+    height: 44px;                              /* Fixed height for consistency */
+    font-size: 13px;
+    padding: 0 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-radius: 50px;
+    min-width: 0;                              /* Allow shrinking */
   }
+
+  /* Make buttons smaller on very small screens */
+  @media (max-width: 480px) {
+    .category_btn {
+      height: 38px;
+      font-size: 11px;
+      padding: 0 6px;
+      border-radius: 30px;
+    }
+    
+    .category_container {
+      gap: 8px 6px;
+      max-height: 95px;
+    }
+  }
+
+  /* 
+    NOTE: To show only 2 lines (6 buttons), ensure your categories array 
+    only has 6 items. Currently it has 7: 
+    ["All", "Park & Recreation", "Art Gallery", "Beach", 
+     "Nature & Wildlife", "Adventure", "Museum"]
+    
+    If you want to keep all 7, change grid to 4 columns for first row and 
+    3 columns for second row, or hide the 7th on mobile.
+  */
+
+  /* Alternative: If you want to show exactly 2 lines with 7 items 
+     (4 on first row, 3 on second row), use this instead:
+  */
+  /*
+  .category_container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, auto);
+    gap: 10px;
+    margin-bottom: 35px;
+    overflow: hidden;
+    max-height: 120px;
+  }
+  
+  .category_btn:last-child {
+    grid-column: span 1;
+  }
+  */
 
   /* Attractions list display styling */
   .attractions_grid {
@@ -235,15 +288,6 @@
 @media (max-width: 480px) {
   .attractions {
     padding: 24px 14px;
-  }
-
-  .category_container {
-    grid-template-rows: repeat(2, 40px); /* Slightly shorter row heights on tiny screens */
-    gap: 12px 8px; 
-  }
-
-  .category_btn {
-    font-size: 11px; /* Ensures text like "Nature & Wildlife" shrinks gracefully */
   }
 
   .attraction_card {
