@@ -333,7 +333,7 @@ const SettingsPage = () => {
       </div>
 
       {/* Password */}
-      <form className="settings-card" onSubmit={handlePasswordSubmit}>
+      <form className="settings-card password-card" onSubmit={handlePasswordSubmit}>
         <h2>Change Password</h2>
 
         <div className="form-group">
