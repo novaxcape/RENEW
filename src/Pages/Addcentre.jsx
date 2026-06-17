@@ -38,6 +38,9 @@ const getEntityId = (value) =>
   value?.touristCenter?.id ||
   value?.touristCenter?._id;
 
+// ✅ MAX FILE SIZE CONSTANT
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
 const AddCentre = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -145,7 +148,6 @@ const AddCentre = () => {
           Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please enter daily slot capacity.', confirmButtonColor: '#ff6b35' });
           return false;
         }
-        // Check if at least one valid package exists
         const validPackages = packagesList.filter(pkg => 
           pkg.packageName && pkg.packageType && pkg.amount && pkg.numberOfPeople
         );
@@ -153,7 +155,6 @@ const AddCentre = () => {
           Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please add at least one valid package.', confirmButtonColor: '#ff6b35' });
           return false;
         }
-        // Check if documents are uploaded
         if (!documents.termsAndCondition || !documents.privacyPolicy) {
           Swal.fire({ icon: 'error', title: 'Missing Documents', text: 'Please upload terms and privacy policy documents.', confirmButtonColor: '#ff6b35' });
           return false;
@@ -164,6 +165,17 @@ const AddCentre = () => {
         const imageFiles = Object.values(uploadedImages).filter((image) => image?.file);
         if (imageFiles.length < 3) {
           Swal.fire({ icon: 'error', title: 'Missing Images', text: 'Please upload at least 3 centre images.', confirmButtonColor: '#ff6b35' });
+          return false;
+        }
+        // ✅ Check file sizes in validation
+        const oversized = imageFiles.filter(file => file.size > MAX_FILE_SIZE);
+        if (oversized.length > 0) {
+          Swal.fire({ 
+            icon: 'error', 
+            title: 'File Too Large', 
+            text: 'One or more images exceed the 10MB limit. Please compress your images and try again.', 
+            confirmButtonColor: '#ff6b35' 
+          });
           return false;
         }
         return true;
@@ -209,6 +221,12 @@ const AddCentre = () => {
       return 'Please upload at least 3 centre images.';
     }
 
+    // ✅ Check file sizes in validation
+    const oversized = imageFiles.filter(file => file.size > MAX_FILE_SIZE);
+    if (oversized.length > 0) {
+      return 'One or more images exceed the 10MB limit. Please compress your images.';
+    }
+
     if (!documents.termsAndCondition || !documents.privacyPolicy) {
       return 'Please upload the terms and privacy policy documents.';
     }
@@ -218,7 +236,6 @@ const AddCentre = () => {
 
   // Package creation function with dynamic packages
   const createPackagesForCentre = async (touristId) => {
-    // Filter out empty packages
     const validPackages = packagesList.filter(pkg => 
       pkg.packageName && pkg.packageType && pkg.amount && pkg.numberOfPeople
     );
@@ -270,6 +287,7 @@ const AddCentre = () => {
     return results;
   };
 
+  // ✅ UPDATED handleSubmit with FormData and file validation
   const handleSubmit = async () => {
     const validationError = validateCentre();
     if (validationError) {
@@ -298,6 +316,18 @@ const AddCentre = () => {
       .map((image) => image?.file)
       .filter(Boolean);
 
+    // ✅ Validate file sizes
+    const oversized = imageFiles.filter(file => file.size > MAX_FILE_SIZE);
+    if (oversized.length > 0) {
+      Swal.fire({
+        icon: 'error',
+        title: 'File Too Large',
+        text: 'One or more images exceed the 10MB limit. Please compress your images and try again.',
+        confirmButtonColor: '#ff6b35',
+      });
+      return;
+    }
+
     const facilitiesString = selectedFacilities.join(', ');
     const hoursString = Object.entries(openingHours)
       .map(([day, times]) => {
@@ -309,16 +339,32 @@ const AddCentre = () => {
       })
       .join(' | ');
 
-    const payload = {
+    // ✅ Create FormData for file upload
+    const formData = new FormData();
+    
+    // Append centre data as JSON string
+    const centreDataPayload = {
       ...centreData,
       facilitiesAndAmenities: facilitiesString,
       dailySlotCapacity: Number(pricingData.dailySlotCapacity),
       installmentPayment: pricingData.installmentPayment,
       openingHours: hoursString,
-      images: imageFiles,
-      termsAndCondition: documents.termsAndCondition,
-      privacyPolicy: documents.privacyPolicy,
     };
+    
+    formData.append('centreData', JSON.stringify(centreDataPayload));
+    
+    // Append each image file
+    imageFiles.forEach((file) => {
+      formData.append('images', file);
+    });
+
+    // Append documents if they exist
+    if (documents.termsAndCondition) {
+      formData.append('termsAndCondition', documents.termsAndCondition);
+    }
+    if (documents.privacyPolicy) {
+      formData.append('privacyPolicy', documents.privacyPolicy);
+    }
 
     Swal.fire({
       title: 'Creating Centre...',
@@ -330,8 +376,9 @@ const AddCentre = () => {
     });
 
     try {
+      // ✅ Send FormData instead of JSON payload
       const response = await dispatch(
-        registerTouristCenter({ vendorId, centreData: payload })
+        registerTouristCenter({ vendorId, centreData: formData })
       ).unwrap();
       
       const touristId = getEntityId(response);
@@ -382,10 +429,18 @@ const AddCentre = () => {
       
     } catch (error) {
       console.error('Centre submission error:', error);
+      
+      let errorMessage = 'Unable to submit centre. Please try again.';
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
       Swal.fire({
         icon: 'error',
         title: 'Submission Failed',
-        text: typeof error === 'string' ? error : error?.message || 'Unable to submit centre. Please try again.',
+        text: errorMessage,
         confirmButtonColor: '#ff6b35',
       });
     }

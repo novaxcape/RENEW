@@ -124,19 +124,20 @@ const Discoversection = ({
   touristCentres,
   loading,
   error,
+  onClearSearch,  // ✅ New prop
 }) => {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("All");
 
-  // ✅ FILTER OUT EMPTY/INVALID CENTRES - Check if object has keys
+  // ✅ FILTER OUT EMPTY/INVALID CENTRES
   const getValidCentres = (centres) => {
     if (!centres || !Array.isArray(centres)) return [];
     return centres.filter(centre => {
       if (!centre) return false;
-      // Check if object has any keys (not empty object)
       const hasKeys = Object.keys(centre).length > 0;
-      // Check if it has any identifying field
-      const hasData = centre.centreName || centre.name || centre.title || centre.id || centre._id || centre.centreId;
+      const hasData = centre.centreName || centre.name || centre.title || 
+                      centre.id || centre._id || centre.centreId ||
+                      centre.city || centre.state || centre.location;
       return hasKeys && hasData;
     });
   };
@@ -144,15 +145,9 @@ const Discoversection = ({
   const validTouristCentres = getValidCentres(touristCentres);
   const hasValidCentres = validTouristCentres.length > 0;
 
-  // Debug logs to see what's happening
-  console.log("Raw touristCentres:", touristCentres);
-  console.log("Valid touristCentres:", validTouristCentres);
-  console.log("Has valid centres:", hasValidCentres);
-
   const handleViewDetails = (centre) => {
     const centreId = centre.id || centre._id || centre.centreId;
     if (!centreId) return;
-
     navigate(`/centre/${centreId}`, {
       state: { centre },
     });
@@ -162,7 +157,6 @@ const Discoversection = ({
     e.stopPropagation();
     const centreId = centre.id || centre._id || centre.centreId;
     if (!centreId) return;
-
     navigate(`/centre/${centreId}`, {
       state: { centre },
     });
@@ -176,7 +170,6 @@ const Discoversection = ({
     return price;
   };
 
-  // Get price from tourist centre data
   const getCentrePrice = (centre) => {
     if (centre.packages && centre.packages.length > 0) {
       const adultPackage = centre.packages.find(
@@ -190,7 +183,6 @@ const Discoversection = ({
 
   const filterByCategory = (centers) => {
     if (activeCategory === "All") return centers;
-
     return centers.filter((center) => {
       const centreType = (
         center.centreType ||
@@ -203,14 +195,15 @@ const Discoversection = ({
     });
   };
 
-  // Determine what to display
   const hasActiveSearch = searchSubmitted && searchState;
   
-  // ✅ Only use API data if we have VALID centres
-  const displayCenters =
-    hasActiveSearch && hasValidCentres
-      ? validTouristCentres
-      : staticAttractions;
+  // ✅ Show empty array when search has no valid results
+  let displayCenters;
+  if (hasActiveSearch) {
+    displayCenters = hasValidCentres ? validTouristCentres : [];
+  } else {
+    displayCenters = staticAttractions;
+  }
       
   const filteredCenters = filterByCategory(displayCenters);
 
@@ -237,7 +230,6 @@ const Discoversection = ({
               ? `Searching for "${searchState}"...`
               : `Search results for "${searchState}"`}
           </h2>
-          {/* ✅ Show count of VALID centres, not total */}
           {!loading && !error && (
             <p>{filteredCenters.length} centre(s) found</p>
           )}
@@ -269,7 +261,7 @@ const Discoversection = ({
         </div>
       )}
 
-      {/* No Results - Only show when NO VALID centres */}
+      {/* No Results - Show when search has no valid centres */}
       {!loading &&
         hasActiveSearch &&
         !error &&
@@ -281,7 +273,7 @@ const Discoversection = ({
             </p>
             <button
               className="browse-all-btn"
-              onClick={() => window.location.reload()}
+              onClick={onClearSearch}  // ✅ Clears search and shows all static data
             >
               Browse All Centres
             </button>
@@ -291,12 +283,10 @@ const Discoversection = ({
       {/* Cards Grid */}
       {!loading && !error && filteredCenters.length > 0 && (
         <div className="attractions_grid">
-          {filteredCenters.map((place) => {
-            // Check if this is static data (has title property) or API data
+          {filteredCenters.map((place, index) => {
             const isStatic = place.title && !place.centreName;
 
             if (isStatic) {
-              // Render static attraction
               return (
                 <div 
                   className="attraction_card" 
@@ -304,10 +294,7 @@ const Discoversection = ({
                   onClick={() => handleViewDetails(place)}
                   style={{ cursor: "pointer" }}
                 >
-                  <img
-                    src={place.image}
-                    alt={place.title}
-                  />
+                  <img src={place.image} alt={place.title} />
                   <div className="card_content">
                     <h3>{place.title}</h3>
                     <h4>{place.location}</h4>
@@ -342,7 +329,6 @@ const Discoversection = ({
                 </div>
               );
             } else {
-              // Render API tourist centre
               const imageSrc =
                 place.images?.[0] ||
                 place.image ||
@@ -359,7 +345,7 @@ const Discoversection = ({
               return (
                 <div 
                   className="attraction_card" 
-                  key={place.id || place._id}
+                  key={place.id || place._id || index}
                   onClick={() => handleViewDetails(place)}
                   style={{ cursor: "pointer" }}
                 >

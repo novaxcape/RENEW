@@ -1,12 +1,11 @@
-
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { z } from "zod";
 import Swal from "sweetalert2";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import axios from "axios";
-import { setUserDetails, updateToken } from "../redox/authSlice"; // Remove setLoading, setError
+import { setUserDetails, updateToken, loginSuccess } from "../redox/authSlice";
 import "../Styles/Login.css";
 import Image from "../components/Image";
 
@@ -19,12 +18,13 @@ const loginSchema = z.object({
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
-  const { loading: reduxLoading, error } = useSelector((state) => state.auth);
+  const { loading: reduxLoading, error, isAuthenticated } = useSelector((state) => state.auth);
   
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false); // Use local loading state
-  const [localError, setLocalError] = useState(null); // Use local error state
+  const [loading, setLoading] = useState(false);
+  const [localError, setLocalError] = useState(null);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -32,6 +32,60 @@ const Login = () => {
   });
 
   const [errors, setErrors] = useState({});
+
+  // Get booking data from location state
+  const from = location.state?.from || "/";
+  const bookingData = location.state?.bookingData || null;
+
+  console.log("🔐 Login - location.state:", location.state);
+  console.log("🔐 Login - bookingData from state:", bookingData);
+  console.log("🔐 Login - from:", from);
+
+  // ✅ Redirect after successful login - runs when isAuthenticated becomes true
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log("✅ Login - User authenticated, checking for redirect...");
+      
+      // Check for pending booking from state or localStorage
+      const pendingBooking = bookingData || localStorage.getItem('pendingBooking');
+      
+      console.log("📦 Login - pendingBooking:", pendingBooking);
+      
+      if (pendingBooking) {
+        let booking = pendingBooking;
+        if (typeof booking === 'string') {
+          try {
+            booking = JSON.parse(booking);
+          } catch (e) {
+            booking = pendingBooking;
+          }
+        }
+        
+        console.log("📦 Login - Parsed booking:", booking);
+        
+        // Clear the pending booking from localStorage
+        localStorage.removeItem('pendingBooking');
+        
+        // Navigate to booking summary
+        if (booking.touristId && booking.packageId) {
+          console.log("➡️ Login - Redirecting to booking summary:", `/booking-summary/${booking.touristId}/${booking.packageId}`);
+          navigate(`/booking-summary/${booking.touristId}/${booking.packageId}`, {
+            state: {
+              touristId: booking.touristId,
+              packageDetails: booking.packageDetails,
+              centreDetails: booking.centreDetails,
+            },
+            replace: true
+          });
+          return;
+        }
+      }
+      
+      // If no booking, navigate to the page they came from
+      console.log("➡️ Login - No booking found, redirecting to:", from);
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, from, bookingData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -78,25 +132,31 @@ const Login = () => {
     setLocalError(null);
 
     try {
-      // API CALL
       const response = await axios.post(`${API_BASE_URL}/client/login`, {
         email: formData.email,
         password: formData.password,
       });
 
-      console.log("Login response:", response.data);
+      console.log("✅ Login response:", response.data);
 
-      // Store token if received
+      // ✅ Store token and user details
       if (response.data.token) {
         dispatch(updateToken(response.data.token));
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("userToken", response.data.token);
       }
 
-      // Store user details if received
       if (response.data.user) {
         dispatch(setUserDetails(response.data.user));
+        const clientId = response.data.user.id || response.data.user._id;
+        if (clientId) {
+          localStorage.setItem('clientId', clientId);
+        }
       }
 
-      // Store email in localStorage
+      // ✅ Set login success to update isAuthenticated
+      dispatch(loginSuccess());
+
       localStorage.setItem("Name", formData.email);
 
       Swal.fire({
@@ -104,9 +164,11 @@ const Login = () => {
         title: "Login Successful",
         text: "Welcome back!",
         confirmButtonColor: "#ff6b35",
+        timer: 1500,
+        showConfirmButton: false,
       });
 
-      navigate("/");
+      // ✅ The useEffect will handle the redirect
 
     } catch (error) {
       console.error("Login error:", error.response?.data);
