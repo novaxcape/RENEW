@@ -50,46 +50,10 @@ export default function BookingSummaryPage() {
     family: 1,
   });
 
-  const getClientIdFromToken = () => {
-    try {
-      const token = localStorage.getItem('token') || localStorage.getItem('userToken');
-      if (!token) return null;
-      
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-      
-      const decoded = JSON.parse(jsonPayload);
-      return decoded.id || decoded.sub || decoded.userId;
-    } catch (error) {
-      console.error("Error decoding token:", error);
-      return null;
-    }
-  };
-
-  const clientId = localStorage.getItem('clientId') || 
-                   getClientIdFromToken() ||
-                   loggedInUser?.id || 
-                   loggedInUser?._id;
-
   console.log("📄 BookingSummaryPage - Mounted");
   console.log("📄 touristId:", touristId);
   console.log("📄 packageId:", packageId);
   console.log("📄 location.state:", location.state);
-  console.log("📄 clientId:", clientId);
-  console.log("📄 userToken:", userToken);
-
-  useEffect(() => {
-    if (!localStorage.getItem('clientId') && userToken) {
-      const tokenClientId = getClientIdFromToken();
-      if (tokenClientId) {
-        localStorage.setItem('clientId', tokenClientId);
-        console.log("✅ clientId stored from token:", tokenClientId);
-      }
-    }
-  }, [userToken]);
 
   useEffect(() => {
     if (!bookingData.packageDetails) {
@@ -128,8 +92,9 @@ export default function BookingSummaryPage() {
 
   const summaryItems = ticketTypes.filter((t) => quantities[t.id] > 0);
 
-  // ✅ FIXED: Proper payload structure for booking
-  const handleContinueToPayment = async () => {
+  // ✅ Helper function to create booking and navigate
+  const createBookingAndNavigate = async (isInstallment = false) => {
+    // Validate date
     if (!date) {
       Swal.fire({
         icon: 'error',
@@ -140,6 +105,7 @@ export default function BookingSummaryPage() {
       return;
     }
 
+    // Validate tickets
     if (summaryItems.length === 0) {
       Swal.fire({
         icon: 'error',
@@ -150,36 +116,15 @@ export default function BookingSummaryPage() {
       return;
     }
 
-    const clientIdToUse = localStorage.getItem('clientId') || 
-                          getClientIdFromToken() ||
-                          loggedInUser?.id || 
-                          loggedInUser?._id;
-    
-    console.log("📄 clientIdToUse:", clientIdToUse);
-    
-    if (!clientIdToUse) {
-      Swal.fire({
-        icon: 'error',
-        title: 'User Not Found',
-        text: 'Please log in again to continue.',
-        confirmButtonColor: '#ff6b35',
-      }).then(() => {
-        navigate('/signin');
-      });
-      return;
-    }
-
     try {
-      // ✅ Simplified payload - only what the API expects
+      // ✅ Send ONLY visitDate - the thunk will handle formatting and clientId
       const bookingDataPayload = {
-        date: date,
-        numberOfPeople: summaryItems.reduce((sum, t) => sum + quantities[t.id], 0),
-        specialRequests: "",
-        totalAmount: total,
-        // clientId is added by the thunk
+        visitDate: date, // Will be formatted to MM/DD/YYYY in the thunk
       };
 
       console.log("📄 Booking Payload:", bookingDataPayload);
+      console.log("📄 Tourist ID:", touristId);
+      console.log("📄 Package ID:", packageId);
 
       const result = await dispatch(createBooking({
         touristId: touristId,
@@ -209,27 +154,54 @@ export default function BookingSummaryPage() {
 
       localStorage.removeItem('pendingBooking');
 
-      Swal.fire({
-        icon: 'success',
-        title: 'Booking Created!',
-        text: 'Your booking has been created. Proceed to payment.',
-        confirmButtonColor: '#ff6b35',
-        confirmButtonText: 'Proceed to Payment'
-      }).then(() => {
-        navigate(`/payment/${bookingId}`, {
+      // ✅ Prepare common state data
+      const navigateState = {
+        bookingId: bookingId,
+        amount: total,
+        subtotal: subtotal,
+        serviceFee: SERVICE_FEE,
+        centreDetails: bookingData.centreDetails,
+        packageDetails: bookingData.packageDetails,
+        ticketDetails: summaryItems.map(t => ({
+          ticketType: t.id,
+          quantity: quantities[t.id],
+          price: t.price,
+        })),
+        numberOfPeople: summaryItems.reduce((sum, t) => sum + quantities[t.id], 0),
+        date: date,
+        bookingDetails: result,
+      };
+
+      // ✅ Navigate based on installment flag
+      if (isInstallment) {
+        navigate(`/payment-checkout/${bookingId}`, {
           state: {
-            bookingId: bookingId,
-            amount: total,
-            bookingDetails: result,
-            centreDetails: bookingData.centreDetails,
-            packageDetails: bookingData.packageDetails,
+            ...navigateState,
+            isInstallment: true,
+            autoInit: false,
           }
         });
-      });
+      } else {
+        // Show success message for regular payment
+        await Swal.fire({
+          icon: 'success',
+          title: 'Booking Created!',
+          text: 'Your booking has been created. Proceed to payment.',
+          confirmButtonColor: '#ff6b35',
+          confirmButtonText: 'Proceed to Payment'
+        });
+
+        navigate(`/payment-checkout/${bookingId}`, {
+          state: {
+            ...navigateState,
+            isInstallment: false,
+            autoInit: true,
+          }
+        });
+      }
 
     } catch (error) {
-      console.error("Booking error:", error);
-      console.error("Error details:", error);
+      console.error("❌ Booking error:", error);
       
       let errorMessage = 'Unable to create booking. Please try again.';
       if (error === 'Client not found' || error?.message === 'Client not found') {
@@ -247,26 +219,14 @@ export default function BookingSummaryPage() {
     }
   };
 
+  // ✅ Handle regular payment
+  const handleContinueToPayment = () => {
+    createBookingAndNavigate(false);
+  };
+
+  // ✅ Handle installment payment
   const handleInstallmentClick = () => {
-    navigate(`/payment-checkout/${touristId}/${packageId}`, {
-      state: {
-        bookingId: `pending-${Date.now()}`,
-        totalAmount: total,
-        subtotal: subtotal,
-        serviceFee: SERVICE_FEE,
-        centreDetails: bookingData.centreDetails,
-        packageDetails: bookingData.packageDetails,
-        date: date,
-        isInstallment: true,
-        clientId: clientId,
-        ticketDetails: summaryItems.map(t => ({
-          ticketType: t.id,
-          quantity: quantities[t.id],
-          price: t.price,
-        })),
-        numberOfPeople: summaryItems.reduce((sum, t) => sum + quantities[t.id], 0),
-      }
-    });
+    createBookingAndNavigate(true);
   };
 
   if (!bookingData.packageDetails) {
@@ -325,7 +285,7 @@ export default function BookingSummaryPage() {
                 Package: {bookingData.packageDetails.packageName}
               </span>
               <span style={{ marginLeft: '16px', fontWeight: 600, color: '#ff6b35' }}>
-                ₦{bookingData.packageDetails.amount.toLocaleString()}
+                ₦{bookingData.packageDetails.amount?.toLocaleString() || bookingData.packageDetails.price?.toLocaleString() || '0'}
               </span>
             </div>
           </div>
