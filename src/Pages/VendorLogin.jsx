@@ -176,8 +176,8 @@ const VendorLogin = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
+          <form className="vendor-login-form" onSubmit={handleSubmit}>
+            <div className="vendor-login-field">
               <label>Email</label>
               <input
                 type="email"
@@ -190,9 +190,9 @@ const VendorLogin = () => {
               />
             </div>
 
-            <div className="form-group">
+            <div className="vendor-login-field">
               <label>Password</label>
-              <div style={{ position: "relative" }}>
+              <div className="vendor-login-password">
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
@@ -201,18 +201,10 @@ const VendorLogin = () => {
                   onChange={handleChange}
                   disabled={loading || reduxLoading}
                   required
-                  style={{ width: "100%", paddingRight: "40px" }}
                 />
                 <span
                   onClick={() => setShowPassword(!showPassword)}
-                  style={{
-                    position: "absolute",
-                    right: "12px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    cursor: "pointer",
-                    color: "#666",
-                  }}
+                  className="vendor-login-eye"
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </span>

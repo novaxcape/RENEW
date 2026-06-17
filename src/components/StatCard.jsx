@@ -9,7 +9,7 @@ const StatCard = ({ title, value, percent, previous, type }) => {
   const isOrange = type === "revenue";
 
   return (
-    <div className="stat-card">
+    <div className="dashboard-stat-card">
       <div className="stat-header">
         <span className="stat-title">{title}</span>
         <img

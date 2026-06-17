@@ -18,10 +18,25 @@ const Discoverpage = () => {
   const [searchState, setSearchState] = useState("");
   const [searchSubmitted, setSearchSubmitted] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState("");
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
 
   const touristCentres = useSelector(selectTouristCentres);
   const loading = useSelector(selectTouristCentresLoading);
   const error = useSelector(selectTouristCentresError);
+
+  // ✅ Load all centres on initial page load
+  useEffect(() => {
+    if (!initialLoadDone && !location.state) {
+      // Load a default state or all centres
+      const defaultState = "Lagos";
+      setSearchState(defaultState);
+      setSelectedLocation(defaultState);
+      setSearchSubmitted(true);
+      setInitialLoadDone(true);
+      dispatch(clearApiError());
+      dispatch(getTouristCentersByState(defaultState));
+    }
+  }, [dispatch, location.state, initialLoadDone]);
 
   // Handle state passed from PopularDestinations or other components
   useEffect(() => {
@@ -31,6 +46,7 @@ const Discoverpage = () => {
         setSearchState(stateSearch);
         setSelectedLocation(stateLocation || stateSearch);
         setSearchSubmitted(true);
+        setInitialLoadDone(true);
         dispatch(clearApiError());
         dispatch(getTouristCentersByState(stateSearch));
       }
@@ -44,17 +60,29 @@ const Discoverpage = () => {
     setSearchState(term);
     setSelectedLocation(term);
     setSearchSubmitted(true);
+    setInitialLoadDone(true);
     dispatch(clearApiError());
     dispatch(getTouristCentersByState(term));
   };
 
-  // ✅ Function to clear search and show all static data
+  // ✅ Function to clear search and show default data
   const handleClearSearch = () => {
     setSearchState("");
     setSelectedLocation("");
     setSearchSubmitted(false);
     dispatch(clearApiError());
+    // Reload default centres
+    const defaultState = "Lagos";
+    setSearchState(defaultState);
+    setSelectedLocation(defaultState);
+    setSearchSubmitted(true);
+    dispatch(getTouristCentersByState(defaultState));
   };
+
+  console.log("📄 DiscoverPage - touristCentres:", touristCentres);
+  console.log("📄 DiscoverPage - loading:", loading);
+  console.log("📄 DiscoverPage - error:", error);
+  console.log("📄 DiscoverPage - searchSubmitted:", searchSubmitted);
 
   return (
     <div>
@@ -69,10 +97,10 @@ const Discoverpage = () => {
       <Discoversection
         searchState={searchState}
         searchSubmitted={searchSubmitted}
-        touristCentres={touristCentres}
+        touristCentres={touristCentres}  // ✅ This will be an array
         loading={loading}
         error={error}
-        onClearSearch={handleClearSearch}  // ✅ Pass the clear function
+        onClearSearch={handleClearSearch}
       />
       <Footer />
     </div>
