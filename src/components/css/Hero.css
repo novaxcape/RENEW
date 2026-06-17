@@ -3,8 +3,9 @@
 /* ─── WRAPPER ─────────────────────────────────────────── */
 .hero_wrapper {
   width: 100%;
-  margin-top: 90px;
-  min-height: 90vh;
+  padding-top: 10px;
+  margin-bottom: 90px;
+   min-height: calc(100vh - 90px);
   background: #ffffff;
   font-family: 'Manrope', sans-serif;
   overflow: visible;

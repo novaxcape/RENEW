@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { IoLocationOutline } from "react-icons/io5";
 import { IoSearchOutline } from "react-icons/io5";
 import { CiFilter } from "react-icons/ci";
@@ -29,11 +29,19 @@ const Discoverpagehero = ({
   loading 
 }) => {
   const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const dropdownRef = useRef(null);
+
+  // Filter locations based on search term
+  const filteredLocations = LOCATIONS.filter(location =>
+    location.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleLocationSelect = (location) => {
     setSelectedLocation(location);
     setSearchState(location);
     setLocationDropdownOpen(false);
+    setSearchTerm("");
     if (onSearch) onSearch(location);
   };
 
@@ -49,6 +57,21 @@ const Discoverpagehero = ({
     }
   };
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setLocationDropdownOpen(false);
+        setSearchTerm("");
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <section className="hero">
       <div className="hero_overlay"></div>
@@ -58,26 +81,56 @@ const Discoverpagehero = ({
 
         <p>Discover amazing tourism centres across Nigeria</p>
 
-        <div className="destination_btn" onClick={() => setLocationDropdownOpen(!locationDropdownOpen)}>
-          <IoLocationOutline />
-          <span>{selectedLocation || "Choose Destination"}</span>
-          <IoChevronDown />
-        </div>
-
-  
-        {locationDropdownOpen && (
-          <div className="location-dropdown-menu">
-            {LOCATIONS.map((location) => (
-              <div
-                key={location}
-                className="location-dropdown-item"
-                onClick={() => handleLocationSelect(location)}
-              >
-                {location}
-              </div>
-            ))}
+        <div className="location-dropdown-wrapper" ref={dropdownRef}>
+          <div 
+            className="destination_btn" 
+            onClick={() => setLocationDropdownOpen(!locationDropdownOpen)}
+          >
+            <IoLocationOutline />
+            <span>{selectedLocation || "Choose Destination"}</span>
+            <IoChevronDown className={locationDropdownOpen ? "chevron-rotated" : ""} />
           </div>
-        )}
+
+          {locationDropdownOpen && (
+            <div className="location-dropdown-menu">
+              {/* Search input inside dropdown */}
+              <div className="dropdown-search-input">
+                <IoSearchOutline />
+                <input
+                  type="text"
+                  placeholder="Search locations..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  autoFocus
+                />
+              </div>
+
+              {/* Location list */}
+              <div className="dropdown-location-list">
+                {filteredLocations.length > 0 ? (
+                  filteredLocations.map((location) => (
+                    <div
+                      key={location}
+                      className={`location-dropdown-item ${
+                        selectedLocation === location ? "location-selected" : ""
+                      }`}
+                      onClick={() => handleLocationSelect(location)}
+                    >
+                      <IoLocationOutline />
+                      <span>{location}</span>
+                      {selectedLocation === location && (
+                        <span className="checkmark">✓</span>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="no-results">No locations found</div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="search_container">
           <div className="search_input">
