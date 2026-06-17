@@ -2,22 +2,14 @@ import React from "react";
 import "./css/Wallet.css";
 
 const statsCards = [
-  {
-    label: "Total Tickets Today",
-    icon: "/novaxcape/box.png",
-    value: "510",
-    badge: "↑ 1.8%",
-    badgeType: "blue",
-    yesterday: "Yesterday: 180",
-    isNaira: false,
-  },
+  
   {
     label: "Total Earnings",
     icon: "/novaxcape/dollar.png",
     value: "950,000",
     badge: "↑ 2.0%",
     badgeType: "orange",
-    yesterday: "Yesterday: N704,600",
+    
     isNaira: true,
   },
   {
@@ -26,7 +18,7 @@ const statsCards = [
     value: "150,500",
     badge: "↑ 2.0%",
     badgeType: "orange",
-    yesterday: "Yesterday: N764,600",
+   
     isNaira: true,
   },
   {
@@ -35,7 +27,7 @@ const statsCards = [
     value: "800,000",
     badge: "↑ 2.0%",
     badgeType: "orange",
-    yesterday: "Yesterday: N200,000",
+    
     isNaira: true,
   },
 ];
