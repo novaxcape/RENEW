@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { verifyAdmin, verifyAdminSuccess, verifyAdminFail, clearError } from "../redox/authSlice";
@@ -11,6 +11,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "https://novaxcape.onrender
 
 const VerifyOtp = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.auth);
   
@@ -18,8 +19,13 @@ const VerifyOtp = () => {
   const [timer, setTimer] = useState(59);
   const [canResend, setCanResend] = useState(false);
 
-  const name = localStorage.getItem("Name");
-  const email = name; // The email stored in localStorage
+  // Get email from location state or localStorage
+  const email = location.state?.email || localStorage.getItem("Name");
+  const from = location.state?.from || "/";
+  const bookingData = location.state?.bookingData || null;
+
+  // Store booking data in state for later use
+  const [pendingBooking, setPendingBooking] = useState(bookingData);
 
   // Timer countdown
   useEffect(() => {
@@ -32,6 +38,21 @@ const VerifyOtp = () => {
       setCanResend(true);
     }
   }, [timer]);
+
+  // Check localStorage for pending booking if not in state
+  useEffect(() => {
+    if (!pendingBooking) {
+      const stored = localStorage.getItem('pendingBooking');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          setPendingBooking(parsed);
+        } catch (e) {
+          console.error('Error parsing pending booking:', e);
+        }
+      }
+    }
+  }, [pendingBooking]);
 
   const handleOtpChange = (index, value) => {
     if (value.length > 1) return;
@@ -73,7 +94,6 @@ const VerifyOtp = () => {
     dispatch(clearError());
     
     try {
-      // API CALL TO VERIFY EMAIL
       const response = await axios.post(`${API_BASE_URL}/client/verify-email`, {
         email: email,
         otp: otpCode
@@ -83,15 +103,59 @@ const VerifyOtp = () => {
       
       dispatch(verifyAdminSuccess());
       
-      Swal.fire({
-        icon: "success",
-        title: "Verification Successful!",
-        text: "Your email has been verified. Please login to continue.",
-        confirmButtonColor: "#ff6b35",
-      });
+      // ✅ Check for pending booking after successful verification
+      const booking = pendingBooking || localStorage.getItem('pendingBooking');
       
-      // Navigate to login page after verification
-      navigate("/signin");
+      if (booking) {
+        let bookingDataObj = booking;
+        if (typeof booking === 'string') {
+          try {
+            bookingDataObj = JSON.parse(booking);
+          } catch (e) {
+            bookingDataObj = booking;
+          }
+        }
+        
+        // Clear the pending booking
+        localStorage.removeItem('pendingBooking');
+        setPendingBooking(null);
+        
+        // Show success message with booking option
+        Swal.fire({
+          icon: "success",
+          title: "Email Verified! ✅",
+          text: "Your email has been verified successfully.",
+          confirmButtonColor: "#ff6b35",
+          confirmButtonText: "Continue to Booking",
+          showCancelButton: true,
+          cancelButtonText: "Go to Login",
+          cancelButtonColor: "#6c757d",
+        }).then((result) => {
+          if (result.isConfirmed && bookingDataObj.touristId && bookingDataObj.packageId) {
+            console.log("➡️ Redirecting to booking summary");
+            navigate(`/booking-summary/${bookingDataObj.touristId}/${bookingDataObj.packageId}`, {
+              state: {
+                touristId: bookingDataObj.touristId,
+                packageDetails: bookingDataObj.packageDetails,
+                centreDetails: bookingDataObj.centreDetails,
+              }
+            });
+          } else {
+            console.log("➡️ Redirecting to login");
+            navigate("/signin");
+          }
+        });
+      } else {
+        // No pending booking - just show success and go to login
+        Swal.fire({
+          icon: "success",
+          title: "Email Verified! ✅",
+          text: "Your email has been verified successfully. Please login to continue.",
+          confirmButtonColor: "#ff6b35",
+        }).then(() => {
+          navigate("/signin");
+        });
+      }
       
     } catch (error) {
       console.error("Verification error:", error.response?.data);
@@ -133,7 +197,6 @@ const VerifyOtp = () => {
     dispatch(clearError());
     
     try {
-      // API CALL TO RESEND OTP
       const response = await axios.post(`${API_BASE_URL}/client/resend-otp`, {
         email: email
       });
@@ -147,12 +210,10 @@ const VerifyOtp = () => {
         confirmButtonColor: "#ff6b35",
       });
       
-      // Reset timer and OTP inputs
       setTimer(59);
       setCanResend(false);
       setOtp(["", "", "", "", "", ""]);
       
-      // Focus on first input
       document.getElementById("otp-0")?.focus();
       
     } catch (error) {
@@ -180,7 +241,7 @@ const VerifyOtp = () => {
           <h2>Confirm OTP for Verification</h2>
           
           <p className="verify-description">
-            Please enter the OTP sent to <strong>{name || "your email"}</strong> for confirmation
+            Please enter the OTP sent to <strong>{email || "your email"}</strong> for confirmation
           </p>
 
           <div className="verify-email-text">Verify Your Email</div>

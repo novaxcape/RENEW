@@ -48,6 +48,14 @@ const Discoverpage = () => {
     dispatch(getTouristCentersByState(term));
   };
 
+  // ✅ Function to clear search and show all static data
+  const handleClearSearch = () => {
+    setSearchState("");
+    setSelectedLocation("");
+    setSearchSubmitted(false);
+    dispatch(clearApiError());
+  };
+
   return (
     <div>
       <Discoverpagehero
@@ -64,6 +72,7 @@ const Discoverpage = () => {
         touristCentres={touristCentres}
         loading={loading}
         error={error}
+        onClearSearch={handleClearSearch}  // ✅ Pass the clear function
       />
       <Footer />
     </div>

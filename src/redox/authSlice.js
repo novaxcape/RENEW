@@ -9,6 +9,7 @@ const authSlice = createSlice({
     userToken: null,
     loading: false,
     error: null,
+    isAuthenticated: false,
     // Vendor State
     vendorDetails: null,
     isVendor: false,
@@ -18,21 +19,40 @@ const authSlice = createSlice({
     setUserDetails: (state, action) => {
       state.loggedInUser = action.payload;
       state.isVendor = false;
+      state.isAuthenticated = true;
+      // ✅ Store client ID in localStorage
+      const clientId = action.payload?.id || action.payload?._id;
+      if (clientId) {
+        localStorage.setItem('clientId', clientId);
+      }
     },
     updateToken: (state, action) => {
       state.userToken = action.payload;
       if (action.payload) {
         localStorage.setItem("token", action.payload);
+        localStorage.setItem("userToken", action.payload);
+        state.isAuthenticated = true;
       } else {
         localStorage.removeItem("token");
+        localStorage.removeItem("userToken");
+        state.isAuthenticated = false;
       }
+    },
+    loginSuccess: (state) => {
+      state.isAuthenticated = true;
+      state.loading = false;
+      state.error = null;
     },
     logout: (state) => {
       state.loggedInUser = null;
       state.userToken = null;
       state.vendorDetails = null;
       state.isVendor = false;
+      state.isAuthenticated = false;
       localStorage.removeItem("token");
+      localStorage.removeItem("userToken");
+      localStorage.removeItem("vendorToken");
+      localStorage.removeItem("clientId");
     },
     setLoading: (state, action) => {
       state.loading = action.payload;
@@ -73,15 +93,18 @@ const authSlice = createSlice({
       state.vendorDetails = action.payload;
       state.loggedInUser = action.payload;
       state.isVendor = true;
+      state.isAuthenticated = true;
     },
     updateVendorToken: (state, action) => {
       state.userToken = action.payload;
       if (action.payload) {
         localStorage.setItem("token", action.payload);
         localStorage.setItem("vendorToken", action.payload);
+        state.isAuthenticated = true;
       } else {
         localStorage.removeItem("token");
         localStorage.removeItem("vendorToken");
+        state.isAuthenticated = false;
       }
     },
     vendorLogout: (state) => {
@@ -89,8 +112,10 @@ const authSlice = createSlice({
       state.loggedInUser = null;
       state.userToken = null;
       state.isVendor = false;
+      state.isAuthenticated = false;
       localStorage.removeItem("token");
       localStorage.removeItem("vendorToken");
+      localStorage.removeItem("clientId");
     },
 
     // ========== VENDOR OTP REDUCERS ==========
@@ -133,6 +158,7 @@ export const {
   verifyAdmin,
   verifyAdminSuccess,
   verifyAdminFail,
+  loginSuccess,
   // Vendor Actions
   setVendorDetails,
   updateVendorToken,
