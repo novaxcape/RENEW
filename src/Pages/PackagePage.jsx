@@ -1,22 +1,20 @@
 import React from 'react'
 import { useOutletContext } from 'react-router-dom'
 import TopNavbar2 from '../components/TopNavbar2'
-import BookingManagement from '../components/BookingManagement'
-import PerformanceInsight from '../components/PerformanceInsight'
-import "../Styles/Dashboard.css"
-const DashboardBookingPage = () => {
+import PackageSettings from '../components/PackageSettings'
+const PackagePage = () => {
   const { openMobileMenu = () => {} } = useOutletContext() || {}
 
   return (
-    <>
+   <>
       <div className="sticky-wrapper">
         <TopNavbar2 onMenuOpen={openMobileMenu} />
       </div>
 
-      <BookingManagement/>
-      <PerformanceInsight/>
+      <PackageSettings/>
+      
     </>
   )
 }
 
-export default DashboardBookingPage
+export default PackagePage

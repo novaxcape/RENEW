@@ -8,7 +8,7 @@ const notifications = [
   { id: 3, title: "Review posted by customer", time: "1 hour ago" },
 ];
 
-const TopNavbar = ({ onMenuOpen }) => {
+const TopNavbar = ({ onMenuOpen = () => {} }) => {
    
   const [showNotifications, setShowNotifications] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -110,7 +110,12 @@ const TopNavbar = ({ onMenuOpen }) => {
           </div>
         </div>
 
-        <button className="hamburger-btn" onClick={onMenuOpen}>
+        <button
+          className="hamburger-btn"
+          type="button"
+          onClick={onMenuOpen}
+          aria-label="Open menu"
+        >
           <FiMenu size={24} />
         </button>
       </div>

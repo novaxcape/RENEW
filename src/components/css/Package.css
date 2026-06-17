@@ -193,7 +193,9 @@
 /* Mobile */
 @media (max-width: 768px) {
   .package-container {
-    padding: 20px;
+    min-height: auto;
+    padding: 20px 16px;
+    border-radius: 0;
   }
 
   .package-header {
@@ -217,6 +219,12 @@
 
   .stats-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+
+  .stat-card {
+    padding: 16px;
   }
 
   .empty-state {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import TopNavbar from "../components/TopNavbar";
 import WelcomeSection from "../components/WelcomeSection";
 import StatCard from "../components/StatCard";
@@ -10,17 +10,17 @@ import CapacityGoals from "../components/CapacityGoals";
 import "../Styles/Dashboard.css";
 
 const Dashboard = () => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { openMobileMenu = () => {} } = useOutletContext() || {};
 
   return (
     <>
       <div className="sticky-wrapper">
-        <TopNavbar onMenuOpen={() => setMobileMenuOpen(true)} />
+        <TopNavbar onMenuOpen={openMobileMenu} />
       </div>
 
       <WelcomeSection />
 
-      <div className="stats-grid">
+      <div className="dashboard-stats-grid">
         <StatCard title="Total Tickets Today" value="510" percent="1.8%" previous="Yesterday: 180" type="ticket" />
         <StatCard title="Total Revenue" value="N968,900" percent="2.0%" previous="Yesterday: N764,600" type="revenue" />
         <StatCard title="Total Bookings" value="88" percent="0.5%" previous="Yesterday: 58" type="booking" />

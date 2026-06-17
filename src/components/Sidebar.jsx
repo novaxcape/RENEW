@@ -21,8 +21,8 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
     },
     {
       icon: <FiDollarSign />,
-      label: "Revenue Trend",
-      path: "/vendor/dashboard/revenue",
+      label: "Wallet",
+      path: "/vendor/dashboard/wallet",
     },
     {
       icon: <img
@@ -49,7 +49,15 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
 
   return (
     <>
-      <aside className="sidebar">
+      <aside className={`sidebar ${mobileOpen ? "mobile-open" : ""}`}>
+        <button
+          className="mobile-sidebar-close"
+          type="button"
+          onClick={onMobileClose}
+          aria-label="Close menu"
+        >
+          <FiX />
+        </button>
         <div className="sidebar-top">
           <div className="logo-section">
             <img
@@ -65,6 +73,7 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
                 key={item.label}
                 to={item.path}
                 end={item.path === "/vendor/dashboard"}
+                onClick={onMobileClose}
                 className={({ isActive }) =>
                   `nav-item ${isActive ? "active" : ""}`
                 }

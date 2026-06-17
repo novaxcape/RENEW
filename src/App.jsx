@@ -41,6 +41,8 @@ import ProfileSettingPage from "./Pages/ProfileSettingPage";
 import AddCentre from "./Pages/Addcentre";
 import KycPage from "./Pages/KycPage";
 import DashboardBookingPage from "./Pages/DashboardBookingPage";
+import PackagePage from "./Pages/PackagePage";
+import WalletPage from "./Pages/WalletPage";
 
 // Selection Pages
 import SignUpScreen from "./Pages/SignUpScreen";
@@ -89,6 +91,15 @@ const App = () => {
           </PrivateRoute>
         }
       />
+       
+        <Route
+          path="/payment/:packageId"
+          element={
+            <PrivateRoute>
+              <PaymentOptionPage />
+            </PrivateRoute>
+          }
+        />
 
       <Route
         path="/payment"
@@ -287,8 +298,10 @@ const App = () => {
         <Route index element={<Dashboard />} />
         <Route path="bookings" element={<DashboardBookingPage/>} />
         <Route path="revenue" element={<RevenueTrendPage />} />
+        <Route path="wallet" element={<WalletPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="support" element={<Support />} />
+        <Route path="package" element={<PackagePage/>} />
         
       </Route>
 

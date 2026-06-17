@@ -105,6 +105,59 @@
   color: #ff6b35;
 }
 
+.vendor-login-form {
+  width: 100%;
+}
+
+.vendor-login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.vendor-login-field label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.vendor-login-field input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid #d7d7d7;
+  border-radius: 999px;
+  padding: 0 16px;
+  outline: none;
+  font-size: 14px;
+  color: #222;
+  background: #fff;
+}
+
+.vendor-login-field input:focus {
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.12);
+}
+
+.vendor-login-password {
+  position: relative;
+}
+
+.vendor-login-password input {
+  padding-right: 44px;
+}
+
+.vendor-login-eye {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+
 .error {
   color: #ef4444;
   font-size: 12px;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
 import TopNavbar2 from "../components/TopNavbar2";
 import { useDispatch, useSelector } from "react-redux";
 import Swal from "sweetalert2";
@@ -13,6 +14,7 @@ import {
 } from "../redox/apiSlice";
 
 const SettingsPage = () => {
+  const { openMobileMenu = () => {} } = useOutletContext() || {};
   const dispatch = useDispatch();
   const { vendorProfile, vendorLoading, vendorError, vendorSuccessMessage } = useSelector((state) => state.api);
   const { vendorDetails } = useSelector((state) => state.auth);
@@ -211,7 +213,7 @@ const SettingsPage = () => {
   return (
     <>
     <div className="sticky-wrapper">
-        <TopNavbar2  />
+        <TopNavbar2 onMenuOpen={openMobileMenu} />
       </div>
     <div className="settings-page">
       {/* Business Information */}
