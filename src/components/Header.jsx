@@ -14,11 +14,9 @@ const Header = () => {
   const navigate = useNavigate();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [authDropdownOpen, setAuthDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const dropdownRef = useRef(null);
-  const mobileDropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
   const token = localStorage.getItem("token");
@@ -37,45 +35,43 @@ const Header = () => {
     setDropdownOpen(!dropdownOpen);
   };
 
-  const toggleMobileMenu = () => {
+  const toggleMobileMenu = (e) => {
+    e.stopPropagation();
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
-  // Close mobile menu when route changes
+  // Close mobile menu completely whenever navigation happens successfully
   useEffect(() => {
     setMobileMenuOpen(false);
+    setDropdownOpen(false);
   }, [navigate]);
 
+  // Handle outside clicks safely
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target)
-      ) {
+      // If desktop user menu is open, close it only if click is outside the ref
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
       }
 
+      // If mobile menu is open, close it only if click is completely outside the container
+      // and NOT on a valid navigation link
       if (
-        mobileDropdownRef.current &&
-        !mobileDropdownRef.current.contains(event.target)
-      ) {
-        setAuthDropdownOpen(false);
-      }
-
-      if (
+        mobileMenuOpen &&
         mobileMenuRef.current &&
-        !mobileMenuRef.current.contains(event.target)
+        !mobileMenuRef.current.contains(event.target) &&
+        !event.target.closest("a") &&
+        !event.target.closest("button")
       ) {
         setMobileMenuOpen(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [mobileMenuOpen]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -85,17 +81,10 @@ const Header = () => {
     window.location.reload();
   };
 
-  // Handle navigation and close menu
-  const handleNavClick = (to) => {
-    setMobileMenuOpen(false);
-    navigate(to);
-  };
-
   return (
     <>
       <header className="payment-navbar-header m-header">
         <div className="p-navbar-inner-container m-header-body">
-
           {/* Logo */}
           <div className="p-navbar-logo-wrapper m-logo">
             <Link to="/">
@@ -133,29 +122,20 @@ const Header = () => {
             {!isLoggedIn ? (
               <>
                 <Link to="/signupscreen">
-                  <button className="m-signup-btn">
-                    Sign Up
-                  </button>
+                  <button className="m-signup-btn">Sign Up</button>
                 </Link>
 
                 <Link to="/signinscreen">
-                  <button className="m-signin-btn">
-                    Sign In
-                  </button>
+                  <button className="m-signin-btn">Sign In</button>
                 </Link>
               </>
             ) : (
               <div className="p-user-actions-wrapper">
-                {/* Wishlist Heart Icon */}
                 <Link to="/WishList" className="p-wishlist-link">
                   <FiHeart size={22} className="p-wishlist-icon" />
                 </Link>
 
-                {/* User Profile Dropdown */}
-                <div
-                  className="p-users-menu-container"
-                  ref={dropdownRef}
-                >
+                <div className="p-users-menu-container" ref={dropdownRef}>
                   <button
                     className="p-navbars-action-btn"
                     onClick={toggleDropdown}
@@ -165,10 +145,7 @@ const Header = () => {
 
                   {dropdownOpen && (
                     <div className="p-profiles-dropdown-menu">
-                      <Link
-                        to="/profile-settings"
-                        className="p-dropdown-item"
-                      >
+                      <Link to="/profile-settings" className="p-dropdown-item">
                         <FiSettings size={16} />
                         Profile Settings
                       </Link>
@@ -187,12 +164,8 @@ const Header = () => {
             )}
           </div>
 
-          {/* Mobile Menu - Visible for both logged in and logged out */}
-          <div
-            className="m-mobile-menu-wrapper"
-            ref={mobileMenuRef}
-          >
-            {/* Mobile Icons (Love + User) - Only when logged in */}
+          {/* Mobile Menu Actions Container */}
+          <div className="m-mobile-menu-wrapper" ref={mobileMenuRef}>
             {isLoggedIn && (
               <div className="m-mobile-user-actions">
                 <Link to="/WishList" className="m-mobile-wishlist-link">
@@ -204,27 +177,22 @@ const Header = () => {
               </div>
             )}
 
-            {/* Hamburger Button */}
             <button
               className="m-hamburger"
               onClick={toggleMobileMenu}
               aria-label="Toggle menu"
             >
-              {mobileMenuOpen ? (
-                <FiX size={26} />
-              ) : (
-                <FiMenu size={26} />
-              )}
+              {mobileMenuOpen ? <FiX size={26} /> : <FiMenu size={26} />}
             </button>
           </div>
         </div>
       </header>
 
-      {/* Mobile Dropdown Menu - Rendered outside header to avoid z-index issues */}
+      {/* Mobile Dropdown Menu */}
       {mobileMenuOpen && (
         <div className="m-mobile-dropdown-overlay">
+          {/* Note: Added mobileMenuRef down here as well or ensured click intercepts are safe */}
           <div className="m-mobile-dropdown">
-            {/* Navigation Links */}
             <div className="m-mobile-nav-links">
               {navLinks.map((link) => (
                 <Link
@@ -238,7 +206,6 @@ const Header = () => {
               ))}
             </div>
 
-            {/* Auth Actions - Only when NOT logged in */}
             {!isLoggedIn && (
               <div className="m-mobile-auth-actions">
                 <Link
@@ -258,37 +225,13 @@ const Header = () => {
               </div>
             )}
 
-            {/* Logout - Only when logged in */}
             {isLoggedIn && (
-              <button
-                onClick={handleLogout}
-                className="m-mobile-logout-btn"
-              >
+              <button onClick={handleLogout} className="m-mobile-logout-btn">
                 <FiLogOut size={18} />
                 Logout
               </button>
             )}
           </div>
-        </div>
-      )}
-
-      {/* Old Auth Dropdown - Keep for backward compatibility */}
-      {!isLoggedIn && authDropdownOpen && (
-        <div className="m-auth-dropdown">
-          <Link
-            to="/signupscreen"
-            className="m-auth-dropdown-item"
-            onClick={() => setAuthDropdownOpen(false)}
-          >
-            Sign Up
-          </Link>
-          <Link
-            to="/signinscreen"
-            className="m-auth-dropdown-item"
-            onClick={() => setAuthDropdownOpen(false)}
-          >
-            Sign In
-          </Link>
         </div>
       )}
     </>
