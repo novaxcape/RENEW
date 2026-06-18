@@ -159,7 +159,7 @@ export const createPackage = createThunk(
     console.log("📦 Package data:", packageData);
     
     return axios.post(
-      `${API_BASE_URL}/package/create-package/${touristId}`,
+      `${API_BASE_URL}/package/${touristId}`,
       packageData,
       authConfig(getState())
     );
