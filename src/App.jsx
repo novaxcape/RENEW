@@ -41,6 +41,9 @@ import ProfileSettingPage from "./Pages/ProfileSettingPage";
 import AddCentre from "./Pages/Addcentre";
 import KycPage from "./Pages/KycPage";
 import DashboardBookingPage from "./Pages/DashboardBookingPage";
+import WalletPage from "./Pages/WalletPage";
+import PackagePage from "./Pages/PackagePage";
+
 
 // Selection Pages
 import SignupScreen from "./Pages/SignupScreen";
@@ -325,7 +328,8 @@ const App = () => {
       >
         <Route index element={<Dashboard />} />
         <Route path="bookings" element={<DashboardBookingPage />} />
-        <Route path="revenue" element={<RevenueTrendPage />} />
+        <Route path="wallet" element={<WalletPage />} />
+        <Route path="package" element={<PackagePage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="support" element={<Support />} />
       </Route>
