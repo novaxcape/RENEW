@@ -9,7 +9,8 @@ import { setUserDetails, updateToken, loginSuccess } from "../redox/authSlice";
 import "../Styles/Login.css";
 import Image from "../components/Image";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://novaxcape.onrender.com/api/v1";
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "https://novaxcape.onrender.com/api/v1";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -20,8 +21,12 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const { loading: reduxLoading, error, isAuthenticated } = useSelector((state) => state.auth);
-  
+  const {
+    loading: reduxLoading,
+    error,
+    isAuthenticated,
+  } = useSelector((state) => state.auth);
+
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [localError, setLocalError] = useState(null);
@@ -45,42 +50,49 @@ const Login = () => {
   useEffect(() => {
     if (isAuthenticated) {
       console.log("✅ Login - User authenticated, checking for redirect...");
-      
+
       // Check for pending booking from state or localStorage
-      const pendingBooking = bookingData || localStorage.getItem('pendingBooking');
-      
+      const pendingBooking =
+        bookingData || localStorage.getItem("pendingBooking");
+
       console.log("📦 Login - pendingBooking:", pendingBooking);
-      
+
       if (pendingBooking) {
         let booking = pendingBooking;
-        if (typeof booking === 'string') {
+        if (typeof booking === "string") {
           try {
             booking = JSON.parse(booking);
           } catch (e) {
             booking = pendingBooking;
           }
         }
-        
+
         console.log("📦 Login - Parsed booking:", booking);
-        
+
         // Clear the pending booking from localStorage
-        localStorage.removeItem('pendingBooking');
-        
+        localStorage.removeItem("pendingBooking");
+
         // Navigate to booking summary
         if (booking.touristId && booking.packageId) {
-          console.log("➡️ Login - Redirecting to booking summary:", `/booking-summary/${booking.touristId}/${booking.packageId}`);
-          navigate(`/booking-summary/${booking.touristId}/${booking.packageId}`, {
-            state: {
-              touristId: booking.touristId,
-              packageDetails: booking.packageDetails,
-              centreDetails: booking.centreDetails,
+          console.log(
+            "➡️ Login - Redirecting to booking summary:",
+            `/booking-summary/${booking.touristId}/${booking.packageId}`,
+          );
+          navigate(
+            `/booking-summary/${booking.touristId}/${booking.packageId}`,
+            {
+              state: {
+                touristId: booking.touristId,
+                packageDetails: booking.packageDetails,
+                centreDetails: booking.centreDetails,
+              },
+              replace: true,
             },
-            replace: true
-          });
+          );
           return;
         }
       }
-      
+
       // If no booking, navigate to the page they came from
       console.log("➡️ Login - No booking found, redirecting to:", from);
       navigate(from, { replace: true });
@@ -101,7 +113,7 @@ const Login = () => {
         [name]: "",
       }));
     }
-    
+
     if (localError) {
       setLocalError(null);
     }
@@ -146,11 +158,11 @@ const Login = () => {
         localStorage.setItem("userToken", response.data.token);
       }
 
-      if (response.data.user) {
-        dispatch(setUserDetails(response.data.user));
-        const clientId = response.data.user.id || response.data.user._id;
+      if (response.data.data) {
+        dispatch(setUserDetails(response.data.data));
+        const clientId = response.data.data.id || response.data.data._id;
         if (clientId) {
-          localStorage.setItem('clientId', clientId);
+          localStorage.setItem("clientId", clientId);
         }
       }
 
@@ -169,10 +181,10 @@ const Login = () => {
       });
 
       // ✅ The useEffect will handle the redirect
-
     } catch (error) {
       console.error("Login error:", error.response?.data);
-      const errorMessage = error.response?.data?.message || "Invalid email or password";
+      const errorMessage =
+        error.response?.data?.message || "Invalid email or password";
       setLocalError(errorMessage);
 
       Swal.fire({
@@ -197,15 +209,18 @@ const Login = () => {
           <h2>Login</h2>
 
           {(localError || error) && (
-            <div className="error-message" style={{
-              color: "red",
-              textAlign: "center",
-              marginBottom: "15px",
-              padding: "10px",
-              backgroundColor: "#ffeeee",
-              borderRadius: "5px",
-              fontSize: "14px"
-            }}>
+            <div
+              className="error-message"
+              style={{
+                color: "red",
+                textAlign: "center",
+                marginBottom: "15px",
+                padding: "10px",
+                backgroundColor: "#ffeeee",
+                borderRadius: "5px",
+                fontSize: "14px",
+              }}
+            >
               {localError || error}
             </div>
           )}
@@ -235,11 +250,16 @@ const Login = () => {
                   onChange={handleChange}
                   className={errors.password ? "errorInput" : ""}
                 />
-                <span className="eye-icon" onClick={() => setShowPassword(!showPassword)}>
+                <span
+                  className="eye-icon"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </span>
               </div>
-              {errors.password && <span className="error">{errors.password}</span>}
+              {errors.password && (
+                <span className="error">{errors.password}</span>
+              )}
               <div className="forgot-password-row">
                 <Link to="/forgot-password" className="forgot-link">
                   Forgot Password?
@@ -247,7 +267,11 @@ const Login = () => {
               </div>
             </div>
 
-            <button type="submit" className="signup-btn" disabled={loading || reduxLoading}>
+            <button
+              type="submit"
+              className="signup-btn"
+              disabled={loading || reduxLoading}
+            >
               {loading || reduxLoading ? "Logging In..." : "Login"}
             </button>
 
@@ -256,7 +280,11 @@ const Login = () => {
             </div>
 
             <button type="button" className="google-btn">
-              <img className="google-icon" src="/novaxcape/google.png" alt="Google" />
+              <img
+                className="google-icon"
+                src="/novaxcape/google.png"
+                alt="Google"
+              />
               Continue with Google
             </button>
 
