@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import {
   FiGrid,
@@ -10,6 +10,7 @@ import {
 } from "react-icons/fi";
 
 const Sidebar = ({ mobileOpen, onMobileClose }) => {
+  const navigate = useNavigate();
   const [showExitModal, setShowExitModal] = useState(false);
 
   const menuItems = [
@@ -21,9 +22,20 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
     },
     {
       icon: <FiDollarSign />,
-      label: "Revenue Trend",
-      path: "/vendor/dashboard/revenue",
+      label: "Wallet",
+      path: "/vendor/dashboard/wallet",
     },
+    {
+      icon: <img
+              src="/novaxcape/pack.png"
+              alt="exit"
+              style={{ width: "20px", height: "20px" }}
+            /> ,
+      label: "Packages",
+      path: "/vendor/dashboard/package",
+    },
+
+
     {
       icon: <FiSettings />,
       label: "Settings",
@@ -32,13 +44,21 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
     {
       icon: <FiHelpCircle />,
       label: "Support",
-      path: "/vendor/dashboard/support",
+      path: "/support",
     },
   ];
 
   return (
     <>
-      <aside className="sidebar">
+      <aside className={`sidebar ${mobileOpen ? "mobile-open" : ""}`}>
+        <button
+          className="mobile-sidebar-close"
+          type="button"
+          onClick={onMobileClose}
+          aria-label="Close menu"
+        >
+          <FiX />
+        </button>
         <div className="sidebar-top">
           <div className="logo-section">
             <img
@@ -54,6 +74,7 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
                 key={item.label}
                 to={item.path}
                 end={item.path === "/vendor/dashboard"}
+                onClick={onMobileClose}
                 className={({ isActive }) =>
                   `nav-item ${isActive ? "active" : ""}`
                 }
@@ -76,6 +97,38 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
           </div>
         </div>
       </aside>
+
+      {showExitModal && (
+        <div className="modal-overlay" onClick={() => setShowExitModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <h2 className="modal-title">Exit Vendor Portal?</h2>
+            <p className="modal-desc">
+              Are you sure you want to proceed? You’re about to switch from the
+              vendor portal to public Novaxcape interface, this action will log
+              you out of the partner dashboard.
+            </p>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="modal-btn-cancel"
+                onClick={() => setShowExitModal(false)}
+              >
+                No, Cancel
+              </button>
+              <button
+                type="button"
+                className="modal-btn-exit"
+                onClick={() => {
+                  setShowExitModal(false);
+                  navigate("/");
+                }}
+              >
+                Yes, Exit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

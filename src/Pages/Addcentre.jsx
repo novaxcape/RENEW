@@ -25,18 +25,15 @@ const defaultOpeningHours = {
   sunday: { isOpen: false, openTime: '10 AM', closeTime: '4 PM' },
 };
 
-// ✅ ROBUST getEntityId function - handles all response formats
-const getEntityId = (value) => {
-  if (!value) return null;
+// ✅ ENHANCED getEntityId function - handles all response formats
+const getEntityId = (value, depth = 0) => {
+  if (!value || depth > 5) return null;
 
-  // If it's already a string
   if (typeof value === 'string' && value.length > 0) {
     return value;
   }
 
-  // If it's an object
   if (typeof value === 'object') {
-    // Check common paths
     const paths = [
       'data.touristId',
       'data.id', 
@@ -44,13 +41,28 @@ const getEntityId = (value) => {
       'data.data.id',
       'data.data._id',
       'data.data.touristId',
+      'data.data.vendorId',
+      'data.vendorId',
+      'data.userId',
+      'data.centreId',
+      'data.centre._id',
+      'data.centre.id',
+      'data.centre.touristId',
+      'data.result._id',
+      'data.result.id',
+      'data.result.touristId',
       'touristId',
+      'vendorId',
       'id',
       '_id',
-      'vendorId',
       'userId',
-      'data.vendorId',
-      'data.userId'
+      'centreId',
+      'centre._id',
+      'centre.id',
+      'centre.touristId',
+      'result._id',
+      'result.id',
+      'result.touristId'
     ];
 
     for (const path of paths) {
@@ -68,23 +80,36 @@ const getEntityId = (value) => {
       }
       
       if (found && current && typeof current === 'string' && current.length > 0) {
+        console.log(`✅ Found ID at path "${path}":`, current);
         return current;
       }
     }
 
-    // If no path worked, try to find any property that looks like an ID
+    if (value.data && typeof value.data === 'object') {
+      for (const key of Object.keys(value.data)) {
+        if (key.toLowerCase().includes('id') || key.toLowerCase().includes('tourist')) {
+          const val = value.data[key];
+          if (typeof val === 'string' && val.length > 0) {
+            console.log(`✅ Found ID in data.${key}:`, val);
+            return val;
+          }
+        }
+      }
+    }
+
     for (const key of Object.keys(value)) {
       const val = value[key];
       if (typeof val === 'string' && val.length > 0 && 
           (key.toLowerCase().includes('id') || 
            key.toLowerCase().includes('tourist') ||
            key.toLowerCase().includes('vendor') ||
-           key.toLowerCase().includes('user'))) {
+           key.toLowerCase().includes('user') ||
+           key.toLowerCase().includes('centre'))) {
+        console.log(`✅ Found ID at key "${key}":`, val);
         return val;
       }
-      // Recursively check nested objects
       if (typeof val === 'object' && val !== null) {
-        const nestedId = getEntityId(val);
+        const nestedId = getEntityId(val, depth + 1);
         if (nestedId) return nestedId;
       }
     }
@@ -94,8 +119,7 @@ const getEntityId = (value) => {
   return null;
 };
 
-// ✅ MAX FILE SIZE CONSTANT
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 const AddCentre = () => {
   const dispatch = useDispatch();
@@ -141,6 +165,7 @@ const AddCentre = () => {
   };
 
   const handlePackagesChange = (packages) => {
+    console.log("📦 Packages updated in AddCentre:", packages);
     setPackagesList(packages);
   };
 
@@ -162,10 +187,10 @@ const AddCentre = () => {
     }));
   };
 
-  // Validate current step before proceeding
+  // ✅ FIXED: Validate current step with proper package validation
   const validateCurrentStep = () => {
     switch(currentStep) {
-      case 1: // Basic Information
+      case 1:
         if (!centreData.centreName) {
           Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please enter centre name.', confirmButtonColor: '#ff6b35' });
           return false;
@@ -192,38 +217,64 @@ const AddCentre = () => {
         }
         return true;
         
-      case 2: // Facilities
+      case 2:
         if (selectedFacilities.length === 0) {
           Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please select at least one facility.', confirmButtonColor: '#ff6b35' });
           return false;
         }
         return true;
         
-      case 3: // Pricing
+      case 3:
         if (!pricingData.dailySlotCapacity) {
-          Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please enter daily slot capacity.', confirmButtonColor: '#ff6b35' });
+          Swal.fire({ 
+            icon: 'error', 
+            title: 'Missing Information', 
+            text: 'Please enter daily slot capacity.', 
+            confirmButtonColor: '#ff6b35' 
+          });
           return false;
         }
+        
+        // ✅ Filter valid packages
         const validPackages = packagesList.filter(pkg => 
-          pkg.packageName && pkg.packageType && pkg.amount && pkg.numberOfPeople
+          pkg.packageName?.trim() && 
+          pkg.packageType?.trim() && 
+          pkg.amount && 
+          Number(pkg.amount) > 0 &&
+          pkg.numberOfPeople && 
+          Number(pkg.numberOfPeople) > 0
         );
+        
+        console.log("📦 Valid packages in validation:", validPackages);
+        console.log("📦 All packages:", packagesList);
+        
         if (validPackages.length === 0) {
-          Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please add at least one valid package.', confirmButtonColor: '#ff6b35' });
+          Swal.fire({ 
+            icon: 'error', 
+            title: 'Missing Package Information', 
+            text: 'Please add at least one valid package with name, type, amount, and number of people.\n\nMake sure all fields are filled correctly.',
+            confirmButtonColor: '#ff6b35' 
+          });
           return false;
         }
+        
         if (!documents.termsAndCondition || !documents.privacyPolicy) {
-          Swal.fire({ icon: 'error', title: 'Missing Documents', text: 'Please upload terms and privacy policy documents.', confirmButtonColor: '#ff6b35' });
+          Swal.fire({ 
+            icon: 'error', 
+            title: 'Missing Documents', 
+            text: 'Please upload terms and privacy policy documents.', 
+            confirmButtonColor: '#ff6b35' 
+          });
           return false;
         }
         return true;
         
-      case 4: // Images
+      case 4:
         const imageFiles = Object.values(uploadedImages).filter((image) => image?.file);
         if (imageFiles.length < 1) {
           Swal.fire({ icon: 'error', title: 'Missing Images', text: 'Please upload at least 1 centre image.', confirmButtonColor: '#ff6b35' });
           return false;
         }
-        // Check file sizes in validation
         const oversized = imageFiles.filter(file => file.size > MAX_FILE_SIZE);
         if (oversized.length > 0) {
           Swal.fire({ 
@@ -236,7 +287,7 @@ const AddCentre = () => {
         }
         return true;
         
-      case 5: // Hours - Optional, can proceed
+      case 5:
         return true;
         
       default:
@@ -244,10 +295,18 @@ const AddCentre = () => {
     }
   };
 
+  // ✅ FIXED: validateCentre with proper package validation
   const validateCentre = () => {
     const imageFiles = Object.values(uploadedImages).filter((image) => image?.file);
+    
+    // ✅ Filter valid packages
     const validPackages = packagesList.filter(pkg => 
-      pkg.packageName && pkg.packageType && pkg.amount && pkg.numberOfPeople
+      pkg.packageName?.trim() && 
+      pkg.packageType?.trim() && 
+      pkg.amount && 
+      Number(pkg.amount) > 0 &&
+      pkg.numberOfPeople && 
+      Number(pkg.numberOfPeople) > 0
     );
 
     if (
@@ -270,7 +329,7 @@ const AddCentre = () => {
     }
 
     if (validPackages.length === 0) {
-      return 'Please add at least one valid package.';
+      return 'Please add at least one valid package with name, type, amount, and number of people.';
     }
 
     if (imageFiles.length < 1) {
@@ -293,7 +352,7 @@ const AddCentre = () => {
     return '';
   };
 
-  // ✅ FIXED: Package creation function with proper error handling
+  // ✅ FIXED: createPackagesForCentre with better error handling
   const createPackagesForCentre = async (touristId) => {
     const validPackages = packagesList.filter(pkg => 
       pkg.packageName?.trim() && 
@@ -317,7 +376,6 @@ const AddCentre = () => {
     
     for (const packageData of validPackages) {
       try {
-        // Prepare the payload exactly as API expects
         const payload = {
           packageName: packageData.packageName.trim(),
           packageType: packageData.packageType.trim(),
@@ -325,11 +383,11 @@ const AddCentre = () => {
           numberOfPeople: String(Number(packageData.numberOfPeople)),
         };
         
-        console.log(`📤 Creating package "${payload.packageName}":`, payload);
+        console.log(`📤 Creating package "${payload.packageName}" for touristId:`, touristId);
+        console.log(`📤 Payload:`, payload);
         
-        // Call the API
         const result = await dispatch(createPackage({ 
-          touristId, 
+          touristId: touristId.trim(), 
           packageData: payload 
         })).unwrap();
         
@@ -346,7 +404,6 @@ const AddCentre = () => {
       } catch (error) {
         console.error(`❌ Failed to create package "${packageData.packageName}":`, error);
         
-        // Extract detailed error message
         let errorMessage = 'Unknown error';
         if (typeof error === 'string') {
           errorMessage = error;
@@ -358,7 +415,6 @@ const AddCentre = () => {
           errorMessage = error.data.message;
         }
         
-        // Check for specific errors
         if (errorMessage.toLowerCase().includes('duplicate') || errorMessage.toLowerCase().includes('already exists')) {
           errorMessage = 'This package name already exists for this centre. Please use a different name.';
         } else if (errorMessage.toLowerCase().includes('not found') || errorMessage.toLowerCase().includes('invalid tourist')) {
@@ -373,7 +429,6 @@ const AddCentre = () => {
       }
     }
 
-    // Log final results
     const successfulPackages = results.filter(r => r.success);
     const failedPackages = results.filter(r => !r.success);
     
@@ -388,7 +443,6 @@ const AddCentre = () => {
       });
     }
 
-    // If ALL packages failed, throw error so user knows
     if (allFailed && validPackages.length > 0) {
       const errorMessages = failedPackages.map(p => `${p.package}: ${p.error}`).join('\n');
       throw new Error(`Failed to create any packages:\n${errorMessages}`);
@@ -399,6 +453,23 @@ const AddCentre = () => {
 
   // ✅ FIXED: createPackagesAndFinish with proper error display
   const createPackagesAndFinish = async (touristId) => {
+    console.log("📦 Creating packages for touristId:", touristId);
+    console.log("📦 touristId type:", typeof touristId);
+    
+    if (!touristId || typeof touristId !== 'string' || touristId.trim().length === 0) {
+      console.error("❌ Invalid touristId:", touristId);
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Centre ID',
+        text: 'The centre was created but we received an invalid ID. Please try again.',
+        confirmButtonColor: '#ff6b35',
+      });
+      return;
+    }
+    
+    const cleanTouristId = touristId.trim();
+    console.log("✅ Using clean touristId:", cleanTouristId);
+    
     Swal.fire({
       title: 'Creating Packages...',
       text: 'Setting up ticket packages for your centre',
@@ -409,16 +480,15 @@ const AddCentre = () => {
     });
 
     try {
-      const packageResults = await createPackagesForCentre(touristId);
+      const packageResults = await createPackagesForCentre(cleanTouristId);
       
       const successfulPackages = packageResults.filter(r => r.success);
       const failedPackages = packageResults.filter(r => !r.success);
 
-      // Store results
-      localStorage.setItem('latestTouristId', touristId);
+      localStorage.setItem('latestTouristId', cleanTouristId);
       localStorage.setItem('lastAddedCentre', JSON.stringify({
         centreName: centreData.centreName,
-        centreId: touristId,
+        centreId: cleanTouristId,
         packagesCreated: successfulPackages.length,
         packagesFailed: failedPackages.length
       }));
@@ -451,7 +521,7 @@ const AddCentre = () => {
         confirmButtonColor: '#ff6b35',
         confirmButtonText: 'Continue to KYC'
       }).then(() => {
-        navigate('/kyc', { state: { touristId, centreName: centreData.centreName } });
+        navigate('/kyc', { state: { touristId: cleanTouristId, centreName: centreData.centreName } });
       });
       
     } catch (error) {
@@ -464,18 +534,17 @@ const AddCentre = () => {
         confirmButtonColor: '#ff6b35',
         confirmButtonText: 'Continue to KYC'
       }).then(() => {
-        navigate('/kyc', { state: { touristId, centreName: centreData.centreName } });
+        navigate('/kyc', { state: { touristId: cleanTouristId, centreName: centreData.centreName } });
       });
     }
   };
 
-  // ✅ FIXED: submitCentreData with ALL required fields and correct data types
+  // ✅ FIXED: submitCentreData with ALL required fields
   const submitCentreData = async (vendorId) => {
     const imageFiles = Object.values(uploadedImages)
       .map((image) => image?.file)
       .filter(Boolean);
 
-    // Validate file sizes
     const oversized = imageFiles.filter(file => file.size > MAX_FILE_SIZE);
     if (oversized.length > 0) {
       Swal.fire({
@@ -487,7 +556,6 @@ const AddCentre = () => {
       return;
     }
 
-    // Build facilities and hours strings
     const facilitiesString = selectedFacilities.join(', ');
     const hoursString = Object.entries(openingHours)
       .map(([day, times]) => {
@@ -499,10 +567,8 @@ const AddCentre = () => {
       })
       .join(' | ');
 
-    // Create FormData for file upload
     const formData = new FormData();
     
-    // APPEND ALL REQUIRED FIELDS - Match API exactly
     formData.append('centreName', centreData.centreName || '');
     formData.append('description', centreData.description || '');
     formData.append('city', centreData.city || '');
@@ -514,12 +580,10 @@ const AddCentre = () => {
     formData.append('installmentPayment', String(pricingData.installmentPayment || false));
     formData.append('openingHours', hoursString);
     
-    // Append each image file (API accepts up to 10)
     imageFiles.forEach((file) => {
       formData.append('images', file);
     });
 
-    // Append documents (these are required!)
     if (documents.termsAndCondition) {
       formData.append('termsAndCondition', documents.termsAndCondition);
     } else {
@@ -546,7 +610,6 @@ const AddCentre = () => {
       return;
     }
 
-    // Debug: Log FormData contents
     console.log("📄 Submitting FormData with fields:");
     for (let pair of formData.entries()) {
       if (pair[1] instanceof File) {
@@ -556,7 +619,6 @@ const AddCentre = () => {
       }
     }
 
-    // Send the request
     try {
       console.log("📤 Submitting centre registration for vendor:", vendorId);
       
@@ -564,67 +626,46 @@ const AddCentre = () => {
         registerTouristCenter({ vendorId, centreData: formData })
       ).unwrap();
       
-      console.log("✅ Full registration response:", JSON.stringify(response, null, 2));
+      console.log("📦 FULL REGISTRATION RESPONSE:", JSON.stringify(response, null, 2));
       
-      // Try multiple ways to extract the tourist ID
       let touristId = getEntityId(response);
       
-      // Method 2: If response has a nested structure with data
       if (!touristId && response?.data) {
+        console.log("🔍 Checking response.data:", response.data);
         touristId = getEntityId(response.data);
       }
       
-      // Method 3: Check if response itself is an ID string
+      if (!touristId && response?.success && response?.data) {
+        console.log("🔍 Checking response.success.data:", response.success.data);
+        touristId = getEntityId(response.success.data);
+      }
+      
+      if (!touristId && response?.result) {
+        console.log("🔍 Checking response.result:", response.result);
+        touristId = getEntityId(response.result);
+      }
+      
       if (!touristId && typeof response === 'string') {
         touristId = response;
-      }
-      
-      // Method 4: Check if response has a success flag and data
-      if (!touristId && response?.success && response?.data) {
-        touristId = getEntityId(response.data);
-      }
-      
-      // Method 5: Check common response patterns
-      if (!touristId) {
-        // Try to find any property that contains 'id' in its name
-        const allProps = Object.keys(response);
-        const idProps = allProps.filter(key => 
-          key.toLowerCase().includes('id') || 
-          key.toLowerCase().includes('tourist')
-        );
-        
-        for (const prop of idProps) {
-          const value = response[prop];
-          if (typeof value === 'string' && value.length > 0) {
-            touristId = value;
-            break;
-          }
-          if (typeof value === 'object' && value !== null) {
-            const nestedId = getEntityId(value);
-            if (nestedId) {
-              touristId = nestedId;
-              break;
-            }
-          }
-        }
       }
       
       console.log("🎯 Extracted touristId:", touristId);
       
       if (!touristId) {
-        // As a last resort, try to use the vendorId as touristId (some APIs use same ID)
-        console.warn("⚠️ Could not extract touristId, trying vendorId as fallback:", vendorId);
-        touristId = vendorId;
+        console.error("❌ Could not extract touristId from response:", response);
+        localStorage.setItem('debug_centre_response', JSON.stringify(response));
         
-        // If still no ID, throw error
-        if (!touristId) {
-          throw new Error('Could not extract tourist centre ID from server response. Response: ' + JSON.stringify(response));
-        }
+        Swal.fire({
+          icon: 'error',
+          title: 'Server Response Issue',
+          text: 'Could not extract centre ID from server response. Please check console for details.',
+          confirmButtonColor: '#ff6b35',
+        });
+        
+        throw new Error('Could not extract tourist centre ID from server response');
       }
 
       console.log("✅ Using touristId for packages:", touristId);
-      
-      // Now create packages and finish
       await createPackagesAndFinish(touristId);
       
     } catch (error) {
@@ -646,16 +687,13 @@ const AddCentre = () => {
       return;
     }
 
-    // Log what we have for debugging
     console.log("📄 vendorDetails:", vendorDetails);
     console.log("📄 loggedInUser:", loggedInUser);
     
-    // Try to get vendor ID from multiple sources
     let vendorId = getEntityId(vendorDetails) || getEntityId(loggedInUser);
     
     console.log("📄 Extracted vendorId:", vendorId);
     
-    // If still no vendorId, check localStorage
     if (!vendorId) {
       const storedVendorId = localStorage.getItem('vendorId') || 
                              localStorage.getItem('touristId') ||
@@ -680,7 +718,6 @@ const AddCentre = () => {
       return;
     }
 
-    // Show loading
     Swal.fire({
       title: 'Creating Centre...',
       text: 'Please wait while we set up your tourism centre',
@@ -731,6 +768,7 @@ const AddCentre = () => {
     }
   };
 
+  // ✅ FIXED: renderStepContent with packagesList passed to Review
   const renderStepContent = () => {
     switch(currentStep) {
       case 1:
@@ -795,7 +833,6 @@ const AddCentre = () => {
       <Navbar />
       
       <div className="main-content">
-        {/* Small Back Button - Hidden on step 1 */}
         {currentStep > 1 && (
           <button 
             className="btn-back" 

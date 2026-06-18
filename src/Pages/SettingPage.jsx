@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
+import TopNavbar2 from "../components/TopNavbar2";
 import { useDispatch, useSelector } from "react-redux";
 import Swal from "sweetalert2";
 import { FaEyeSlash, FaSave, FaEye } from "react-icons/fa";
@@ -12,6 +14,7 @@ import {
 } from "../redox/apiSlice";
 
 const SettingsPage = () => {
+  const { openMobileMenu = () => {} } = useOutletContext() || {};
   const dispatch = useDispatch();
   const { vendorProfile, vendorLoading, vendorError, vendorSuccessMessage } = useSelector((state) => state.api);
   const { vendorDetails } = useSelector((state) => state.auth);
@@ -208,6 +211,10 @@ const SettingsPage = () => {
   };
 
   return (
+    <>
+    <div className="sticky-wrapper">
+        <TopNavbar2 onMenuOpen={openMobileMenu} />
+      </div>
     <div className="settings-page">
       {/* Business Information */}
       <form className="settings-card" onSubmit={handleBusinessSubmit}>
@@ -326,7 +333,7 @@ const SettingsPage = () => {
       </div>
 
       {/* Password */}
-      <form className="settings-card" onSubmit={handlePasswordSubmit}>
+      <form className="settings-card password-card" onSubmit={handlePasswordSubmit}>
         <h2>Change Password</h2>
 
         <div className="form-group">
@@ -410,6 +417,8 @@ const SettingsPage = () => {
         </button>
       </div>
     </div>
+    </>
+    
   );
 };
 
