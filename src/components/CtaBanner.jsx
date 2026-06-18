@@ -1,7 +1,11 @@
 import React from 'react';
 import './css/CtaBanner.css';
+import { useNavigate } from "react-router-dom";
+
 
 const CtaBanner = () => {
+    const navigate = useNavigate();
+
   return (
     <section className="cta-container">
       <div className="cta-card">
@@ -21,7 +25,8 @@ const CtaBanner = () => {
             Join NovaEscape today and start growing your tourism business
           </p>
           
-          <button className="cta-button" type="button">
+          <button className="cta-button" type="button"
+          onClick={() => navigate("/signupvendor")}>
             Register centre
           </button>
         </div>
