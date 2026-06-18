@@ -231,6 +231,49 @@
   }
 }
 
+@media (max-width: 768px) {
+  .wallet-page {
+    padding: 24px 18px;
+  }
+
+  .wallet-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .wallet-stat-card {
+    margin-left: 0;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    padding: 18px;
+  }
+
+  .wallet-stat-card__header {
+    gap: 16px;
+  }
+
+  .wallet-stat-card__value {
+    font-size: 22px;
+  }
+
+  .wallet-stat-card__icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .wallet-withdraw-row {
+    justify-content: center;
+    margin-bottom: 30px;
+  }
+
+  .wallet-withdraw-btn {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 16px;
+  }
+}
+
 @media (max-width: 600px) {
   .wallet-page {
     padding: 20px 16px;
@@ -238,6 +281,14 @@
 
   .wallet-stats-grid {
     grid-template-columns: 1fr;
+  }
+
+  .wallet-stat-card {
+    margin-left: 0;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    padding: 18px;
   }
 
   .wallet-tx-card {
