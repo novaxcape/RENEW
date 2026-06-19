@@ -115,6 +115,9 @@ const email = localStorage.getItem("Email")
     }
   }, [bookingData.packageDetails]);
 
+  console.log("booking data found:", bookingData);
+
+
   const increment = (id) =>
     setQuantities((prev) => ({ ...prev, [id]: prev[id] + 1 }));
 

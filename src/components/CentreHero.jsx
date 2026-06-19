@@ -1,5 +1,6 @@
 import React from 'react'
 import { FiUserPlus } from 'react-icons/fi'
+import { Link } from 'react-router-dom'
 import './css/CentreHero.css'
 
 const CentreHero = () => {
@@ -14,12 +15,12 @@ const CentreHero = () => {
         </p>
         
         <div className="partner-hero-actions">
-          <button type="button" className="btn-partner-portal">
+          <Link to="/vendor/login" className="btn-partner-portal">
             Partner Portal &rarr;
-          </button>
-          <button type="button" className="btn-register-centre">
+          </Link>
+          <Link to="/signupvendor" className="btn-register-centre">
             Register centre <FiUserPlus className="register-icon" />
-          </button>
+          </Link>
         </div>
       </div>
     </div>
