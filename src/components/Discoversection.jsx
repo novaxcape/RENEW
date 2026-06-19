@@ -15,7 +15,6 @@ import nikeGallery from "/novaxcape/nikeGallery.png";
 import agodi from "/novaxcape/agodi.png";
 
 const categories = [
-  
   "Park & Recreation",
   "Art Gallery",
   "Beach",
@@ -124,7 +123,7 @@ const Discoversection = ({
   touristCentres,
   loading,
   error,
-  onClearSearch,  // ✅ New prop
+  onClearSearch, // ✅ New prop
 }) => {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("All");
@@ -132,12 +131,19 @@ const Discoversection = ({
   // ✅ FILTER OUT EMPTY/INVALID CENTRES
   const getValidCentres = (centres) => {
     if (!centres || !Array.isArray(centres)) return [];
-    return centres.filter(centre => {
+    return centres.filter((centre) => {
       if (!centre) return false;
       const hasKeys = Object.keys(centre).length > 0;
-      const hasData = centre.centreName || centre.name || centre.title || 
-                      centre.id || centre._id || centre.centreId ||
-                      centre.city || centre.state || centre.location;
+      const hasData =
+        centre.centreName ||
+        centre.name ||
+        centre.title ||
+        centre.id ||
+        centre._id ||
+        centre.centreId ||
+        centre.city ||
+        centre.state ||
+        centre.location;
       return hasKeys && hasData;
     });
   };
@@ -155,8 +161,15 @@ const Discoversection = ({
 
   const handleBookNow = (e, centre) => {
     e.stopPropagation();
+
     const centreId = centre.id || centre._id || centre.centreId;
+    console.log(centreId);
+
     if (!centreId) return;
+
+    // Save ID to localStorage
+    localStorage.setItem("centreId", centreId);
+
     navigate(`/centre/${centreId}`, {
       state: { centre },
     });
@@ -173,7 +186,7 @@ const Discoversection = ({
   const getCentrePrice = (centre) => {
     if (centre.packages && centre.packages.length > 0) {
       const adultPackage = centre.packages.find(
-        (pkg) => pkg.packageType === "Adult"
+        (pkg) => pkg.packageType === "Adult",
       );
       if (adultPackage) return formatPrice(adultPackage.amount);
       return formatPrice(centre.packages[0].amount);
@@ -196,7 +209,7 @@ const Discoversection = ({
   };
 
   const hasActiveSearch = searchSubmitted && searchState;
-  
+
   // ✅ Show empty array when search has no valid results
   let displayCenters;
   if (hasActiveSearch) {
@@ -204,7 +217,7 @@ const Discoversection = ({
   } else {
     displayCenters = staticAttractions;
   }
-      
+
   const filteredCenters = filterByCategory(displayCenters);
 
   return (
@@ -262,23 +275,20 @@ const Discoversection = ({
       )}
 
       {/* No Results - Show when search has no valid centres */}
-      {!loading &&
-        hasActiveSearch &&
-        !error &&
-        !hasValidCentres && (
-          <div className="no-results-container">
-            <p className="no-results-text">
-              No centres found in "{searchState}". Try a different state or
-              check back later.
-            </p>
-            <button
-              className="browse-all-btn"
-              onClick={onClearSearch}  // ✅ Clears search and shows all static data
-            >
-              Browse All Centres
-            </button>
-          </div>
-        )}
+      {!loading && hasActiveSearch && !error && !hasValidCentres && (
+        <div className="no-results-container">
+          <p className="no-results-text">
+            No centres found in "{searchState}". Try a different state or check
+            back later.
+          </p>
+          <button
+            className="browse-all-btn"
+            onClick={onClearSearch} // ✅ Clears search and shows all static data
+          >
+            Browse All Centres
+          </button>
+        </div>
+      )}
 
       {/* Cards Grid */}
       {!loading && !error && filteredCenters.length > 0 && (
@@ -288,8 +298,8 @@ const Discoversection = ({
 
             if (isStatic) {
               return (
-                <div 
-                  className="attraction_card" 
+                <div
+                  className="attraction_card"
                   key={place.id}
                   onClick={() => handleViewDetails(place)}
                   style={{ cursor: "pointer" }}
@@ -343,8 +353,8 @@ const Discoversection = ({
               const price = getCentrePrice(place);
 
               return (
-                <div 
-                  className="attraction_card" 
+                <div
+                  className="attraction_card"
                   key={place.id || place._id || index}
                   onClick={() => handleViewDetails(place)}
                   style={{ cursor: "pointer" }}

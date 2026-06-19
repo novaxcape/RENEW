@@ -19,6 +19,9 @@
   align-items: stretch;
   overflow: visible;
 }
+.has-fixed-header .hero_inner {
+  padding-top: 70px;
+}
 
 /* ─── LEFT ────────────────────────────────────────────── */
 .hero_left {

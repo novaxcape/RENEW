@@ -10,10 +10,11 @@ export const googleAuthUrl = `${API_BASE_URL}/client/auth/google`;
 const getToken = (state) =>
   state?.auth?.userToken ||
   localStorage.getItem("vendorToken") ||
-  localStorage.getItem("token");
+  localStorage.getItem("userToken");
 
 const authConfig = (state, config = {}) => {
   const token = getToken(state);
+  console.log("auth token:", token);
 
   return {
     ...config,
@@ -34,10 +35,8 @@ const getErrorMessage = (error) =>
 const appendFormField = (formData, key, value) => {
   if (value === undefined || value === null) return;
 
-  const isFile =
-    typeof File !== "undefined" && value instanceof File;
-  const isBlob =
-    typeof Blob !== "undefined" && value instanceof Blob;
+  const isFile = typeof File !== "undefined" && value instanceof File;
+  const isBlob = typeof Blob !== "undefined" && value instanceof Blob;
 
   if (Array.isArray(value)) {
     value.forEach((item) => appendFormField(formData, key, item));
@@ -80,19 +79,19 @@ export const updateClientProfile = createThunk(
     axios.put(
       `${API_BASE_URL}/client/update-profile`,
       toFormData(payload),
-      authConfig(getState())
-    )
+      authConfig(getState()),
+    ),
 );
 
 // Client Password Management
 export const forgotClientPassword = createThunk(
   "api/client/forgotPassword",
-  (payload) => axios.post(`${API_BASE_URL}/client/forget-password`, payload)
+  (payload) => axios.post(`${API_BASE_URL}/client/forget-password`, payload),
 );
 
 export const resetClientPassword = createThunk(
   "api/client/resetPassword",
-  (payload) => axios.post(`${API_BASE_URL}/client/reset-password`, payload)
+  (payload) => axios.post(`${API_BASE_URL}/client/reset-password`, payload),
 );
 
 export const changeClientPassword = createThunk(
@@ -101,15 +100,15 @@ export const changeClientPassword = createThunk(
     axios.post(
       `${API_BASE_URL}/client/change-password`,
       payload,
-      authConfig(getState())
-    )
+      authConfig(getState()),
+    ),
 );
 
 // Google Auth
 export const getGoogleCallback = createThunk(
   "api/client/googleCallback",
   (params) =>
-    axios.get(`${API_BASE_URL}/client/auth/google/callback`, { params })
+    axios.get(`${API_BASE_URL}/client/auth/google/callback`, { params }),
 );
 
 // ========== VENDOR API THUNKS ==========
@@ -120,25 +119,25 @@ export const updateVendorProfile = createThunk(
     axios.put(
       `${API_BASE_URL}/vendor/update-profile`,
       toFormData(payload),
-      authConfig(getState())
-    )
+      authConfig(getState()),
+    ),
 );
 
 export const getVendorDetails = createThunk(
   "api/vendor/getDetails",
   (_, { getState }) =>
-    axios.get(`${API_BASE_URL}/vendor/profile`, authConfig(getState()))
+    axios.get(`${API_BASE_URL}/vendor/profile`, authConfig(getState())),
 );
 
 // Vendor Password Management
 export const forgotVendorPassword = createThunk(
   "api/vendor/forgotPassword",
-  (payload) => axios.post(`${API_BASE_URL}/vendor/forget-password`, payload)
+  (payload) => axios.post(`${API_BASE_URL}/vendor/forget-password`, payload),
 );
 
 export const resetVendorPassword = createThunk(
   "api/vendor/resetPassword",
-  (payload) => axios.post(`${API_BASE_URL}/vendor/reset-password`, payload)
+  (payload) => axios.post(`${API_BASE_URL}/vendor/reset-password`, payload),
 );
 
 export const changeVendorPassword = createThunk(
@@ -147,51 +146,105 @@ export const changeVendorPassword = createThunk(
     axios.post(
       `${API_BASE_URL}/vendor/change-password`,
       payload,
-      authConfig(getState())
-    )
+      authConfig(getState()),
+    ),
 );
 
-// ========== PACKAGE API THUNKS - FIXED URLS ==========
+// ========== PACKAGE API THUNKS - CORRECTED ==========
 export const createPackage = createThunk(
   "api/package/create",
-  ({ touristId, packageData }, { getState }) => {
-    console.log("📦 Creating package for tourist:", touristId);
-    console.log("📦 Package data:", packageData);
-    
-    return axios.post(
-      `${API_BASE_URL}/package/create-package/${touristId}`,
-      packageData,
-      authConfig(getState())
-    );
-  }
+  async ({ touristId, packageData }, { getState, rejectWithValue }) => {
+    try {
+      console.log("📦 Creating package for tourist:", touristId);
+      console.log("📦 Package data:", packageData);
+
+      const response = await axios.post(
+        `${API_BASE_URL}/package/${touristId}`,
+        packageData,
+        authConfig(getState()),
+      );
+
+      console.log("✅ Package created:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Create package error:", error);
+      return rejectWithValue(getErrorMessage(error));
+    }
+  },
 );
 
 export const getAllPackages = createThunk(
   "api/package/getAll",
-  (_, { getState }) =>
-    axios.get(`${API_BASE_URL}/package/all`, authConfig(getState()))
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      console.log("📦 Fetching all packages...");
+      const touristId = localStorage.getItem("centreId");
+      const response = await axios.get(
+        `${API_BASE_URL}/package/all/${touristId}`,
+        authConfig(getState()),
+      );
+      console.log("✅ All packages fetched:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Get all packages error:", error);
+      return rejectWithValue(getErrorMessage(error));
+    }
+  },
 );
 
 export const getPackageById = createThunk(
   "api/package/getById",
-  (id, { getState }) =>
-    axios.get(`${API_BASE_URL}/package/${id}`, authConfig(getState()))
+  async (id, { getState, rejectWithValue }) => {
+    try {
+      console.log(`📦 Fetching package ${id}...`);
+      const response = await axios.get(
+        `${API_BASE_URL}/package/${id}`,
+        authConfig(getState()),
+      );
+      console.log(`✅ Package ${id}:`, response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Get package ${id} error:`, error);
+      return rejectWithValue(getErrorMessage(error));
+    }
+  },
 );
 
 export const updatePackage = createThunk(
   "api/package/update",
-  ({ id, packageData }, { getState }) =>
-    axios.put(
-      `${API_BASE_URL}/package/package/${id}`,
-      packageData,
-      authConfig(getState())
-    )
+  async ({ id, packageData }, { getState, rejectWithValue }) => {
+    try {
+      console.log(`📦 Updating package ${id}:`, packageData);
+      const response = await axios.put(
+        `${API_BASE_URL}/package/${id}`,
+        packageData,
+        authConfig(getState()),
+      );
+      console.log(`✅ Package ${id} updated:`, response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Update package ${id} error:`, error);
+      return rejectWithValue(getErrorMessage(error));
+    }
+  },
 );
 
 export const deletePackage = createThunk(
   "api/package/delete",
-  (id, { getState }) =>
-    axios.delete(`${API_BASE_URL}/package/package/${id}`, authConfig(getState()))
+  async (id, { getState, rejectWithValue }) => {
+    try {
+      console.log(`📦 Deleting package ${id}...`);
+      const response = await axios.delete(
+        `${API_BASE_URL}/package/${id}`,
+        authConfig(getState()),
+      );
+      console.log(`✅ Package ${id} deleted:`, response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Delete package ${id} error:`, error);
+      return rejectWithValue(getErrorMessage(error));
+    }
+  },
 );
 
 // ========== TOURIST CENTRE API THUNKS ==========
@@ -201,47 +254,50 @@ export const registerTouristCenter = createAsyncThunk(
     try {
       const isFormData = centreData instanceof FormData;
       const token = getToken(getState());
-      
+
       console.log("📄 Registering tourist center with vendorId:", vendorId);
       console.log("📄 Is FormData:", isFormData);
       console.log("📄 Token present:", !!token);
-      
+
       const headers = {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       };
-      
+
       if (!isFormData) {
-        headers['Content-Type'] = 'application/json';
+        headers["Content-Type"] = "application/json";
       }
-      
+
       const response = await axios.post(
         `${API_BASE_URL}/tourist/register/${vendorId}`,
         centreData,
-        { headers }
+        { headers },
       );
-      
+
       console.log("✅ Tourist centre registration response:", response.data);
       return response.data;
-      
     } catch (error) {
       console.error("❌ Tourist centre registration error:", error);
-      
+
       if (error.response) {
-        console.error("❌ Full error response:", JSON.stringify(error.response.data, null, 2));
+        console.error(
+          "❌ Full error response:",
+          JSON.stringify(error.response.data, null, 2),
+        );
         console.error("❌ Error status:", error.response.status);
         console.error("❌ Error headers:", error.response.headers);
-        
-        const errorMessage = error.response.data?.message || 
-                            error.response.data?.error || 
-                            JSON.stringify(error.response.data) ||
-                            "Something went wrong";
-        
+
+        const errorMessage =
+          error.response.data?.message ||
+          error.response.data?.error ||
+          JSON.stringify(error.response.data) ||
+          "Something went wrong";
+
         return rejectWithValue(errorMessage);
       }
-      
+
       return rejectWithValue(getErrorMessage(error));
     }
-  }
+  },
 );
 
 export const getTouristCentersByState = createAsyncThunk(
@@ -249,67 +305,70 @@ export const getTouristCentersByState = createAsyncThunk(
   async (state, { rejectWithValue }) => {
     try {
       console.log("📄 Fetching tourist centers for state:", state);
-      
+
       const response = await axios.get(
-        `${API_BASE_URL}/tourist/get-all-state/${encodeURIComponent(state)}`
+        `${API_BASE_URL}/tourist/get-all-state/${encodeURIComponent(state)}`,
       );
-      
+
       console.log("✅ API Response for", state, ":", response.data);
-      
+
       const centres = response.data?.data || [];
       const count = response.data?.count || centres.length;
       const message = response.data?.message || "Centers found";
-      
+
       console.log(`📄 Found ${centres.length} centres in ${state}`);
       console.log("📄 First centre sample:", centres[0]);
-      
-      const validCentres = centres.filter(centre => 
-        centre && 
-        typeof centre === 'object' &&
-        Object.keys(centre).length > 0 &&
-        (centre.centreName || centre.name || centre.id || centre._id)
+
+      const validCentres = centres.filter(
+        (centre) =>
+          centre &&
+          typeof centre === "object" &&
+          Object.keys(centre).length > 0 &&
+          (centre.centreName || centre.name || centre.id || centre._id),
       );
-      
+
       console.log(`📄 Valid centres after filtering: ${validCentres.length}`);
-      
-      return { 
-        data: validCentres, 
+
+      return {
+        data: validCentres,
         count: validCentres.length,
         originalCount: centres.length,
-        message: message
+        message: message,
       };
-      
     } catch (error) {
       console.error("❌ Error fetching centres:", error);
-      
+
       if (error.response) {
         console.error("❌ Error status:", error.response.status);
         console.error("❌ Error data:", error.response.data);
-        
+
         if (error.response.status === 404) {
-          return { 
-            data: [], 
-            count: 0, 
-            message: error.response.data?.message || "No centers found in this state" 
+          return {
+            data: [],
+            count: 0,
+            message:
+              error.response.data?.message || "No centers found in this state",
           };
         }
       }
-      
+
       return rejectWithValue(getErrorMessage(error));
     }
-  }
+  },
 );
 
 export const getTouristCenterById = createThunk(
   "api/touristCentre/getById",
-  (id) =>
-    axios.get(`${API_BASE_URL}/tourist/get-one/${id}`)
+  (id) => axios.get(`${API_BASE_URL}/tourist/get-one/${id}`),
 );
 
 export const getVendorTouristCenters = createThunk(
   "api/touristCentre/getVendorCentres",
   (vendorId, { getState }) =>
-    axios.get(`${API_BASE_URL}/tourist/vendor/${vendorId}`, authConfig(getState()))
+    axios.get(
+      `${API_BASE_URL}/tourist/vendor/${vendorId}`,
+      authConfig(getState()),
+    ),
 );
 
 export const updateTouristCenter = createThunk(
@@ -318,20 +377,25 @@ export const updateTouristCenter = createThunk(
     axios.put(
       `${API_BASE_URL}/tourist/update/${centreId}`,
       toFormData(centreData),
-      authConfig(getState())
-    )
+      authConfig(getState()),
+    ),
 );
 
 export const deleteTouristCenter = createThunk(
   "api/touristCentre/delete",
   (centreId, { getState }) =>
-    axios.delete(`${API_BASE_URL}/tourist/delete/${centreId}`, authConfig(getState()))
+    axios.delete(
+      `${API_BASE_URL}/tourist/delete/${centreId}`,
+      authConfig(getState()),
+    ),
 );
 
 export const getTouristCentersByOpeningHours = createThunk(
   "api/touristCentre/getByOpeningHours",
   (openingHours) =>
-    axios.get(`${API_BASE_URL}/tourist/get-all-opening-hours/${encodeURIComponent(openingHours)}`)
+    axios.get(
+      `${API_BASE_URL}/tourist/get-all-opening-hours/${encodeURIComponent(openingHours)}`,
+    ),
 );
 
 // ========== KYC API THUNKS ==========
@@ -341,174 +405,209 @@ export const createKyc = createThunk(
     axios.post(
       `${API_BASE_URL}/kyc/${touristId}`,
       kycData,
-      authConfig(getState())
-    )
+      authConfig(getState()),
+    ),
 );
 
 export const getKycStatus = createThunk(
   "api/kyc/getStatus",
   (touristId, { getState }) =>
-    axios.get(`${API_BASE_URL}/kyc/${touristId}`, authConfig(getState()))
+    axios.get(`${API_BASE_URL}/kyc/${touristId}`, authConfig(getState())),
 );
 
-// ========== PAYMENT PLAN API THUNKS ==========
+// ========== PAYMENT PLAN API THUNKS - CORRECTED ==========
 export const createPaymentPlan = createThunk(
   "api/paymentPlan/create",
-  ({ packageId, planData }, { getState }) =>
-    axios.post(
-      `${API_BASE_URL}/plan/create-plan/${packageId}`,
-      planData,
-      authConfig(getState())
-    )
+  async ({ packageId, planData }, { getState, rejectWithValue }) => {
+    try {
+      console.log("📋 Creating payment plan for package:", packageId);
+      console.log("📋 Plan data:", planData);
+
+      const response = await axios.post(
+        `${API_BASE_URL}/plan/create-plan/${packageId}`,
+        planData,
+        authConfig(getState()),
+      );
+
+      console.log("✅ Payment plan created:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Create payment plan error:", error);
+      return rejectWithValue(getErrorMessage(error));
+    }
+  },
 );
 
 export const getPaymentPlans = createThunk(
   "api/paymentPlan/getAll",
-  (packageId, { getState }) =>
-    axios.get(`${API_BASE_URL}/plan/package/${packageId}`, authConfig(getState()))
+  async (packageId, { getState, rejectWithValue }) => {
+    try {
+      console.log(`📋 Fetching payment plans for package ${packageId}...`);
+
+      // ✅ FIXED: Changed from /package/${packageId} to /get-all/${packageId}
+      const response = await axios.get(
+        `${API_BASE_URL}/plan/get-all/${packageId}`,
+        authConfig(getState()),
+      );
+
+      console.log(`✅ Payment plans fetched:`, response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Get payment plans error:`, error);
+      return rejectWithValue(getErrorMessage(error));
+    }
+  },
 );
 
-// ========== BOOKING API THUNKS ==========
-export const createBooking = createThunk(
+// ========== BOOKING API THUNKS - IMPROVED ==========
+export const createBooking = createAsyncThunk(
   "api/booking/create",
-  async ({ touristId, packageId, bookingData }, { getState, rejectWithValue }) => {
+  async (
+    { touristId, packageId, bookingData },
+    { getState, rejectWithValue },
+  ) => {
     try {
       const state = getState();
       const token = getToken(state);
-      
-      let clientId = localStorage.getItem('clientId');
-      
+
+      console.log("📦 Creating booking with:");
+      console.log("📦 Tourist ID:", touristId);
+      console.log("📦 Package ID:", packageId);
+      console.log("📦 Booking Data:", bookingData);
+      console.log("📦 Token:", token ? "Present" : "Missing");
+
+      // Use clientId from bookingData if provided
+      let clientId = bookingData?.clientId;
+
+      // If not in bookingData, try to get from Redux
       if (!clientId) {
-        clientId = state.auth?.loggedInUser?.id || 
-                   state.auth?.loggedInUser?._id ||
-                   state.auth?.loggedInUser?.clientId;
+        clientId =
+          state.auth?.loggedInUser?.id ||
+          state.auth?.loggedInUser?._id ||
+          state.auth?.loggedInUser?.clientId ||
+          state.auth?.loggedInUser?.userId;
       }
-      
+
+      // Try localStorage
+      if (!clientId) {
+        clientId = localStorage.getItem("clientId");
+      }
+
+      // Try decoding from token
       if (!clientId && token) {
         try {
-          const base64Url = token.split('.')[1];
-          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-          const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-          }).join(''));
+          const base64Url = token.split(".")[1];
+          const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+          const jsonPayload = decodeURIComponent(
+            atob(base64)
+              .split("")
+              .map(function (c) {
+                return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+              })
+              .join(""),
+          );
           const decoded = JSON.parse(jsonPayload);
-          clientId = decoded.id || decoded.sub || decoded.userId || decoded.clientId || decoded._id;
+          clientId =
+            decoded.id ||
+            decoded.sub ||
+            decoded.userId ||
+            decoded.clientId ||
+            decoded._id;
+          console.log("📦 Client ID from token:", clientId);
           if (clientId) {
-            localStorage.setItem('clientId', clientId);
+            localStorage.setItem("clientId", clientId);
           }
         } catch (e) {
           console.error("Error decoding token:", e);
         }
       }
-      
+
+      // Format visit date
       let visitDate = bookingData.visitDate || bookingData.date;
-      
-      if (visitDate && visitDate.includes('-')) {
-        const parts = visitDate.split('-');
+      if (visitDate && visitDate.includes("-")) {
+        const parts = visitDate.split("-");
         visitDate = `${parts[1]}/${parts[2]}/${parts[0]}`;
       }
-      
-      console.log("📦 Creating booking with:");
-      console.log("📦 Tourist ID:", touristId);
-      console.log("📦 Package ID:", packageId);
-      console.log("📦 Visit Date:", visitDate);
-      console.log("📦 Client ID:", clientId);
-      console.log("📦 Token:", token ? "Present" : "Missing");
-      
+
+      console.log("📦 Final Client ID:", clientId);
+      console.log("📦 Formatted Visit Date:", visitDate);
+
+      // Prepare payload
       const payload = {
         visitDate: visitDate,
       };
-      
+
+      // Only add clientId if we have one
       if (clientId) {
         payload.clientId = clientId;
+        console.log("📦 Adding clientId to payload:", clientId);
+      } else {
+        console.warn("⚠️ No clientId available - API may reject this request");
       }
-      
+
       console.log("📦 Final payload:", JSON.stringify(payload, null, 2));
-      
+
       const response = await axios.post(
         `${API_BASE_URL}/booking/create/${touristId}/${packageId}`,
         payload,
         {
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-        }
+        },
       );
-      
+
       console.log("✅ Booking API Response Status:", response.status);
       console.log("✅ Booking API Response Data:", response.data);
-      
+
       return response.data;
-      
     } catch (error) {
       console.error("❌ Booking creation error:", error);
-      
+
       if (error.response) {
         console.error("❌ Error response data:", error.response.data);
         console.error("❌ Error response status:", error.response.status);
-        
-        if (error.response.status === 404 && 
-            error.response.data?.message === "Client not found" && 
-            bookingData.clientId) {
-          
-          console.warn("⚠️ Client not found with clientId, retrying without...");
-          
-          try {
-            const retryPayload = {
-              visitDate: visitDate
-            };
-            
-            const retryResponse = await axios.post(
-              `${API_BASE_URL}/booking/create/${touristId}/${packageId}`,
-              retryPayload,
-              {
-                headers: {
-                  ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                  'Content-Type': 'application/json',
-                },
-              }
-            );
-            
-            console.log("✅ Retry successful:", retryResponse.data);
-            return retryResponse.data;
-          } catch (retryError) {
-            console.error("❌ Retry also failed:", retryError.response?.data);
-            return rejectWithValue(getErrorMessage(retryError));
-          }
+
+        // If client not found, return specific error
+        if (
+          error.response.status === 404 &&
+          error.response.data?.message === "Client not found"
+        ) {
+          return rejectWithValue("Client not found");
         }
       }
-      
+
       return rejectWithValue(getErrorMessage(error));
     }
-  }
+  },
 );
 
 export const getAllClientBookings = createThunk(
   "api/booking/getAllClient",
   (_, { getState }) =>
-    axios.get(`${API_BASE_URL}/booking/get-all`, authConfig(getState()))
+    axios.get(`${API_BASE_URL}/booking/get-all`, authConfig(getState())),
 );
 
 export const getUserBookings = createThunk(
   "api/booking/getUserBookings",
   (userId, { getState }) =>
-    axios.get(`${API_BASE_URL}/booking/user/${userId}`, authConfig(getState()))
+    axios.get(`${API_BASE_URL}/booking/user/${userId}`, authConfig(getState())),
 );
 
 export const getVendorBookings = createThunk(
   "api/booking/getVendorBookings",
   ({ touristId, packageId }, { getState }) =>
     axios.get(
-      `${API_BASE_URL}/booking/get-all/${touristId}/${packageId}`, 
-      authConfig(getState())
-    )
+      `${API_BASE_URL}/booking/get-all/${touristId}/${packageId}`,
+      authConfig(getState()),
+    ),
 );
 
 export const getBookingById = createThunk(
   "api/booking/getById",
   (bookingId, { getState }) =>
-    axios.get(`${API_BASE_URL}/booking/${bookingId}`, authConfig(getState()))
+    axios.get(`${API_BASE_URL}/booking/${bookingId}`, authConfig(getState())),
 );
 
 export const cancelBooking = createThunk(
@@ -517,72 +616,103 @@ export const cancelBooking = createThunk(
     axios.put(
       `${API_BASE_URL}/booking/cancel/${bookingId}`,
       {},
-      authConfig(getState())
-    )
+      authConfig(getState()),
+    ),
 );
 
-// ========== PAYMENT API THUNKS ==========
+// ========== PAYMENT API THUNKS - VERIFIED ==========
 export const initializePayment = createThunk(
   "api/payment/initialize",
-  ({ bookingId, paymentData }, { getState }) =>
-    axios.post(
-      `${API_BASE_URL}/payment/make-payment/${bookingId}`,
-      paymentData,
-      authConfig(getState())
-    )
+  async ({ bookingId, paymentData }, { getState, rejectWithValue }) => {
+    try {
+      console.log(`💳 Initializing payment for booking ${bookingId}...`);
+      console.log(`💳 Payment data:`, paymentData);
+
+      const response = await axios.post(
+        `${API_BASE_URL}/payment/make-payment/${bookingId}`,
+        paymentData,
+        authConfig(getState()),
+      );
+
+      console.log(`✅ Payment initialized:`, response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Initialize payment error:`, error);
+      return rejectWithValue(getErrorMessage(error));
+    }
+  },
 );
 
 export const verifyPayment = createThunk(
   "api/payment/verify",
-  ({ reference, bookingId }, { getState }) =>
-    axios.get(
-      `${API_BASE_URL}/payment/verify-payment`,
-      { 
-        params: { reference, bookingId },
-        ...authConfig(getState())
-      }
-    )
+  async ({ reference, bookingId }, { getState, rejectWithValue }) => {
+    try {
+      console.log(`🔍 Verifying payment with reference: ${reference}`);
+
+      const response = await axios.get(
+        `${API_BASE_URL}/payment/verify-payment`,
+        {
+          params: { reference },
+          ...authConfig(getState()),
+        },
+      );
+
+      console.log(`✅ Payment verification:`, response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Verify payment error:`, error);
+      return rejectWithValue(getErrorMessage(error));
+    }
+  },
 );
 
 export const getPaymentStatus = createThunk(
   "api/payment/status",
   (bookingId, { getState }) =>
-    axios.get(`${API_BASE_URL}/payment/status/${bookingId}`, authConfig(getState()))
+    axios.get(
+      `${API_BASE_URL}/payment/status/${bookingId}`,
+      authConfig(getState()),
+    ),
 );
 
 // ========== REVIEW API THUNKS ==========
 export const createReview = createThunk(
   "api/review/create",
   (reviewData, { getState }) =>
-    axios.post(
-      `${API_BASE_URL}/review`,
-      reviewData,
-      authConfig(getState())
-    )
+    axios.post(`${API_BASE_URL}/review`, reviewData, authConfig(getState())),
 );
 
 export const getAllReviews = createThunk(
   "api/review/getAll",
   (_, { getState }) =>
-    axios.get(`${API_BASE_URL}/review/get-all-review`, authConfig(getState()))
+    axios.get(`${API_BASE_URL}/review/get-all-review`, authConfig(getState())),
 );
 
 export const getReviewById = createThunk(
   "api/review/getById",
   (id, { getState }) =>
-    axios.get(`${API_BASE_URL}/review/get-one-review/${id}`, authConfig(getState()))
+    axios.get(
+      `${API_BASE_URL}/review/get-one-review/${id}`,
+      authConfig(getState()),
+    ),
 );
 
 export const getReviewsByRating = createThunk(
   "api/review/getByRating",
   (ratings, { getState }) =>
-    axios.get(`${API_BASE_URL}/review/get-rating-count/${ratings}`, authConfig(getState()))
+    axios.get(
+      `${API_BASE_URL}/review/get-rating-count/${ratings}`,
+      authConfig(getState()),
+    ),
 );
 
 export const getRatingStatistics = createThunk(
   "api/review/getStatistics",
   (_, { getState }) =>
-    axios.get(`${API_BASE_URL}/review/get-rating-statistics`, authConfig(getState()))
+    axios.get(
+      `${API_BASE_URL}/review/get-rating-statistics`,
+      authConfig(getState()),
+    ),
 );
 
 // ========== INITIAL STATE ==========
@@ -593,7 +723,7 @@ const initialState = {
   clientSuccessMessage: null,
   clientResetLoading: false,
   clientResetError: null,
-  
+
   vendorLoading: false,
   vendorError: null,
   vendorProfile: null,
@@ -601,47 +731,47 @@ const initialState = {
   vendorCentres: [],
   vendorResetLoading: false,
   vendorResetError: null,
-  
+
   packagesLoading: false,
   packagesError: null,
   packages: [],
   selectedPackage: null,
-  
+
   touristCentresLoading: false,
   touristCentresError: null,
   touristCentres: [],
   selectedTouristCenter: null,
   createdTouristCenter: null,
-  
+
   kycLoading: false,
   kycError: null,
   kyc: null,
-  
+
   paymentPlanLoading: false,
   paymentPlanError: null,
   paymentPlan: null,
   paymentPlans: [],
-  
+
   bookingLoading: false,
   bookingError: null,
   booking: null,
   userBookings: [],
   vendorBookings: [],
   clientBookings: [],
-  
+
   paymentLoading: false,
   paymentError: null,
   paymentReference: null,
   paymentVerified: false,
   paymentData: null,
-  
+
   reviewsLoading: false,
   reviewsError: null,
   reviews: [],
   reviewStatistics: null,
-  
+
   googleCallback: null,
-  
+
   loading: false,
   error: null,
   successMessage: null,
@@ -688,84 +818,93 @@ const apiSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(updateClientProfile.fulfilled, (state, action) => {
-        state.clientProfile = action.payload?.data || action.payload?.user || action.payload;
+        state.clientProfile =
+          action.payload?.data || action.payload?.user || action.payload;
         state.clientSuccessMessage = "Profile updated successfully";
       })
       .addCase(updateClientProfile.rejected, (state, action) => {
         state.clientError = action.payload;
       })
-      
+
       .addCase(forgotClientPassword.fulfilled, (state, action) => {
-        state.clientSuccessMessage = action.payload?.message || "Password reset OTP sent";
+        state.clientSuccessMessage =
+          action.payload?.message || "Password reset OTP sent";
       })
       .addCase(forgotClientPassword.rejected, (state, action) => {
         state.clientError = action.payload;
       })
-      
+
       .addCase(resetClientPassword.pending, (state) => {
         state.clientResetLoading = true;
       })
       .addCase(resetClientPassword.fulfilled, (state, action) => {
         state.clientResetLoading = false;
-        state.clientSuccessMessage = action.payload?.message || "Password reset successfully";
+        state.clientSuccessMessage =
+          action.payload?.message || "Password reset successfully";
       })
       .addCase(resetClientPassword.rejected, (state, action) => {
         state.clientResetLoading = false;
         state.clientResetError = action.payload;
       })
-      
+
       .addCase(changeClientPassword.fulfilled, (state, action) => {
-        state.clientSuccessMessage = action.payload?.message || "Password changed successfully";
+        state.clientSuccessMessage =
+          action.payload?.message || "Password changed successfully";
       })
       .addCase(changeClientPassword.rejected, (state, action) => {
         state.clientError = action.payload;
       })
-      
+
       .addCase(updateVendorProfile.fulfilled, (state, action) => {
-        state.vendorProfile = action.payload?.data || action.payload?.vendor || action.payload;
+        state.vendorProfile =
+          action.payload?.data || action.payload?.vendor || action.payload;
         state.vendorSuccessMessage = "Vendor profile updated successfully";
       })
       .addCase(updateVendorProfile.rejected, (state, action) => {
         state.vendorError = action.payload;
       })
-      
+
       .addCase(getVendorDetails.fulfilled, (state, action) => {
-        state.vendorProfile = action.payload?.data || action.payload?.vendor || action.payload;
+        state.vendorProfile =
+          action.payload?.data || action.payload?.vendor || action.payload;
       })
       .addCase(getVendorDetails.rejected, (state, action) => {
         state.vendorError = action.payload;
       })
-      
+
       .addCase(forgotVendorPassword.fulfilled, (state, action) => {
-        state.vendorSuccessMessage = action.payload?.message || "Password reset OTP sent";
+        state.vendorSuccessMessage =
+          action.payload?.message || "Password reset OTP sent";
       })
       .addCase(forgotVendorPassword.rejected, (state, action) => {
         state.vendorError = action.payload;
       })
-      
+
       .addCase(resetVendorPassword.pending, (state) => {
         state.vendorResetLoading = true;
       })
       .addCase(resetVendorPassword.fulfilled, (state, action) => {
         state.vendorResetLoading = false;
-        state.vendorSuccessMessage = action.payload?.message || "Password reset successfully";
+        state.vendorSuccessMessage =
+          action.payload?.message || "Password reset successfully";
       })
       .addCase(resetVendorPassword.rejected, (state, action) => {
         state.vendorResetLoading = false;
         state.vendorResetError = action.payload;
       })
-      
+
       .addCase(changeVendorPassword.fulfilled, (state, action) => {
-        state.vendorSuccessMessage = action.payload?.message || "Password changed successfully";
+        state.vendorSuccessMessage =
+          action.payload?.message || "Password changed successfully";
       })
       .addCase(changeVendorPassword.rejected, (state, action) => {
         state.vendorError = action.payload;
       })
-      
+
       .addCase(getGoogleCallback.fulfilled, (state, action) => {
         state.googleCallback = action.payload;
       })
-      
+
       // ========== PACKAGE REDUCERS ==========
       .addCase(createPackage.pending, (state) => {
         state.packagesLoading = true;
@@ -773,7 +912,8 @@ const apiSlice = createSlice({
       })
       .addCase(createPackage.fulfilled, (state, action) => {
         state.packagesLoading = false;
-        const nextPackage = action.payload?.data || action.payload?.package || action.payload;
+        const nextPackage =
+          action.payload?.data || action.payload?.package || action.payload;
         state.selectedPackage = nextPackage;
         state.packages = [nextPackage, ...state.packages];
         state.successMessage = "Package created successfully";
@@ -784,65 +924,86 @@ const apiSlice = createSlice({
         state.packagesError = action.payload;
         console.error("❌ Package creation failed in Redux:", action.payload);
       })
-      
+
       .addCase(getAllPackages.pending, (state) => {
         state.packagesLoading = true;
       })
       .addCase(getAllPackages.fulfilled, (state, action) => {
         state.packagesLoading = false;
-        state.packages = action.payload?.data || action.payload?.packages || action.payload || [];
+        state.packages =
+          action.payload?.data ||
+          action.payload?.packages ||
+          action.payload ||
+          [];
+        console.log("✅ Packages loaded in Redux:", state.packages.length);
       })
       .addCase(getAllPackages.rejected, (state, action) => {
         state.packagesLoading = false;
         state.packagesError = action.payload;
+        console.error("❌ Packages load failed in Redux:", action.payload);
       })
-      
+
       .addCase(getPackageById.pending, (state) => {
         state.packagesLoading = true;
       })
       .addCase(getPackageById.fulfilled, (state, action) => {
         state.packagesLoading = false;
-        state.selectedPackage = action.payload?.data || action.payload?.package || action.payload;
+        state.selectedPackage =
+          action.payload?.data || action.payload?.package || action.payload;
       })
       .addCase(getPackageById.rejected, (state, action) => {
         state.packagesLoading = false;
         state.packagesError = action.payload;
       })
-      
+
       .addCase(updatePackage.pending, (state) => {
         state.packagesLoading = true;
       })
       .addCase(updatePackage.fulfilled, (state, action) => {
         state.packagesLoading = false;
-        const updatedPackage = action.payload?.data || action.payload?.package || action.payload;
-        state.selectedPackage = updatedPackage;
-        state.packages = state.packages.map((item) =>
-          item?.id === updatedPackage?.id ? updatedPackage : item
-        );
+        const updatedPackage =
+          action.payload?.data || action.payload?.package || action.payload;
+
+        if (updatedPackage?.id) {
+          state.packages = state.packages.map((item) =>
+            item?.id === updatedPackage.id ? updatedPackage : item,
+          );
+        }
+
+        if (state.selectedPackage?.id === updatedPackage?.id) {
+          state.selectedPackage = updatedPackage;
+        }
+
         state.successMessage = "Package updated successfully";
+        console.log("✅ Package updated in Redux:", updatedPackage);
       })
       .addCase(updatePackage.rejected, (state, action) => {
         state.packagesLoading = false;
         state.packagesError = action.payload;
+        console.error("❌ Package update failed in Redux:", action.payload);
       })
-      
+
       .addCase(deletePackage.pending, (state) => {
         state.packagesLoading = true;
       })
       .addCase(deletePackage.fulfilled, (state, action) => {
         state.packagesLoading = false;
         const deletedId = action.meta.arg;
-        state.packages = state.packages.filter((item) => item?.id !== deletedId);
+        state.packages = state.packages.filter(
+          (item) => item?.id !== deletedId,
+        );
         if (state.selectedPackage?.id === deletedId) {
           state.selectedPackage = null;
         }
         state.successMessage = "Package deleted successfully";
+        console.log(`✅ Package ${deletedId} deleted from Redux`);
       })
       .addCase(deletePackage.rejected, (state, action) => {
         state.packagesLoading = false;
         state.packagesError = action.payload;
+        console.error("❌ Package deletion failed in Redux:", action.payload);
       })
-      
+
       // ========== TOURIST CENTRE REDUCERS ==========
       .addCase(registerTouristCenter.pending, (state) => {
         state.touristCentresLoading = true;
@@ -851,16 +1012,22 @@ const apiSlice = createSlice({
       .addCase(registerTouristCenter.fulfilled, (state, action) => {
         state.touristCentresLoading = false;
         state.createdTouristCenter = action.payload?.data || action.payload;
-        state.vendorCentres = [state.createdTouristCenter, ...state.vendorCentres];
+        state.vendorCentres = [
+          state.createdTouristCenter,
+          ...state.vendorCentres,
+        ];
         state.successMessage = "Tourist centre registered successfully";
-        console.log("✅ Tourist centre registered:", state.createdTouristCenter);
+        console.log(
+          "✅ Tourist centre registered:",
+          state.createdTouristCenter,
+        );
       })
       .addCase(registerTouristCenter.rejected, (state, action) => {
         state.touristCentresLoading = false;
         state.touristCentresError = action.payload;
         console.error("❌ Tourist centre registration failed:", action.payload);
       })
-      
+
       .addCase(getTouristCentersByState.pending, (state) => {
         state.touristCentresLoading = true;
         state.touristCentresError = null;
@@ -882,39 +1049,47 @@ const apiSlice = createSlice({
           state.touristCentresError = null;
         }
       })
-      
+
       .addCase(getTouristCenterById.pending, (state) => {
         state.touristCentresLoading = true;
       })
       .addCase(getTouristCenterById.fulfilled, (state, action) => {
         state.touristCentresLoading = false;
-        state.selectedTouristCenter = action.payload?.data || action.payload?.tourist || action.payload;
+        state.selectedTouristCenter =
+          action.payload?.data || action.payload?.tourist || action.payload;
+        console.log("✅ Tourist centre loaded:", state.selectedTouristCenter);
       })
       .addCase(getTouristCenterById.rejected, (state, action) => {
         state.touristCentresLoading = false;
         state.touristCentresError = action.payload;
+        console.error("❌ Tourist centre load failed:", action.payload);
       })
-      
+
       .addCase(getVendorTouristCenters.pending, (state) => {
         state.touristCentresLoading = true;
       })
       .addCase(getVendorTouristCenters.fulfilled, (state, action) => {
         state.touristCentresLoading = false;
-        state.vendorCentres = action.payload?.data || action.payload?.tourists || action.payload || [];
+        state.vendorCentres =
+          action.payload?.data ||
+          action.payload?.tourists ||
+          action.payload ||
+          [];
       })
       .addCase(getVendorTouristCenters.rejected, (state, action) => {
         state.touristCentresLoading = false;
         state.touristCentresError = action.payload;
       })
-      
+
       .addCase(updateTouristCenter.pending, (state) => {
         state.touristCentresLoading = true;
       })
       .addCase(updateTouristCenter.fulfilled, (state, action) => {
         state.touristCentresLoading = false;
-        const updatedCentre = action.payload?.data || action.payload?.tourist || action.payload;
+        const updatedCentre =
+          action.payload?.data || action.payload?.tourist || action.payload;
         state.vendorCentres = state.vendorCentres.map((centre) =>
-          centre?.id === updatedCentre?.id ? updatedCentre : centre
+          centre?.id === updatedCentre?.id ? updatedCentre : centre,
         );
         state.successMessage = "Tourist centre updated successfully";
       })
@@ -922,84 +1097,99 @@ const apiSlice = createSlice({
         state.touristCentresLoading = false;
         state.touristCentresError = action.payload;
       })
-      
+
       .addCase(deleteTouristCenter.pending, (state) => {
         state.touristCentresLoading = true;
       })
       .addCase(deleteTouristCenter.fulfilled, (state, action) => {
         state.touristCentresLoading = false;
         const deletedId = action.meta.arg;
-        state.vendorCentres = state.vendorCentres.filter((centre) => centre?.id !== deletedId);
+        state.vendorCentres = state.vendorCentres.filter(
+          (centre) => centre?.id !== deletedId,
+        );
         state.successMessage = "Tourist centre deleted successfully";
       })
       .addCase(deleteTouristCenter.rejected, (state, action) => {
         state.touristCentresLoading = false;
         state.touristCentresError = action.payload;
       })
-      
+
       .addCase(getTouristCentersByOpeningHours.pending, (state) => {
         state.touristCentresLoading = true;
       })
       .addCase(getTouristCentersByOpeningHours.fulfilled, (state, action) => {
         state.touristCentresLoading = false;
-        state.touristCentres = action.payload?.data || action.payload?.tourists || action.payload || [];
+        state.touristCentres =
+          action.payload?.data ||
+          action.payload?.tourists ||
+          action.payload ||
+          [];
       })
       .addCase(getTouristCentersByOpeningHours.rejected, (state, action) => {
         state.touristCentresLoading = false;
         state.touristCentresError = action.payload;
       })
-      
+
       .addCase(createKyc.pending, (state) => {
         state.kycLoading = true;
       })
       .addCase(createKyc.fulfilled, (state, action) => {
         state.kycLoading = false;
-        state.kyc = action.payload?.data || action.payload?.kyc || action.payload;
+        state.kyc =
+          action.payload?.data || action.payload?.kyc || action.payload;
         state.successMessage = "KYC submitted successfully";
       })
       .addCase(createKyc.rejected, (state, action) => {
         state.kycLoading = false;
         state.kycError = action.payload;
       })
-      
+
       .addCase(getKycStatus.pending, (state) => {
         state.kycLoading = true;
       })
       .addCase(getKycStatus.fulfilled, (state, action) => {
         state.kycLoading = false;
-        state.kyc = action.payload?.data || action.payload?.kyc || action.payload;
+        state.kyc =
+          action.payload?.data || action.payload?.kyc || action.payload;
       })
       .addCase(getKycStatus.rejected, (state, action) => {
         state.kycLoading = false;
         state.kycError = action.payload;
       })
-      
+
+      // ========== PAYMENT PLAN REDUCERS ==========
       .addCase(createPaymentPlan.pending, (state) => {
         state.paymentPlanLoading = true;
       })
       .addCase(createPaymentPlan.fulfilled, (state, action) => {
         state.paymentPlanLoading = false;
-        state.paymentPlan = action.payload?.data || action.payload?.plan || action.payload;
+        state.paymentPlan =
+          action.payload?.data || action.payload?.plan || action.payload;
         state.paymentPlans = [state.paymentPlan, ...state.paymentPlans];
         state.successMessage = "Payment plan created successfully";
+        console.log("✅ Payment plan created:", state.paymentPlan);
       })
       .addCase(createPaymentPlan.rejected, (state, action) => {
         state.paymentPlanLoading = false;
         state.paymentPlanError = action.payload;
+        console.error("❌ Payment plan creation failed:", action.payload);
       })
-      
+
       .addCase(getPaymentPlans.pending, (state) => {
         state.paymentPlanLoading = true;
       })
       .addCase(getPaymentPlans.fulfilled, (state, action) => {
         state.paymentPlanLoading = false;
-        state.paymentPlans = action.payload?.data || action.payload?.plans || action.payload || [];
+        state.paymentPlans =
+          action.payload?.data || action.payload?.plans || action.payload || [];
+        console.log("✅ Payment plans loaded:", state.paymentPlans.length);
       })
       .addCase(getPaymentPlans.rejected, (state, action) => {
         state.paymentPlanLoading = false;
         state.paymentPlanError = action.payload;
+        console.error("❌ Payment plans load failed:", action.payload);
       })
-      
+
       // ========== BOOKINGS REDUCERS ==========
       .addCase(createBooking.pending, (state) => {
         state.bookingLoading = true;
@@ -1007,7 +1197,8 @@ const apiSlice = createSlice({
       })
       .addCase(createBooking.fulfilled, (state, action) => {
         state.bookingLoading = false;
-        state.booking = action.payload?.booking || action.payload?.data || action.payload;
+        state.booking =
+          action.payload?.booking || action.payload?.booking || action.payload;
         state.userBookings = [state.booking, ...state.userBookings];
         state.successMessage = "Booking created successfully";
         console.log("✅ Booking created in Redux:", state.booking);
@@ -1017,55 +1208,68 @@ const apiSlice = createSlice({
         state.bookingError = action.payload;
         console.error("❌ Booking rejected in Redux:", action.payload);
       })
-      
+
       .addCase(getAllClientBookings.pending, (state) => {
         state.bookingLoading = true;
       })
       .addCase(getAllClientBookings.fulfilled, (state, action) => {
         state.bookingLoading = false;
-        state.clientBookings = action.payload?.data || action.payload?.bookings || action.payload || [];
+        state.clientBookings =
+          action.payload?.data ||
+          action.payload?.bookings ||
+          action.payload ||
+          [];
       })
       .addCase(getAllClientBookings.rejected, (state, action) => {
         state.bookingLoading = false;
         state.bookingError = action.payload;
       })
-      
+
       .addCase(getUserBookings.pending, (state) => {
         state.bookingLoading = true;
       })
       .addCase(getUserBookings.fulfilled, (state, action) => {
         state.bookingLoading = false;
-        state.userBookings = action.payload?.data || action.payload?.bookings || action.payload || [];
+        state.userBookings =
+          action.payload?.data ||
+          action.payload?.bookings ||
+          action.payload ||
+          [];
       })
       .addCase(getUserBookings.rejected, (state, action) => {
         state.bookingLoading = false;
         state.bookingError = action.payload;
       })
-      
+
       .addCase(getVendorBookings.pending, (state) => {
         state.bookingLoading = true;
       })
       .addCase(getVendorBookings.fulfilled, (state, action) => {
         state.bookingLoading = false;
-        state.vendorBookings = action.payload?.data || action.payload?.bookings || action.payload || [];
+        state.vendorBookings =
+          action.payload?.data ||
+          action.payload?.bookings ||
+          action.payload ||
+          [];
       })
       .addCase(getVendorBookings.rejected, (state, action) => {
         state.bookingLoading = false;
         state.bookingError = action.payload;
       })
-      
+
       .addCase(getBookingById.pending, (state) => {
         state.bookingLoading = true;
       })
       .addCase(getBookingById.fulfilled, (state, action) => {
         state.bookingLoading = false;
-        state.booking = action.payload?.data || action.payload?.booking || action.payload;
+        state.booking =
+          action.payload?.data || action.payload?.booking || action.payload;
       })
       .addCase(getBookingById.rejected, (state, action) => {
         state.bookingLoading = false;
         state.bookingError = action.payload;
       })
-      
+
       .addCase(cancelBooking.pending, (state) => {
         state.bookingLoading = true;
       })
@@ -1074,17 +1278,21 @@ const apiSlice = createSlice({
         state.successMessage = "Booking cancelled successfully";
         const cancelledId = action.meta.arg;
         state.userBookings = state.userBookings.map((booking) =>
-          booking?.id === cancelledId ? { ...booking, status: "cancelled" } : booking
+          booking?.id === cancelledId
+            ? { ...booking, status: "cancelled" }
+            : booking,
         );
         state.clientBookings = state.clientBookings.map((booking) =>
-          booking?.id === cancelledId ? { ...booking, status: "cancelled" } : booking
+          booking?.id === cancelledId
+            ? { ...booking, status: "cancelled" }
+            : booking,
         );
       })
       .addCase(cancelBooking.rejected, (state, action) => {
         state.bookingLoading = false;
         state.bookingError = action.payload;
       })
-      
+
       // ========== PAYMENTS REDUCERS ==========
       .addCase(initializePayment.pending, (state) => {
         state.paymentLoading = true;
@@ -1093,14 +1301,17 @@ const apiSlice = createSlice({
       .addCase(initializePayment.fulfilled, (state, action) => {
         state.paymentLoading = false;
         state.paymentData = action.payload?.data || action.payload;
-        state.paymentReference = action.payload?.data?.reference || action.payload?.reference;
+        state.paymentReference =
+          action.payload?.data?.reference || action.payload?.reference;
         state.successMessage = "Payment initialized successfully";
+        console.log("✅ Payment initialized:", state.paymentData);
       })
       .addCase(initializePayment.rejected, (state, action) => {
         state.paymentLoading = false;
         state.paymentError = action.payload;
+        console.error("❌ Payment initialization failed:", action.payload);
       })
-      
+
       .addCase(verifyPayment.pending, (state) => {
         state.paymentLoading = true;
         state.paymentError = null;
@@ -1110,13 +1321,15 @@ const apiSlice = createSlice({
         state.paymentVerified = true;
         state.paymentData = action.payload?.data || action.payload;
         state.successMessage = "Payment verified successfully";
+        console.log("✅ Payment verified:", state.paymentData);
       })
       .addCase(verifyPayment.rejected, (state, action) => {
         state.paymentLoading = false;
         state.paymentError = action.payload;
         state.paymentVerified = false;
+        console.error("❌ Payment verification failed:", action.payload);
       })
-      
+
       .addCase(getPaymentStatus.pending, (state) => {
         state.paymentLoading = true;
       })
@@ -1128,58 +1341,71 @@ const apiSlice = createSlice({
         state.paymentLoading = false;
         state.paymentError = action.payload;
       })
-      
+
       // ========== REVIEWS REDUCERS ==========
       .addCase(createReview.pending, (state) => {
         state.reviewsLoading = true;
       })
       .addCase(createReview.fulfilled, (state, action) => {
         state.reviewsLoading = false;
-        state.reviews = [action.payload?.data || action.payload, ...state.reviews];
+        state.reviews = [
+          action.payload?.data || action.payload,
+          ...state.reviews,
+        ];
         state.successMessage = "Review submitted successfully";
       })
       .addCase(createReview.rejected, (state, action) => {
         state.reviewsLoading = false;
         state.reviewsError = action.payload;
       })
-      
+
       .addCase(getAllReviews.pending, (state) => {
         state.reviewsLoading = true;
       })
       .addCase(getAllReviews.fulfilled, (state, action) => {
         state.reviewsLoading = false;
-        state.reviews = action.payload?.data || action.payload?.reviews || action.payload || [];
+        state.reviews =
+          action.payload?.data ||
+          action.payload?.reviews ||
+          action.payload ||
+          [];
       })
       .addCase(getAllReviews.rejected, (state, action) => {
         state.reviewsLoading = false;
         state.reviewsError = action.payload;
       })
-      
+
       .addCase(getReviewById.pending, (state) => {
         state.reviewsLoading = true;
       })
       .addCase(getReviewById.fulfilled, (state, action) => {
         state.reviewsLoading = false;
         const review = action.payload?.data || action.payload;
-        state.reviews = state.reviews.map(r => r.id === review.id ? review : r);
+        state.reviews = state.reviews.map((r) =>
+          r.id === review.id ? review : r,
+        );
       })
       .addCase(getReviewById.rejected, (state, action) => {
         state.reviewsLoading = false;
         state.reviewsError = action.payload;
       })
-      
+
       .addCase(getReviewsByRating.pending, (state) => {
         state.reviewsLoading = true;
       })
       .addCase(getReviewsByRating.fulfilled, (state, action) => {
         state.reviewsLoading = false;
-        state.reviews = action.payload?.data || action.payload?.reviews || action.payload || [];
+        state.reviews =
+          action.payload?.data ||
+          action.payload?.reviews ||
+          action.payload ||
+          [];
       })
       .addCase(getReviewsByRating.rejected, (state, action) => {
         state.reviewsLoading = false;
         state.reviewsError = action.payload;
       })
-      
+
       .addCase(getRatingStatistics.pending, (state) => {
         state.reviewsLoading = true;
       })
@@ -1195,14 +1421,14 @@ const apiSlice = createSlice({
 });
 
 // ========== EXPORT ACTIONS ==========
-export const { 
-  clearClientError, 
+export const {
+  clearClientError,
   clearClientSuccess,
   clearVendorError,
   clearVendorSuccess,
-  clearApiError, 
-  clearApiSuccess, 
-  resetApiState 
+  clearApiError,
+  clearApiSuccess,
+  resetApiState,
 } = apiSlice.actions;
 
 // ========== SELECTORS ==========
@@ -1227,10 +1453,14 @@ export const selectPackagesLoading = (state) => state.api.packagesLoading;
 export const selectPackagesError = (state) => state.api.packagesError;
 
 export const selectTouristCentres = (state) => state.api.touristCentres;
-export const selectSelectedTouristCenter = (state) => state.api.selectedTouristCenter;
-export const selectTouristCentresLoading = (state) => state.api.touristCentresLoading;
-export const selectTouristCentresError = (state) => state.api.touristCentresError;
-export const selectCreatedTouristCenter = (state) => state.api.createdTouristCenter;
+export const selectSelectedTouristCenter = (state) =>
+  state.api.selectedTouristCenter;
+export const selectTouristCentresLoading = (state) =>
+  state.api.touristCentresLoading;
+export const selectTouristCentresError = (state) =>
+  state.api.touristCentresError;
+export const selectCreatedTouristCenter = (state) =>
+  state.api.createdTouristCenter;
 
 export const selectKyc = (state) => state.api.kyc;
 export const selectKycLoading = (state) => state.api.kycLoading;
@@ -1261,11 +1491,11 @@ export const selectReviewStatistics = (state) => state.api.reviewStatistics;
 
 export const selectGoogleCallback = (state) => state.api.googleCallback;
 
-export const selectApiLoading = (state) => 
-  state.api.loading || 
-  state.api.clientLoading || 
-  state.api.vendorLoading || 
-  state.api.packagesLoading || 
+export const selectApiLoading = (state) =>
+  state.api.loading ||
+  state.api.clientLoading ||
+  state.api.vendorLoading ||
+  state.api.packagesLoading ||
   state.api.touristCentresLoading ||
   state.api.kycLoading ||
   state.api.bookingLoading ||

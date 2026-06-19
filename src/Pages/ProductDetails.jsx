@@ -11,11 +11,10 @@ import {
   FaRegHeart,
   FaShareAlt,
 } from "react-icons/fa";
-
 import "../Styles/Product.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { getTouristCenterById } from "../redox/apiSlice";
+import { getTouristCenterById, getAllPackages, getPackageById } from "../redox/apiSlice";
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -26,28 +25,16 @@ const ProductDetails = () => {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [centrePackages, setCentrePackages] = useState([]);
 
-  const { selectedTouristCenter, touristCentresLoading, touristCentresError } =
+  const { selectedTouristCenter, touristCentresLoading, touristCentresError, packages, packagesLoading } =
     useSelector((state) => state.api);
   const { isAuthenticated, userToken, loggedInUser } = useSelector((state) => state.auth);
-
-  // ✅ Debug logging
-  console.log("🔍 ProductDetails - URL Params:", { id });
-  console.log("🔍 ProductDetails - Location State:", location.state);
-  console.log("🔍 ProductDetails - Selected Centre from API:", selectedTouristCenter);
-
-  // ✅ Validate centre data
-  const validateCentre = (data) => {
-    if (!data) return false;
-    // Check if it has required fields
-    const hasName = data.centreName || data.name;
-    const hasId = data.id || data._id;
-    return !!(hasName && hasId);
-  };
+  console.log(selectedTouristCenter)
 
   // ✅ Get centre data from multiple sources
   const getCentreData = () => {
-    // 1. Check location state first (passed from previous page)
+    // 1. Check location state
     if (location.state?.centre) {
       console.log("✅ Using centre from location.state");
       return location.state.centre;
@@ -60,13 +47,12 @@ const ProductDetails = () => {
     // 2. Check Redux store
     if (selectedTouristCenter) {
       console.log("✅ Using centre from Redux store");
-      // Handle different response formats
       return selectedTouristCenter?.data || 
              selectedTouristCenter?.tourist || 
              selectedTouristCenter;
     }
 
-    // 3. Check localStorage for pending booking
+    // 3. Check localStorage
     const pendingBooking = localStorage.getItem('pendingBooking');
     if (pendingBooking) {
       try {
@@ -80,35 +66,52 @@ const ProductDetails = () => {
       }
     }
 
-    console.log("❌ No centre data found");
     return null;
   };
 
-  // ✅ Get packages from centre data
-  const getPackages = (centre) => {
-    if (!centre) return [];
-    // Check different possible locations for packages
-    return centre.packages || centre.Packages || centre.package || [];
-  };
-
-  // ✅ Centre data source
   const centre = getCentreData();
-  const packages = getPackages(centre);
 
-  console.log("📦 Packages found:", packages.length);
-  console.log("📦 Packages data:", packages);
-
-  // ✅ Fetch centre if not available
+  // ✅ Fetch centre and packages
   useEffect(() => {
-    if (!centre && id) {
-      console.log("🔄 Fetching centre from API with ID:", id);
-      dispatch(getTouristCenterById(id));
-    }
-    setIsLoading(false);
+    const fetchData = async () => {
+      setIsLoading(true);
+      
+      // Fetch centre if not available
+      if (!centre && id) {
+        console.log("🔄 Fetching centre from API with ID:", id);
+        await dispatch(getTouristCenterById(id));
+        console.log(getTouristCenterById(id))
+      }
+
+      // Fetch all packages
+      console.log("🔄 Fetching all packages");
+      await dispatch(getAllPackages());
+      
+      setIsLoading(false);
+    };
+
+    fetchData();
   }, [dispatch, id, centre]);
 
+  // ✅ Filter packages for this centre
+  useEffect(() => {
+    if (packages && packages.length > 0 && centre) {
+      const centreId = centre.id || centre._id || id;
+      
+      // Try different ways to match packages to this centre
+      const filtered = packages.filter(pkg => {
+        // Check if package belongs to this centre
+        const pkgCentreId = pkg.touristId || pkg.centreId || pkg.tourist?._id || pkg.tourist?.id;
+        return pkgCentreId === centreId || pkgCentreId === centre._id || pkgCentreId === centre.id;
+      });
+      
+      console.log(`📦 Found ${filtered.length} packages for centre ${centreId}`);
+      setCentrePackages(filtered);
+    }
+  }, [packages, centre, id]);
+
   // ✅ Handle loading state
-  if (touristCentresLoading || isLoading) {
+  if (touristCentresLoading || packagesLoading || isLoading) {
     return (
       <>
         <Header />
@@ -150,7 +153,6 @@ const ProductDetails = () => {
     );
   }
 
-  // ✅ Validate centre exists
   if (!centre) {
     return (
       <>
@@ -179,7 +181,7 @@ const ProductDetails = () => {
     );
   }
 
-  // ✅ Extract centre data with validation
+  // ✅ Extract centre data
   const centreName = centre.centreName || centre.name || "Tourist Centre";
   const centreLocation = [centre.city, centre.state].filter(Boolean).join(", ") || "Location not specified";
   const openingHours = centre.openingHours || "Hours not specified";
@@ -190,19 +192,13 @@ const ProductDetails = () => {
   const images = centre.images || [];
 
   console.log("✅ Rendering centre:", centreName);
-  console.log("✅ Available packages:", packages.length);
+  console.log("✅ Available packages:", centrePackages.length);
 
-  const getPackagePrice = (pkg) => {
-    return pkg.amount || pkg.price || 0;
-  };
-
-  // ✅ UPDATED: Handle Book Now with proper validation
+  // ✅ Handle Book Now
   const handleBookNow = (pkg) => {
     console.log("🛒 handleBookNow called with package:", pkg);
     
-    // ✅ Validate package
     if (!pkg) {
-      console.error("❌ No package selected");
       Swal.fire({
         icon: "warning",
         title: "No Package Selected",
@@ -212,7 +208,6 @@ const ProductDetails = () => {
       return;
     }
 
-    // ✅ Validate package has ID
     if (!pkg.id) {
       console.error("❌ Package missing ID:", pkg);
       Swal.fire({
@@ -224,7 +219,6 @@ const ProductDetails = () => {
       return;
     }
 
-    // ✅ Validate centre has ID
     const centreId = centre.id || centre._id || id;
     if (!centreId) {
       console.error("❌ Centre missing ID:", centre);
@@ -236,18 +230,17 @@ const ProductDetails = () => {
       });
       return;
     }
-    
+
     setSelectedPackage(pkg);
     
-    // ✅ Store booking details in localStorage
     const bookingData = {
       touristId: centreId,
       packageId: pkg.id,
       packageDetails: {
         id: pkg.id,
         packageName: pkg.packageName || pkg.name || "Package",
-        amount: getPackagePrice(pkg),
-        price: getPackagePrice(pkg),
+        amount: pkg.amount || pkg.price || 0,
+        price: pkg.amount || pkg.price || 0,
         packageType: pkg.packageType || "Standard",
         numberOfPeople: pkg.numberOfPeople || 1,
         description: pkg.description || "",
@@ -267,16 +260,11 @@ const ProductDetails = () => {
       returnUrl: `/booking-summary/${centreId}/${pkg.id}`
     };
     localStorage.setItem('pendingBooking', JSON.stringify(bookingData));
-    console.log("💾 Booking saved to localStorage:", bookingData);
 
-    // ✅ Check authentication
     const token = localStorage.getItem('token') || localStorage.getItem('userToken');
     const isLoggedIn = !!token;
-    
-    console.log("🔐 Is logged in?", isLoggedIn);
 
     if (!isLoggedIn) {
-      console.log("➡️ Not authenticated, redirecting to signin");
       navigate("/signin", { 
         state: { 
           from: `/centre/${centreId}`,
@@ -286,8 +274,6 @@ const ProductDetails = () => {
       return;
     }
 
-    // ✅ If authenticated, navigate to booking summary
-    console.log("✅ Authenticated, proceeding to booking summary");
     navigate(`/booking-summary/${centreId}/${pkg.id}`, {
       state: {
         touristId: centreId,
@@ -332,19 +318,19 @@ const ProductDetails = () => {
       id: 1,
       name: "Nnaneme D.",
       rating: 5,
-      comment: "Absolutely loved the canopy walkway! It was so long and the view from the top is breathtaking. A must-visit for anyone in Lagos. Very well maintained."
+      comment: "Absolutely loved the canopy walkway! It was so long and the view from the top is breathtaking."
     },
     {
       id: 2,
       name: "Tunde S.",
       rating: 4,
-      comment: "Perfect for a family outing. My kids enjoyed the canopy walk and the playground area. The boardwalks are clean and safe. Highly recommended!"
+      comment: "Perfect for a family outing. My kids enjoyed the canopy walk and the playground area."
     },
     {
       id: 3,
       name: "Salewa Ahmed",
       rating: 4,
-      comment: "The place is beautiful and peaceful. Saw so many monkeys and birds. However, the ticket price is a bit high compared to other parks. Still worth it though."
+      comment: "The place is beautiful and peaceful. Saw so many monkeys and birds."
     }
   ];
 
@@ -442,36 +428,16 @@ const ProductDetails = () => {
                 <button 
                   className="book-btn" 
                   onClick={() => {
-                    console.log("📖 Main Book Now button clicked");
-                    console.log("📦 Available packages:", packages);
-                    
-                    // ✅ Validate packages exist
-                    if (!packages || packages.length === 0) {
-                      console.warn("❌ No packages available");
+                    if (centrePackages.length === 0) {
                       Swal.fire({
                         icon: "info",
                         title: "No Packages Available",
-                        text: "This centre doesn't have any packages available at the moment. Please check back later.",
-                        confirmButtonColor: "#ff6b35",
-                        confirmButtonText: "OK"
-                      });
-                      return;
-                    }
-                    
-                    // ✅ Validate first package
-                    const firstPackage = packages[0];
-                    if (!firstPackage.id) {
-                      console.error("❌ First package missing ID:", firstPackage);
-                      Swal.fire({
-                        icon: "error",
-                        title: "Invalid Package",
-                        text: "The package data is invalid. Please try again later.",
+                        text: "This centre doesn't have any packages available at the moment.",
                         confirmButtonColor: "#ff6b35",
                       });
                       return;
                     }
-                    
-                    handleBookNow(firstPackage);
+                    handleBookNow(centrePackages[0]);
                   }}
                 >
                   Book Now
@@ -484,7 +450,28 @@ const ProductDetails = () => {
             </div>
           </section>
 
-          {/* ✅ REMOVED PACKAGES SECTION */}
+          {/* ✅ PACKAGES SECTION - NOW DISPLAYS ACTUAL PACKAGES */}
+          {centrePackages.length > 0 && (
+            <section className="packages-section">
+              <h2>Available Packages</h2>
+              <div className="packages-grid">
+                {centrePackages.map((pkg) => (
+                  <div className="package-card" key={pkg.id}>
+                    <h3>{pkg.packageName || pkg.name || "Package"}</h3>
+                    <p className="package-price">₦{pkg.amount || pkg.price || 0}</p>
+                    <p className="package-desc">{pkg.description || "No description"}</p>
+                    <p className="package-type">{pkg.packageType || "Standard"}</p>
+                    <button 
+                      className="book-package-btn"
+                      onClick={() => handleBookNow(pkg)}
+                    >
+                      Book This Package
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* REVIEWS */}
           <section className="reviews">
@@ -507,7 +494,7 @@ const ProductDetails = () => {
             </div>
           </section>
 
-          {/* DESTINATIONS YOU MAY ALSO LIKE */}
+          {/* RECOMMENDATIONS */}
           <section className="recommendations">
             <h2>Destinations you may also like</h2>
             <div className="destination-grid">

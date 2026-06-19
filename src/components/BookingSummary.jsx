@@ -35,13 +35,14 @@ export default function BookingSummaryPage() {
   const location = useLocation();
   const dispatch = useDispatch();
   
-  const { loggedInUser, userToken } = useSelector((state) => state.auth);
+  const { loggedInUser, userToken, isAuthenticated } = useSelector((state) => state.auth);
   const { bookingLoading, bookingError } = useSelector((state) => state.api);
 
   const [bookingData, setBookingData] = useState({
     packageDetails: location.state?.packageDetails || null,
     centreDetails: location.state?.centreDetails || null,
   });
+  
 
   const [date, setDate] = useState("");
   const [quantities, setQuantities] = useState({
@@ -53,7 +54,46 @@ export default function BookingSummaryPage() {
   console.log("📄 BookingSummaryPage - Mounted");
   console.log("📄 touristId:", touristId);
   console.log("📄 packageId:", packageId);
-  console.log("📄 location.state:", location.state);
+  console.log("📄 isAuthenticated:", isAuthenticated);
+  console.log("📄 userToken:", userToken ? "Present" : "Missing");
+  console.log("📄 loggedInUser:", loggedInUser);
+
+  // ✅ Check authentication on mount - redirect if not logged in
+  useEffect(() => {
+    const token = localStorage.getItem('token') || localStorage.getItem('userToken');
+    const isLoggedIn = !!token || isAuthenticated;
+    
+    console.log("🔐 Auth check - isLoggedIn:", isLoggedIn);
+    
+    if (!isLoggedIn) {
+      console.log("🚫 User not authenticated - redirecting to signin");
+      
+      // Save booking data to localStorage for after login
+      const pendingData = {
+        touristId: touristId,
+        packageId: packageId,
+        packageDetails: bookingData.packageDetails,
+        centreDetails: bookingData.centreDetails,
+        returnUrl: `/booking-summary/${touristId}/${packageId}`
+      };
+      localStorage.setItem('pendingBooking', JSON.stringify(pendingData));
+      
+      Swal.fire({
+        icon: 'warning',
+        title: 'Authentication Required',
+        text: 'Please log in to complete your booking.',
+        confirmButtonColor: '#ff6b35',
+        confirmButtonText: 'Go to Login'
+      }).then(() => {
+        navigate('/signin', {
+          state: {
+            from: `/booking-summary/${touristId}/${packageId}`,
+            bookingData: pendingData
+          }
+        });
+      });
+    }
+  }, [isAuthenticated, navigate, touristId, packageId, bookingData]);
 
   useEffect(() => {
     if (!bookingData.packageDetails) {
@@ -72,6 +112,9 @@ export default function BookingSummaryPage() {
       }
     }
   }, [bookingData.packageDetails]);
+
+  console.log("booking data found:", bookingData);
+
 
   const increment = (id) =>
     setQuantities((prev) => ({ ...prev, [id]: prev[id] + 1 }));
@@ -94,6 +137,31 @@ export default function BookingSummaryPage() {
 
   // ✅ Helper function to create booking and navigate
   const createBookingAndNavigate = async (isInstallment = false) => {
+    // ✅ Double-check authentication before proceeding
+    const token = localStorage.getItem('token') || localStorage.getItem('userToken');
+    if (!token) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Session Expired',
+        text: 'Please log in again to complete your booking.',
+        confirmButtonColor: '#ff6b35',
+        confirmButtonText: 'Go to Login'
+      }).then(() => {
+        navigate('/signin', {
+          state: {
+            from: `/booking-summary/${touristId}/${packageId}`,
+            bookingData: {
+              touristId: touristId,
+              packageId: packageId,
+              packageDetails: bookingData.packageDetails,
+              centreDetails: bookingData.centreDetails,
+            }
+          }
+        });
+      });
+      return;
+    }
+
     // Validate date
     if (!date) {
       Swal.fire({
@@ -117,9 +185,54 @@ export default function BookingSummaryPage() {
     }
 
     try {
-      // ✅ Send ONLY visitDate - the thunk will handle formatting and clientId
+      // ✅ Get client ID from multiple sources
+      let clientId = null;
+      
+      // 1. Check loggedInUser from Redux
+      if (loggedInUser) {
+        clientId = loggedInUser.id || 
+                   loggedInUser._id || 
+                   loggedInUser.clientId ||
+                   loggedInUser.userId;
+        console.log("📄 Client ID from Redux:", clientId);
+      }
+
+      // 2. Check localStorage
+      if (!clientId) {
+        clientId = localStorage.getItem('clientId');
+        console.log("📄 Client ID from localStorage:", clientId);
+      }
+
+      // 3. Try to decode from token
+      if (!clientId && token) {
+        try {
+          const tokenParts = token.split('.');
+          if (tokenParts.length === 3) {
+            const payload = JSON.parse(atob(tokenParts[1]));
+            console.log("📄 Token payload:", payload);
+            clientId = payload.id || 
+                       payload.sub || 
+                       payload.userId || 
+                       payload.clientId || 
+                       payload._id;
+            console.log("📄 Client ID from token:", clientId);
+            
+            // Save for future use
+            if (clientId) {
+              localStorage.setItem('clientId', clientId);
+            }
+          }
+        } catch (e) {
+          console.error("❌ Error decoding token:", e);
+        }
+      }
+
+      console.log("📄 Final Client ID:", clientId);
+
+      // ✅ Prepare booking data
       const bookingDataPayload = {
-        visitDate: date, // Will be formatted to MM/DD/YYYY in the thunk
+        visitDate: date,
+        clientId: clientId, // Send clientId explicitly
       };
 
       console.log("📄 Booking Payload:", bookingDataPayload);
@@ -204,8 +317,31 @@ export default function BookingSummaryPage() {
       console.error("❌ Booking error:", error);
       
       let errorMessage = 'Unable to create booking. Please try again.';
+      
       if (error === 'Client not found' || error?.message === 'Client not found') {
         errorMessage = 'Your account was not found. Please log in again.';
+        
+        // ✅ Redirect to login if client not found
+        Swal.fire({
+          icon: 'error',
+          title: 'Session Expired',
+          text: 'Please log in again to continue with your booking.',
+          confirmButtonColor: '#ff6b35',
+          confirmButtonText: 'Go to Login'
+        }).then(() => {
+          navigate('/signin', {
+            state: {
+              from: `/booking-summary/${touristId}/${packageId}`,
+              bookingData: {
+                touristId: touristId,
+                packageId: packageId,
+                packageDetails: bookingData.packageDetails,
+                centreDetails: bookingData.centreDetails,
+              }
+            }
+          });
+        });
+        return;
       } else if (error?.message) {
         errorMessage = error.message;
       }
@@ -221,14 +357,63 @@ export default function BookingSummaryPage() {
 
   // ✅ Handle regular payment
   const handleContinueToPayment = () => {
+    // ✅ Check authentication before proceeding
+    const token = localStorage.getItem('token') || localStorage.getItem('userToken');
+    if (!token) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Authentication Required',
+        text: 'Please log in to complete your booking.',
+        confirmButtonColor: '#ff6b35',
+        confirmButtonText: 'Go to Login'
+      }).then(() => {
+        navigate('/signin', {
+          state: {
+            from: `/booking-summary/${touristId}/${packageId}`,
+            bookingData: {
+              touristId: touristId,
+              packageId: packageId,
+              packageDetails: bookingData.packageDetails,
+              centreDetails: bookingData.centreDetails,
+            }
+          }
+        });
+      });
+      return;
+    }
     createBookingAndNavigate(false);
   };
 
   // ✅ Handle installment payment
   const handleInstallmentClick = () => {
+    // ✅ Check authentication before proceeding
+    const token = localStorage.getItem('token') || localStorage.getItem('userToken');
+    if (!token) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Authentication Required',
+        text: 'Please log in to complete your booking.',
+        confirmButtonColor: '#ff6b35',
+        confirmButtonText: 'Go to Login'
+      }).then(() => {
+        navigate('/signin', {
+          state: {
+            from: `/booking-summary/${touristId}/${packageId}`,
+            bookingData: {
+              touristId: touristId,
+              packageId: packageId,
+              packageDetails: bookingData.packageDetails,
+              centreDetails: bookingData.centreDetails,
+            }
+          }
+        });
+      });
+      return;
+    }
     createBookingAndNavigate(true);
   };
 
+  // ✅ Show loading/redirect if no package details
   if (!bookingData.packageDetails) {
     return (
       <div className="bp-page">
