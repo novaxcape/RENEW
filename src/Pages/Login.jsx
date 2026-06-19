@@ -148,7 +148,7 @@ const Login = () => {
         email: formData.email,
         password: formData.password,
       });
-
+ const Email=localStorage.setItem("email",email)
       console.log("✅ Login response:", response.data);
 
       // ✅ Store token and user details
