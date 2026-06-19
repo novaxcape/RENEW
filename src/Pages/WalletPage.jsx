@@ -1,9 +1,9 @@
 import React from 'react'
 import { useOutletContext } from 'react-router-dom';
 import TopNavbar from "../components/TopNavbar";
-import Wallet from '../components/Wallet';
 import PerformanceInsight from "../components/PerformanceInsight";
 import CapacityGoals from "../components/CapacityGoals";
+import Wallet from '../components/Wallet';
 import "../Styles/Dashboard.css";
 const WalletPage = () => {
   const { openMobileMenu = () => {} } = useOutletContext() || {};
