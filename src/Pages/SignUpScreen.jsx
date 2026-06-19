@@ -1,5 +1,5 @@
 import React from "react";
-import "../Styles/SignUgitpScreen.css";
+import "../Styles/SignUpScreen.css";
 import { TbUser } from "react-icons/tb";
 import { HiMiniBuildingOffice2 } from "react-icons/hi2";
 import { FaCheckCircle } from "react-icons/fa";
