@@ -460,7 +460,7 @@ export const getPaymentPlans = createThunk(
 );
 
 // ========== BOOKING API THUNKS - IMPROVED ==========
-export const createBooking = createThunk(
+export const createBooking = createAsyncThunk(
   "api/booking/create",
   async (
     { touristId, packageId, bookingData },
@@ -1198,7 +1198,7 @@ const apiSlice = createSlice({
       .addCase(createBooking.fulfilled, (state, action) => {
         state.bookingLoading = false;
         state.booking =
-          action.payload?.booking || action.payload?.data || action.payload;
+          action.payload?.booking || action.payload?.booking || action.payload;
         state.userBookings = [state.booking, ...state.userBookings];
         state.successMessage = "Booking created successfully";
         console.log("✅ Booking created in Redux:", state.booking);
