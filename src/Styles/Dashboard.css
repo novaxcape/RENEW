@@ -388,7 +388,8 @@
 }
 
 .search-bar {
-  width: 420px;
+    width: 500px;
+    max-width: 100%;
   background: #CCE0EC;
   border: none;
   border-radius: 999px;
@@ -399,6 +400,7 @@
   transition: all 0.25s ease;
   flex-shrink: 1;
   margin-left: 8px;
+  height: 40px;
 }
 
 .search-bar:focus-within {
@@ -1466,6 +1468,7 @@ tbody tr:hover td {
     overflow-x: auto;
     flex-wrap: nowrap;
     display: flex;
+    align-items: stretch;
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
@@ -1475,17 +1478,23 @@ tbody tr:hover td {
   }
 
   .dashboard-stat-card {
-    min-width: 144px;
-    width: 144px;
-    min-height: 86px;
-    height: 86px;
+    min-width: 180px;
+    width: 180px;
+    min-height: 120px;
     padding: 10px 9px;
     border-radius: 8px;
     flex-shrink: 0;
     gap: 7px;
-    overflow: hidden;
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  .dashboard-stat-card .stat-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .stat-header {
