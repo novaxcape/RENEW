@@ -5,7 +5,7 @@ import { HiMiniBuildingOffice2 } from "react-icons/hi2";
 import { FaCheckCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-const SignupScreen = () => {
+const SignUpScreen = () => {
   const navigate = useNavigate();
 
   return (
@@ -101,4 +101,4 @@ const SignupScreen = () => {
   );
 };
 
-export default SignupScreen;
+export default SignUpScreen;

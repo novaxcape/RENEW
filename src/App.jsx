@@ -46,7 +46,7 @@ import PackagePage from "./Pages/PackagePage";
 
 
 // Selection Pages
-import SignupScreen from "./Pages/SignupScreen";
+import SignupScreen from "./Pages/SignUpScreen";
 import SignInScreen from "./Pages/SignInScreen";
 
 // ✅ Payment Pages - Import from components folder
