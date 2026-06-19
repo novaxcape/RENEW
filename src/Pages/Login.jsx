@@ -148,19 +148,19 @@ const Login = () => {
         email: formData.email,
         password: formData.password,
       });
- const Email=localStorage.setItem("email",email)
-      console.log("✅ Login response:", response.data);
+// 
+      console.log("✅ Login response:", response);
 
       // ✅ Store token and user details
-      if (response.data.token) {
+      if (response.token) {
         dispatch(updateToken(response.data.token));
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("userToken", response.data.token);
       }
 
-      if (response.data.data) {
-        dispatch(setUserDetails(response.data.data));
-        const clientId = response.data.data.id || response.data.data._id;
+      if (response.data) {
+        dispatch(setUserDetails(response.data));
+        const clientId = response.data.id || response.data._id;
         if (clientId) {
           localStorage.setItem("clientId", clientId);
         }
@@ -184,7 +184,7 @@ const Login = () => {
     } catch (error) {
       console.error("Login error:", error.response?.data);
       const errorMessage =
-        error.response?.data?.message || "Invalid email or password";
+        error.response?.data || "Invalid email or password";
       setLocalError(errorMessage);
 
       Swal.fire({
