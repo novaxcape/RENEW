@@ -42,7 +42,8 @@ export default function BookingSummaryPage() {
     packageDetails: location.state?.packageDetails || null,
     centreDetails: location.state?.centreDetails || null,
   });
-const email = localStorage.getItem("Email")
+  
+
   const [date, setDate] = useState("");
   const [quantities, setQuantities] = useState({
     adult: 1,
@@ -114,6 +115,9 @@ const email = localStorage.getItem("Email")
       }
     }
   }, [bookingData.packageDetails]);
+
+  console.log("booking data found:", bookingData);
+
 
   const increment = (id) =>
     setQuantities((prev) => ({ ...prev, [id]: prev[id] + 1 }));
