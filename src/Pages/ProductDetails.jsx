@@ -196,7 +196,7 @@ const ProductDetails = () => {
 
   // ✅ Handle Book Now
   const handleBookNow = (pkg) => {
-    console.log("🛒 handleBookNow called with package:", pkg);
+    console.log("🛒 handleBookNow called with packages:", pkg);
     
     if (!pkg) {
       Swal.fire({
