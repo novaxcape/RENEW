@@ -11,11 +11,9 @@ const notifications = [
 const TopNavbar = ({ onMenuOpen = () => {} }) => {
    
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [vendorName, setVendorName] = useState("Lekki CC"); // Default fallback
   const notifRef = useRef(null);
-  const dropdownRef = useRef(null);
 
   // Get vendor name from localStorage on component mount
   useEffect(() => {
@@ -36,16 +34,6 @@ const TopNavbar = ({ onMenuOpen = () => {} }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Handle click outside for profile dropdown
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setShowDropdown(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   // Handle logout
   const handleLogout = () => {
@@ -100,11 +88,11 @@ const TopNavbar = ({ onMenuOpen = () => {} }) => {
           )}
         </div>
 
-        <div className="profile" onClick={() => setShowDropdown(!showDropdown)} ref={dropdownRef}>
+        <div className="profile">
           <img src="/novaxcape/profile.png" alt="Admin" />
           <div className="profile-info">
             <span className="profile-name">
-              {vendorName} <FiChevronDown size={13} color="#334155" />
+              {vendorName}
             </span>
             <span className="profile-role">Admin</span>
           </div>
@@ -120,23 +108,6 @@ const TopNavbar = ({ onMenuOpen = () => {} }) => {
         </button>
       </div>
 
-      {showDropdown && (
-        <div className="profile-dropdown show">
-          <a href="#profile">
-            <i className="fas fa-user"></i>
-            <span>My Profile</span>
-          </a>
-          <a href="#settings">
-            <i className="fas fa-cog"></i>
-            <span>Settings</span>
-          </a>
-          <hr />
-          <a href="#logout" onClick={handleLogout}>
-            <i className="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
-          </a>
-        </div>
-      )}
     </div>
   );
 };

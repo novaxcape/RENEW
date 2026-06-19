@@ -66,29 +66,31 @@ const transactions = [
 const Wallet = () => {
   return (
     <div className="wallet-page">
-      <div className="wallet-stats-grid">
-        {statsCards.map((card, index) => (
-          <div className="wallet-stat-card" key={index}>
-            <div className="wallet-stat-card__header">
-              <span className="wallet-stat-card__label">{card.label}</span>
-              <img src={card.icon} alt={card.label} className="wallet-stat-card__icon" />
+      <div className="wallet-stats-withdraw-row">
+        <div className="wallet-stats-grid">
+          {statsCards.map((card, index) => (
+            <div className="wallet-stat-card" key={index}>
+              <div className="wallet-stat-card__header">
+                <span className="wallet-stat-card__label">{card.label}</span>
+                <img src={card.icon} alt={card.label} className="wallet-stat-card__icon" />
+              </div>
+              <div className="wallet-stat-card__value-row">
+                <span className="wallet-stat-card__value">
+                  {card.isNaira && <span className="wallet-stat-card__naira">₦</span>}
+                  {card.value}
+                </span>
+                <span className={`wallet-stat-card__badge wallet-stat-card__badge--${card.badgeType}`}>
+                  {card.badge}
+                </span>
+              </div>
+              <p className="wallet-stat-card__yesterday">{card.yesterday}</p>
             </div>
-            <div className="wallet-stat-card__value-row">
-              <span className="wallet-stat-card__value">
-                {card.isNaira && <span className="wallet-stat-card__naira">₦</span>}
-                {card.value}
-              </span>
-              <span className={`wallet-stat-card__badge wallet-stat-card__badge--${card.badgeType}`}>
-                {card.badge}
-              </span>
-            </div>
-            <p className="wallet-stat-card__yesterday">{card.yesterday}</p>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      <div className="wallet-withdraw-row">
-        <button className="wallet-withdraw-btn">Withdraw</button>
+        <div className="wallet-withdraw-row">
+          <button className="wallet-withdraw-btn">Withdraw</button>
+        </div>
       </div>
 
       <div className="wallet-transactions">
