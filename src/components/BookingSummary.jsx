@@ -42,6 +42,7 @@ export default function BookingSummaryPage() {
     packageDetails: location.state?.packageDetails || null,
     centreDetails: location.state?.centreDetails || null,
   });
+  
 
   const [date, setDate] = useState("");
   const [quantities, setQuantities] = useState({
@@ -111,6 +112,9 @@ export default function BookingSummaryPage() {
       }
     }
   }, [bookingData.packageDetails]);
+
+  console.log("booking data found:", bookingData);
+
 
   const increment = (id) =>
     setQuantities((prev) => ({ ...prev, [id]: prev[id] + 1 }));
