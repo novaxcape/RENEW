@@ -152,11 +152,12 @@ const Login = () => {
       console.log("✅ Login response:", response);
 
       // ✅ Store token and user details
-      if (response.token) {
-        dispatch(updateToken(response.data.token));
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("userToken", response.data.token);
-      }
+  if (response.data?.token) {
+  dispatch(updateToken(response.data.token));
+
+  localStorage.setItem("token", response.data.token);
+  localStorage.setItem("userToken", response.data.token);
+}
 
       if (response.data) {
         dispatch(setUserDetails(response.data));
