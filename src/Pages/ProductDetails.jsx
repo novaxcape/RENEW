@@ -414,6 +414,7 @@ const ProductDetails = () => {
           {/* DESCRIPTION */}
           <section className="description-section">
             <div className="description">
+              
               <h2>Description</h2>
               <p>{getDescription()}</p>
               {description.length > 200 && (
