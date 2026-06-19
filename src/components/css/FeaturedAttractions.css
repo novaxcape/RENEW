@@ -1,19 +1,19 @@
 
 
-.section-header {
-  text-align: center;
-  margin-bottom: 30px;
+.featured-section-header {
+  text-align: left;
+  margin-bottom: 20px;
 }
 
-.section-title {
+.featured-section-title {
   font-family: "Manrope", sans-serif;
   font-size: 40px;
   font-weight: 600;
   color: #271A13;
 }
 
-.section-subtitle {
-  font-size: 18px;
+.featured-section-subtitle {
+  font-size: 20px;
   font-weight: 600;
   color: #271A13;
   margin-top: 4px;

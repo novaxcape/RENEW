@@ -4,7 +4,7 @@ import { TbUser } from "react-icons/tb";
 import { HiMiniBuildingOffice2 } from "react-icons/hi2";
 import { useNavigate } from "react-router-dom";
 
-const SignUpScreen = () => {
+const SignInScreen = () => {
   const navigate = useNavigate();
 
   return (
@@ -59,4 +59,4 @@ const SignUpScreen = () => {
   );
 };
 
-export default SignUpScreen;
+export default SignInScreen;
