@@ -472,7 +472,7 @@ export const createBooking = createThunk(
 
       console.log("📦 Creating booking with:");
       console.log("📦 Tourist ID:", touristId);
-      console.log("📦 Package ID:", packageId);
+      console.log("📦 Package ID:", packageId );
       console.log("📦 Booking Data:", bookingData);
       console.log("📦 Token:", token ? "Present" : "Missing");
 
@@ -561,7 +561,7 @@ export const createBooking = createThunk(
       console.log("✅ Booking API Response Status:", response.status);
       console.log("✅ Booking API Response Data:", response.data);
 
-      return response.data;
+      return response;
     } catch (error) {
       console.error("❌ Booking creation error:", error);
 

@@ -4,7 +4,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Swal from "sweetalert2";
 import "./css/BookingSummary.css";
-import { createBooking } from "../redox/apiSlice";
+import { createBooking, initializePayment } from "../redox/apiSlice";
 
 const ticketTypes = [
   {
@@ -42,13 +42,15 @@ export default function BookingSummaryPage() {
     packageDetails: location.state?.packageDetails || null,
     centreDetails: location.state?.centreDetails || null,
   });
-
+const email = localStorage.getItem("Email")
   const [date, setDate] = useState("");
   const [quantities, setQuantities] = useState({
     adult: 1,
     child: 1,
     family: 1,
   });
+
+  const [isProcessing, setIsProcessing] = useState(false);
 
   console.log("📄 BookingSummaryPage - Mounted");
   console.log("📄 touristId:", touristId);
@@ -76,6 +78,7 @@ export default function BookingSummaryPage() {
         returnUrl: `/booking-summary/${touristId}/${packageId}`
       };
       localStorage.setItem('pendingBooking', JSON.stringify(pendingData));
+      console.log("bookingdetails",pendingData)
       
       Swal.fire({
         icon: 'warning',
@@ -131,8 +134,8 @@ export default function BookingSummaryPage() {
 
   const summaryItems = ticketTypes.filter((t) => quantities[t.id] > 0);
 
-  // ✅ Helper function to create booking and navigate
-  const createBookingAndNavigate = async (isInstallment = false) => {
+  // ✅ Helper function to create booking and redirect to Korapay
+  const createBookingAndRedirectToKorapay = async (isInstallment = false) => {
     // ✅ Double-check authentication before proceeding
     const token = localStorage.getItem('token') || localStorage.getItem('userToken');
     if (!token) {
@@ -151,6 +154,7 @@ export default function BookingSummaryPage() {
               packageId: packageId,
               packageDetails: bookingData.packageDetails,
               centreDetails: bookingData.centreDetails,
+              email:Email,
             }
           }
         });
@@ -179,6 +183,8 @@ export default function BookingSummaryPage() {
       });
       return;
     }
+
+    setIsProcessing(true);
 
     try {
       // ✅ Get client ID from multiple sources
@@ -225,46 +231,73 @@ export default function BookingSummaryPage() {
 
       console.log("📄 Final Client ID:", clientId);
 
-      // ✅ Prepare booking data
+      // ✅ Step 1: Create the booking
       const bookingDataPayload = {
         visitDate: date,
-        clientId: clientId, // Send clientId explicitly
+        clientId: clientId,
       };
 
-      console.log("📄 Booking Payload:", bookingDataPayload);
-      console.log("📄 Tourist ID:", touristId);
-      console.log("📄 Package ID:", packageId);
-
-      const result = await dispatch(createBooking({
+      const bookingResult = await dispatch(createBooking({
         touristId: touristId,
         packageId: packageId,
         bookingData: bookingDataPayload,
       })).unwrap();
 
-      console.log("📄 Full API Response:", JSON.stringify(result, null, 2));
+      console.log("📄 Booking Creation Response:", bookingResult);
 
-      if (!result) {
+      if (!bookingResult) {
         throw new Error('No response from server');
       }
 
       // Extract booking ID from response
-      const bookingId = result?.data?.id || 
-                        result?.booking?.id || 
-                        result?.id ||
-                        result?.data?.bookingId ||
-                        result?.bookingId;
+      const bookingId = bookingResult?.data?.id || 
+                        bookingResult?.booking?.id || 
+                        bookingResult?.id ||
+                        bookingResult?.data?.bookingId ||
+                        bookingResult?.bookingId;
 
       console.log("📄 Extracted Booking ID:", bookingId);
 
       if (!bookingId) {
-        console.error("❌ No booking ID found in response:", JSON.stringify(result, null, 2));
+        console.error("❌ No booking ID found in response:", JSON.stringify(bookingResult, null, 2));
         throw new Error('Could not retrieve booking ID from server response');
       }
 
       localStorage.removeItem('pendingBooking');
 
-      // ✅ Prepare common state data
-      const navigateState = {
+      // ✅ Step 2: Initialize payment with Korapay
+      const paymentData = {
+        amount: total,
+        subtotal: subtotal,
+        serviceFee: SERVICE_FEE,
+        numberOfPeople: summaryItems.reduce((sum, t) => sum + quantities[t.id], 0),
+        date: date,
+        ticketDetails: summaryItems.map(t => ({
+          ticketType: t.id,
+          quantity: quantities[t.id],
+          price: t.price,
+        })),
+        isInstallment: isInstallment,
+        // Korapay specific data
+        callbackUrl: `${window.location.origin}/payment-checkout/${bookingId}`,
+        // You can add more Korapay specific fields here
+        customerEmail: loggedInUser?.email || localStorage.getItem('Email'),
+        customerName: loggedInUser?.name || loggedInUser?.fullName || 'Customer',
+      };
+
+      console.log("📄 Initializing Korapay payment with data:", paymentData);
+
+      const paymentResponse = await dispatch(
+        initializePayment({
+          bookingId: bookingId,
+          paymentData: paymentData,
+        })
+      ).unwrap();
+
+      console.log("📄 Korapay Payment Response:", paymentResponse);
+
+      // ✅ Step 3: Save booking data to localStorage for when user returns from Korapay
+      const bookingState = {
         bookingId: bookingId,
         amount: total,
         subtotal: subtotal,
@@ -278,46 +311,42 @@ export default function BookingSummaryPage() {
         })),
         numberOfPeople: summaryItems.reduce((sum, t) => sum + quantities[t.id], 0),
         date: date,
-        bookingDetails: result,
+        isInstallment: isInstallment,
       };
 
-      // ✅ Navigate based on installment flag
-      if (isInstallment) {
-        navigate(`/payment-checkout/${bookingId}`, {
-          state: {
-            ...navigateState,
-            isInstallment: true,
-            autoInit: false,
-          }
-        });
-      } else {
-        // Show success message for regular payment
-        await Swal.fire({
-          icon: 'success',
-          title: 'Booking Created!',
-          text: 'Your booking has been created. Proceed to payment.',
-          confirmButtonColor: '#ff6b35',
-          confirmButtonText: 'Proceed to Payment'
-        });
+      // Store booking data for when user returns from Korapay
+      localStorage.setItem('pendingBookingState', JSON.stringify(bookingState));
 
-        navigate(`/payment-checkout/${bookingId}`, {
-          state: {
-            ...navigateState,
-            isInstallment: false,
-            autoInit: true,
-          }
-        });
+      // ✅ Step 4: Redirect to Korapay payment page
+      if (paymentResponse?.data?.paymentUrl || paymentResponse?.paymentUrl) {
+        const paymentUrl = paymentResponse.data?.paymentUrl || paymentResponse.paymentUrl;
+        console.log("🔄 Redirecting to Korapay:", paymentUrl);
+        
+        // Redirect to Korapay
+        window.location.href = paymentUrl;
+      } else if (paymentResponse?.data?.checkout_url) {
+        // Some implementations use checkout_url
+        window.location.href = paymentResponse.data.checkout_url;
+      } else {
+        // If no URL, try to use the transaction reference to construct URL
+        const reference = paymentResponse?.data?.reference || paymentResponse?.reference;
+        if (reference) {
+          // Construct Korapay URL - adjust based on your Korapay configuration
+          const korapayUrl = `https://korapay.com/pay/${reference}`;
+          window.location.href = korapayUrl;
+        } else {
+          throw new Error('No payment URL or reference received from Korapay');
+        }
       }
 
     } catch (error) {
-      console.error("❌ Booking error:", error);
+      console.error("❌ Error:", error);
       
-      let errorMessage = 'Unable to create booking. Please try again.';
+      let errorMessage = 'Unable to process your booking. Please try again.';
       
       if (error === 'Client not found' || error?.message === 'Client not found') {
         errorMessage = 'Your account was not found. Please log in again.';
         
-        // ✅ Redirect to login if client not found
         Swal.fire({
           icon: 'error',
           title: 'Session Expired',
@@ -344,10 +373,12 @@ export default function BookingSummaryPage() {
       
       Swal.fire({
         icon: 'error',
-        title: 'Booking Failed',
+        title: 'Payment Initialization Failed',
         text: errorMessage,
         confirmButtonColor: '#ff6b35',
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -377,7 +408,7 @@ export default function BookingSummaryPage() {
       });
       return;
     }
-    createBookingAndNavigate(false);
+    createBookingAndRedirectToKorapay(false);
   };
 
   // ✅ Handle installment payment
@@ -406,7 +437,7 @@ export default function BookingSummaryPage() {
       });
       return;
     }
-    createBookingAndNavigate(true);
+    createBookingAndRedirectToKorapay(true);
   };
 
   // ✅ Show loading/redirect if no package details
@@ -586,9 +617,9 @@ export default function BookingSummaryPage() {
           <button 
             className="bp-cta-btn" 
             onClick={handleContinueToPayment}
-            disabled={bookingLoading}
+            disabled={bookingLoading || isProcessing}
           >
-            {bookingLoading ? 'Creating Booking...' : 'Continue To Payment'}
+            {bookingLoading || isProcessing ? 'Processing...' : 'Continue To Payment'}
           </button>
 
           {bookingError && (
