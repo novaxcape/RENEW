@@ -201,7 +201,12 @@
 .search-ticket-wrapper {
   position: relative;
   width: 100%;
-  max-width: 400px;
+  max-width: 220px;
+}
+
+.search-ticket-input {
+  font-size: 13px;
+  padding: 0.5rem 0.9rem 0.5rem 2.3rem;
 }
 
 .search-icon {
@@ -518,6 +523,25 @@
     display: none;
   }
 
+  .sidebar-footer {
+    display: block;
+    padding: 1rem 1rem 1.2rem;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .exit-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    color: #64748b;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    width: 100%;
+  }
+
   .main-content {
     margin-left: 0;
     padding-top: 60px;
@@ -525,6 +549,15 @@
 
   .topbar {
     display: none; /* Merged critical parts into layout headers */
+  }
+
+  /* Mobile search adjustments */
+  .search-ticket-wrapper {
+    max-width: 220px;
+  }
+  .search-ticket-input {
+    font-size: 13px;
+    padding: 0.5rem 0.9rem 0.5rem 2.3rem;
   }
 
   .workspace {

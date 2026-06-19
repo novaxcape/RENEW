@@ -79,6 +79,7 @@
   font-family: inherit;
   font-size: 14px;
   font-weight: 500;
+  text-decoration: none !important;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -100,6 +101,7 @@
   font-family: inherit;
   font-size: 14px;
   font-weight: 500;
+  text-decoration: none !important;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
