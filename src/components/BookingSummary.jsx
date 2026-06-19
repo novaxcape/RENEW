@@ -42,7 +42,8 @@ export default function BookingSummaryPage() {
     packageDetails: location.state?.packageDetails || null,
     centreDetails: location.state?.centreDetails || null,
   });
-const email = localStorage.getItem("Email")
+  
+
   const [date, setDate] = useState("");
   const [quantities, setQuantities] = useState({
     adult: 1,

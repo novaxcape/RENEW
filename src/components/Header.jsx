@@ -22,13 +22,18 @@ const Header = () => {
   const token = localStorage.getItem("token");
   const isLoggedIn = !!token;
 
-  const navLinks = [
-    { name: "Home", to: "/", end: true },
-    { name: "Discover", to: "/discover" },
-    { name: "For Centres", to: "/centres" },
-    { name: "About us", to: "/about" },
-    { name: "Support", to: "/support" },
-  ];
+const navLinks = [
+  { name: "Home", to: "/", end: true },
+  { name: "Discover", to: "/discover" },
+
+  ...(isLoggedIn
+    ? [{ name: "My Bookings", to: "/my-bookings" }]
+    : []),
+
+  { name: "For Centres", to: "/centres" },
+  { name: "About us", to: "/about" },
+  { name: "Support", to: "/support" },
+];
 
   const toggleDropdown = (e) => {
     e.stopPropagation();

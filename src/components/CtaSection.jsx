@@ -1,6 +1,10 @@
 import "./css/CtaSection.css";
+import { useNavigate } from "react-router-dom";
+
 
 const CtaSection = () => {
+    const navigate = useNavigate();
+
   return (
     <section className="cta-section">
       <div className="cta-card">
@@ -18,7 +22,9 @@ const CtaSection = () => {
           <p className="cta-paragraph">
             Join thousands of travelers discovering amazing experiences across Nigeria. Book your tickets now and enjoy stress-free tourism!
           </p>
-          <button className="cta-button">Browse Attractions</button>
+          <button className="cta-button"
+                      onClick={() => navigate("/discover")}
+>Browse Attractions</button>
         </div>
       </div>
     </section>
