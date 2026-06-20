@@ -43,6 +43,7 @@ import KycPage from "./Pages/KycPage";
 import DashboardBookingPage from "./Pages/DashboardBookingPage";
 import WalletPage from "./Pages/WalletPage";
 import PackagePage from "./Pages/PackagePage";
+import ReviewPage from "./Pages/ReviewPage";
 
 
 // Selection Pages
@@ -80,6 +81,7 @@ const App = () => {
         <Route path="centres" element={<ForCentrePage />} />
         <Route path="about" element={<About />} />
         <Route path="support" element={<Support />} />
+         <Route path="review" element={<ReviewPage/>} />
         {/* ✅ ADDED: Product Detail Page Route */}
         <Route path="centre/:id" element={<ProductDetails />} />
         {/* Add all other route tracks below */}
@@ -298,6 +300,7 @@ const App = () => {
           </PrivateRoute>
         }
       />
+      
       <Route
         path="/payment-confirmation"
         element={
