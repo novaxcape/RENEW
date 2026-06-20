@@ -170,7 +170,7 @@ const Login = () => {
       // ✅ Set login success to update isAuthenticated
       dispatch(loginSuccess());
 
-      localStorage.setItem("Name", formData.email);
+      localStorage.setItem("email", formData.email);
 
       Swal.fire({
         icon: "success",
