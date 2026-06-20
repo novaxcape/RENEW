@@ -172,24 +172,45 @@ export const createPackage = createThunk(
     }
   },
 );
-
 export const getAllPackages = createThunk(
-  "api/package/getAll",
-  async (_, { getState, rejectWithValue }) => {
-    try {
-      console.log("📦 Fetching all packages...");
-      const touristId = localStorage.getItem("centreId");
-      const response = await axios.get(
-        `${API_BASE_URL}/package/all/${touristId}`,
-        authConfig(getState()),
-      );
-      console.log("✅ All packages fetched:", response.data);
-      return response.data;
-    } catch (error) {
-      console.error("❌ Get all packages error:", error);
-      return rejectWithValue(getErrorMessage(error));
-    }
-  },
+"api/package/getAll",
+async (touristId, { getState, rejectWithValue }) => {
+try {
+console.log(
+"📦 Fetching packages for touristId:",
+touristId
+);
+
+
+  const response = await axios.get(
+    `${API_BASE_URL}/package/all/${touristId}`,
+    authConfig(getState())
+  );
+
+  console.log(
+    "✅ Packages fetched:",
+    response.data
+  );
+
+  return response.data;
+} catch (error) {
+  console.error(
+    "❌ Get all packages error:",
+    error
+  );
+
+  console.error(
+    "❌ Request URL:",
+    `${API_BASE_URL}/package/all/${touristId}`
+  );
+
+  return rejectWithValue(
+    getErrorMessage(error)
+  );
+}
+
+
+}
 );
 
 export const getPackageById = createThunk(
@@ -636,11 +657,22 @@ export const initializePayment = createThunk(
 
       console.log(`✅ Payment initialized:`, response.data);
       return response.data;
-    } catch (error) {
-      console.error(`❌ Initialize payment error:`, error);
-      return rejectWithValue(getErrorMessage(error));
+    } 
+catch (error) {
+  console.error("❌ Initialize payment error:", error);
+
+  console.log("STATUS:", error.response?.status);
+  console.log("RESPONSE DATA:", error.response?.data);
+  console.log("RESPONSE:", error.response);
+
+  return rejectWithValue(
+    error.response?.data ||
+    error.response?.data?.message ||
+    error.message
+  );
+}
     }
-  },
+
 );
 
 export const verifyPayment = createThunk(
