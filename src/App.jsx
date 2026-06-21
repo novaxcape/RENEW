@@ -47,7 +47,7 @@ import ReviewPage from "./Pages/ReviewPage";
 
 
 // Selection Pages
-import SignUpScreen from "./Pages/SignUpScreen";
+import SignupScreen from "./Pages/SignUpScreen";
 import SignInScreen from "./Pages/SignInScreen";
 
 // ✅ Payment Pages - Import from components folder
@@ -96,6 +96,8 @@ const App = () => {
           </PrivateRoute>
         }
       />
+
+   
       
       {/* ✅ PAYMENT CHECKOUT ROUTE - Using touristId and packageId */}
       <Route
@@ -164,10 +166,12 @@ const App = () => {
         path="/signupscreen"
         element={
           <PublicRoute>
-            <SignUpScreen />
+            <SignupScreen />
           </PublicRoute>
         }
       />
+
+   
 
       <Route
         path="/signinscreen"

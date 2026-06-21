@@ -29,6 +29,9 @@ const ProductDetails = () => {
 
   const { selectedTouristCenter, touristCentresLoading, touristCentresError, packages, packagesLoading } =
     useSelector((state) => state.api);
+    console.log("Redux packages:", packages);
+console.log("Packages length:", packages?.length);
+console.log("First package:", packages?.[0]);
   const { isAuthenticated, userToken, loggedInUser } = useSelector((state) => state.auth);
   console.log(selectedTouristCenter)
 
@@ -71,44 +74,63 @@ const ProductDetails = () => {
 
   const centre = getCentreData();
 
-  // ✅ Fetch centre and packages
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      
+// ✅ Fetch centre and packages
+useEffect(() => {
+  const fetchData = async () => {
+    setIsLoading(true);
+
+    try {
       // Fetch centre if not available
       if (!centre && id) {
         console.log("🔄 Fetching centre from API with ID:", id);
         await dispatch(getTouristCenterById(id));
-        console.log(getTouristCenterById(id))
       }
 
-      // Fetch all packages
-      console.log("🔄 Fetching all packages");
-      await dispatch(getAllPackages());
-      
+      // Fetch packages for this centre
+      console.log("🔄 Fetching packages for centre:", id);
+
+      const result = await dispatch(getAllPackages(id));
+
+      console.log("📦 Packages API Response:", result);
+      console.log("📦 Payload:", result.payload);
+    } catch (error) {
+      console.error("❌ Fetch error:", error);
+    } finally {
       setIsLoading(false);
-    };
-
-    fetchData();
-  }, [dispatch, id, centre]);
-
-  // ✅ Filter packages for this centre
-  useEffect(() => {
-    if (packages && packages.length > 0 && centre) {
-      const centreId = centre.id || centre._id || id;
-      
-      // Try different ways to match packages to this centre
-      const filtered = packages.filter(pkg => {
-        // Check if package belongs to this centre
-        const pkgCentreId = pkg.touristId || pkg.centreId || pkg.tourist?._id || pkg.tourist?.id;
-        return pkgCentreId === centreId || pkgCentreId === centre._id || pkgCentreId === centre.id;
-      });
-      
-      console.log(`📦 Found ${filtered.length} packages for centre ${centreId}`);
-      setCentrePackages(filtered);
     }
-  }, [packages, centre, id]);
+  };
+
+  fetchData();
+}, [dispatch, id]);
+
+
+// ✅ Set centre packages
+useEffect(() => {
+  console.log("========== PACKAGE DEBUG ==========");
+  console.log("Centre:", centre);
+  console.log("Redux packages:", packages);
+
+  if (!packages || packages.length === 0) {
+    setCentrePackages([]);
+    return;
+  }
+
+  // Backend endpoint already returns packages
+  // belonging to this tourist centre.
+  setCentrePackages(packages);
+
+  console.log("✅ Packages sent to UI:", packages);
+}, [packages, centre]);
+
+
+// Optional debugging
+useEffect(() => {
+  console.log("🔄 Redux packages updated:", packages);
+  console.log("🔄 Packages length:", packages?.length);
+  console.log("🔄 First package:", packages?.[0]);
+}, [packages]);
+
+
 
   // ✅ Handle loading state
   if (touristCentresLoading || packagesLoading || isLoading) {
@@ -414,6 +436,7 @@ const ProductDetails = () => {
           {/* DESCRIPTION */}
           <section className="description-section">
             <div className="description">
+
               <h2>Description</h2>
               <p>{getDescription()}</p>
               {description.length > 200 && (
@@ -425,6 +448,7 @@ const ProductDetails = () => {
                 </button>
               )}
               <div className="actions">
+                
                 <button 
                   className="book-btn" 
                   onClick={() => {

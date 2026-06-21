@@ -1,6 +1,8 @@
 import "./css/HowItWorks.css";
+import { useNavigate } from "react-router-dom";
 
 const HowItWorks = () => {
+   const navigate = useNavigate();
   return (
     <section className="how">
       <div className="how__header">
@@ -15,7 +17,9 @@ const HowItWorks = () => {
             you discover great places, book tickets instantly, and enjoy
             stress-free visits across Nigeria.
           </p>
-          <button className="how__button">Get Started</button>
+          <button className="how__button"
+          onClick={() => navigate("/signupscreen")}
+          >Get Started</button>
         </div>
         <div className="how__right"></div>
       </div>

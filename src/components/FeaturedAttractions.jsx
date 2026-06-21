@@ -163,11 +163,11 @@ const FeaturedAttractions = () => {
 
   return (
     <section className="attractions">
-      <div className="section-header">
-        <h2 className="section-title">Featured Attractions</h2>
+      <div className="featured-section-header">
+        <h2 className="featured-section-title">Featured Attractions</h2>
       </div>
       
-      <p className="section-subtitle">
+      <p className="featured-section-subtitle">
         Discover the most popular tourism centres across Nigeria
       </p>
       

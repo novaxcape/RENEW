@@ -34,15 +34,16 @@ export default function BookingSummaryPage() {
   const { touristId, packageId } = useParams();
   const location = useLocation();
   const dispatch = useDispatch();
-  
-  const { loggedInUser, userToken, isAuthenticated } = useSelector((state) => state.auth);
+
+  const { loggedInUser, userToken, isAuthenticated } = useSelector(
+    (state) => state.auth,
+  );
   const { bookingLoading, bookingError } = useSelector((state) => state.api);
 
   const [bookingData, setBookingData] = useState({
     packageDetails: location.state?.packageDetails || null,
     centreDetails: location.state?.centreDetails || null,
   });
-  
 
   const [date, setDate] = useState("");
   const [quantities, setQuantities] = useState({
@@ -62,37 +63,38 @@ export default function BookingSummaryPage() {
 
   // ✅ Check authentication on mount - redirect if not logged in
   useEffect(() => {
-    const token = localStorage.getItem('token') || localStorage.getItem('userToken');
+    const token =
+      localStorage.getItem("token") || localStorage.getItem("userToken");
     const isLoggedIn = !!token || isAuthenticated;
-    
+
     console.log("🔐 Auth check - isLoggedIn:", isLoggedIn);
-    
+
     if (!isLoggedIn) {
       console.log("🚫 User not authenticated - redirecting to signin");
-      
+
       // Save booking data to localStorage for after login
       const pendingData = {
         touristId: touristId,
         packageId: packageId,
         packageDetails: bookingData.packageDetails,
         centreDetails: bookingData.centreDetails,
-        returnUrl: `/booking-summary/${touristId}/${packageId}`
+        returnUrl: `/booking-summary/${touristId}/${packageId}`,
       };
-      localStorage.setItem('pendingBooking', JSON.stringify(pendingData));
-      console.log("bookingdetails",pendingData)
-      
+      localStorage.setItem("pendingBooking", JSON.stringify(pendingData));
+      console.log("bookingdetails", pendingData);
+
       Swal.fire({
-        icon: 'warning',
-        title: 'Authentication Required',
-        text: 'Please log in to complete your booking.',
-        confirmButtonColor: '#ff6b35',
-        confirmButtonText: 'Go to Login'
+        icon: "warning",
+        title: "Authentication Required",
+        text: "Please log in to complete your booking.",
+        confirmButtonColor: "#ff6b35",
+        confirmButtonText: "Go to Login",
       }).then(() => {
-        navigate('/signin', {
+        navigate("/signin", {
           state: {
             from: `/booking-summary/${touristId}/${packageId}`,
-            bookingData: pendingData
-          }
+            bookingData: pendingData,
+          },
         });
       });
     }
@@ -100,7 +102,7 @@ export default function BookingSummaryPage() {
 
   useEffect(() => {
     if (!bookingData.packageDetails) {
-      const pendingBooking = localStorage.getItem('pendingBooking');
+      const pendingBooking = localStorage.getItem("pendingBooking");
       console.log("📄 pendingBooking from localStorage:", pendingBooking);
       if (pendingBooking) {
         try {
@@ -118,7 +120,6 @@ export default function BookingSummaryPage() {
 
   console.log("booking data found:", bookingData);
 
-
   const increment = (id) =>
     setQuantities((prev) => ({ ...prev, [id]: prev[id] + 1 }));
 
@@ -130,7 +131,7 @@ export default function BookingSummaryPage() {
 
   const subtotal = ticketTypes.reduce(
     (sum, t) => sum + t.price * quantities[t.id],
-    0
+    0,
   );
   const total = subtotal + SERVICE_FEE;
 
@@ -141,16 +142,17 @@ export default function BookingSummaryPage() {
   // ✅ Helper function to create booking and redirect to Korapay
   const createBookingAndRedirectToKorapay = async (isInstallment = false) => {
     // ✅ Double-check authentication before proceeding
-    const token = localStorage.getItem('token') || localStorage.getItem('userToken');
+    const token =
+      localStorage.getItem("token") || localStorage.getItem("userToken");
     if (!token) {
       Swal.fire({
-        icon: 'warning',
-        title: 'Session Expired',
-        text: 'Please log in again to complete your booking.',
-        confirmButtonColor: '#ff6b35',
-        confirmButtonText: 'Go to Login'
+        icon: "warning",
+        title: "Session Expired",
+        text: "Please log in again to complete your booking.",
+        confirmButtonColor: "#ff6b35",
+        confirmButtonText: "Go to Login",
       }).then(() => {
-        navigate('/signin', {
+        navigate("/signin", {
           state: {
             from: `/booking-summary/${touristId}/${packageId}`,
             bookingData: {
@@ -158,9 +160,8 @@ export default function BookingSummaryPage() {
               packageId: packageId,
               packageDetails: bookingData.packageDetails,
               centreDetails: bookingData.centreDetails,
-              email:Email,
-            }
-          }
+            },
+          },
         });
       });
       return;
@@ -169,10 +170,10 @@ export default function BookingSummaryPage() {
     // Validate date
     if (!date) {
       Swal.fire({
-        icon: 'error',
-        title: 'Missing Date',
-        text: 'Please select a visit date.',
-        confirmButtonColor: '#ff6b35',
+        icon: "error",
+        title: "Missing Date",
+        text: "Please select a visit date.",
+        confirmButtonColor: "#ff6b35",
       });
       return;
     }
@@ -180,10 +181,10 @@ export default function BookingSummaryPage() {
     // Validate tickets
     if (summaryItems.length === 0) {
       Swal.fire({
-        icon: 'error',
-        title: 'No Tickets Selected',
-        text: 'Please select at least one ticket.',
-        confirmButtonColor: '#ff6b35',
+        icon: "error",
+        title: "No Tickets Selected",
+        text: "Please select at least one ticket.",
+        confirmButtonColor: "#ff6b35",
       });
       return;
     }
@@ -193,39 +194,41 @@ export default function BookingSummaryPage() {
     try {
       // ✅ Get client ID from multiple sources
       let clientId = null;
-      
+
       // 1. Check loggedInUser from Redux
       if (loggedInUser) {
-        clientId = loggedInUser.id || 
-                   loggedInUser._id || 
-                   loggedInUser.clientId ||
-                   loggedInUser.userId;
+        clientId =
+          loggedInUser.id ||
+          loggedInUser._id ||
+          loggedInUser.clientId ||
+          loggedInUser.userId;
         console.log("📄 Client ID from Redux:", clientId);
       }
 
       // 2. Check localStorage
       if (!clientId) {
-        clientId = localStorage.getItem('clientId');
+        clientId = localStorage.getItem("clientId");
         console.log("📄 Client ID from localStorage:", clientId);
       }
 
       // 3. Try to decode from token
       if (!clientId && token) {
         try {
-          const tokenParts = token.split('.');
+          const tokenParts = token.split(".");
           if (tokenParts.length === 3) {
             const payload = JSON.parse(atob(tokenParts[1]));
             console.log("📄 Token payload:", payload);
-            clientId = payload.id || 
-                       payload.sub || 
-                       payload.userId || 
-                       payload.clientId || 
-                       payload._id;
+            clientId =
+              payload.id ||
+              payload.sub ||
+              payload.userId ||
+              payload.clientId ||
+              payload._id;
             console.log("📄 Client ID from token:", clientId);
-            
+
             // Save for future use
             if (clientId) {
-              localStorage.setItem('clientId', clientId);
+              localStorage.setItem("clientId", clientId);
             }
           }
         } catch (e) {
@@ -241,61 +244,86 @@ export default function BookingSummaryPage() {
         clientId: clientId,
       };
 
-      const bookingResult = await dispatch(createBooking({
-        touristId: touristId,
-        packageId: packageId,
-        bookingData: bookingDataPayload,
-      })).unwrap();
+      const bookingResult = await dispatch(
+        createBooking({
+          touristId: touristId,
+          packageId: packageId,
+          bookingData: bookingDataPayload,
+        }),
+      ).unwrap();
 
       console.log("📄 Booking Creation Response:", bookingResult);
 
       if (!bookingResult) {
-        throw new Error('No response from server');
+        throw new Error("No response from server");
       }
 
-      // Extract booking ID from response
-      const bookingId = bookingResult?.data?.id || 
-                        bookingResult?.booking?.id || 
-                        bookingResult?.id ||
-                        bookingResult?.data?.bookingId ||
-                        bookingResult?.bookingId;
+      const bookingId =
+        bookingResult?.booking?.id ||
+        bookingResult?.data?.booking?.id ||
+        bookingResult?.data?.id ||
+        bookingResult?.id;
 
-      console.log("📄 Extracted Booking ID:", bookingId);
+      console.log("📄 Booking Result:", bookingResult);
+      console.log("📄 Booking ID:", bookingId);
 
       if (!bookingId) {
-        console.error("❌ No booking ID found in response:", JSON.stringify(bookingResult, null, 2));
-        throw new Error('Could not retrieve booking ID from server response');
+        throw new Error("Could not retrieve booking ID from server response");
       }
 
-      localStorage.removeItem('pendingBooking');
+      localStorage.removeItem("pendingBooking");
 
       // ✅ Step 2: Initialize payment with Korapay
+      const customerEmail =
+        loggedInUser?.email ||
+        loggedInUser?.Email ||
+        localStorage.getItem("email") ||
+        localStorage.getItem("Email") ||
+        "";
+
+      const customerName =
+        loggedInUser?.fullName ||
+        loggedInUser?.name ||
+        loggedInUser?.firstName ||
+        "Customer";
+
+      console.log("Logged In User:", loggedInUser);
+      console.log("Customer Email:", customerEmail);
+
       const paymentData = {
         amount: total,
-        subtotal: subtotal,
+
+        customer: {
+          email: customerEmail,
+          name: customerName,
+        },
+
+        // callbackUrl: `${window.location.origin}/payment-checkout/${bookingId}`,
+
+        subtotal,
         serviceFee: SERVICE_FEE,
-        numberOfPeople: summaryItems.reduce((sum, t) => sum + quantities[t.id], 0),
-        date: date,
-        ticketDetails: summaryItems.map(t => ({
+        date,
+
+        numberOfPeople: summaryItems.reduce(
+          (sum, t) => sum + quantities[t.id],
+          0,
+        ),
+
+        ticketDetails: summaryItems.map((t) => ({
           ticketType: t.id,
           quantity: quantities[t.id],
           price: t.price,
         })),
-        isInstallment: isInstallment,
-        // Korapay specific data
-        callbackUrl: `${window.location.origin}/payment-checkout/${bookingId}`,
-        // You can add more Korapay specific fields here
-        customerEmail: loggedInUser?.email || localStorage.getItem('Email'),
-        customerName: loggedInUser?.name || loggedInUser?.fullName || 'Customer',
-      };
 
+        isInstallment,
+      };
       console.log("📄 Initializing Korapay payment with data:", paymentData);
 
       const paymentResponse = await dispatch(
         initializePayment({
           bookingId: bookingId,
           paymentData: paymentData,
-        })
+        }),
       ).unwrap();
 
       console.log("📄 Korapay Payment Response:", paymentResponse);
@@ -308,57 +336,52 @@ export default function BookingSummaryPage() {
         serviceFee: SERVICE_FEE,
         centreDetails: bookingData.centreDetails,
         packageDetails: bookingData.packageDetails,
-        ticketDetails: summaryItems.map(t => ({
+        ticketDetails: summaryItems.map((t) => ({
           ticketType: t.id,
           quantity: quantities[t.id],
           price: t.price,
         })),
-        numberOfPeople: summaryItems.reduce((sum, t) => sum + quantities[t.id], 0),
+        numberOfPeople: summaryItems.reduce(
+          (sum, t) => sum + quantities[t.id],
+          0,
+        ),
         date: date,
         isInstallment: isInstallment,
       };
 
       // Store booking data for when user returns from Korapay
-      localStorage.setItem('pendingBookingState', JSON.stringify(bookingState));
+      localStorage.setItem("pendingBookingState", JSON.stringify(bookingState));
 
       // ✅ Step 4: Redirect to Korapay payment page
-      if (paymentResponse?.data?.paymentUrl || paymentResponse?.paymentUrl) {
-        const paymentUrl = paymentResponse.data?.paymentUrl || paymentResponse.paymentUrl;
-        console.log("🔄 Redirecting to Korapay:", paymentUrl);
-        
-        // Redirect to Korapay
-        window.location.href = paymentUrl;
-      } else if (paymentResponse?.data?.checkout_url) {
-        // Some implementations use checkout_url
-        window.location.href = paymentResponse.data.checkout_url;
-      } else {
-        // If no URL, try to use the transaction reference to construct URL
-        const reference = paymentResponse?.data?.reference || paymentResponse?.reference;
-        if (reference) {
-          // Construct Korapay URL - adjust based on your Korapay configuration
-          const korapayUrl = `https://korapay.com/pay/${reference}`;
-          window.location.href = korapayUrl;
-        } else {
-          throw new Error('No payment URL or reference received from Korapay');
-        }
-      }
+      // const redirectUrl = paymentResponse?.data?.redirect_url;
 
+      console.log("Payment Response:", paymentResponse);
+      // console.log("Redirect URL:", redirectUrl);
+
+      // if (redirectUrl) {
+      //   window.location.href = redirectUrl;
+      // } else {
+      //   throw new Error("No redirect URL received from payment gateway");
+      // }
     } catch (error) {
       console.error("❌ Error:", error);
-      
-      let errorMessage = 'Unable to process your booking. Please try again.';
-      
-      if (error === 'Client not found' || error?.message === 'Client not found') {
-        errorMessage = 'Your account was not found. Please log in again.';
-        
+
+      let errorMessage = "Unable to process your booking. Please try again.";
+
+      if (
+        error === "Client not found" ||
+        error?.message === "Client not found"
+      ) {
+        errorMessage = "Your account was not found. Please log in again.";
+
         Swal.fire({
-          icon: 'error',
-          title: 'Session Expired',
-          text: 'Please log in again to continue with your booking.',
-          confirmButtonColor: '#ff6b35',
-          confirmButtonText: 'Go to Login'
+          icon: "error",
+          title: "Session Expired",
+          text: "Please log in again to continue with your booking.",
+          confirmButtonColor: "#ff6b35",
+          confirmButtonText: "Go to Login",
         }).then(() => {
-          navigate('/signin', {
+          navigate("/signin", {
             state: {
               from: `/booking-summary/${touristId}/${packageId}`,
               bookingData: {
@@ -366,20 +389,20 @@ export default function BookingSummaryPage() {
                 packageId: packageId,
                 packageDetails: bookingData.packageDetails,
                 centreDetails: bookingData.centreDetails,
-              }
-            }
+              },
+            },
           });
         });
         return;
       } else if (error?.message) {
         errorMessage = error.message;
       }
-      
+
       Swal.fire({
-        icon: 'error',
-        title: 'Payment Initialization Failed',
+        icon: "error",
+        title: "Payment Initialization Failed",
         text: errorMessage,
-        confirmButtonColor: '#ff6b35',
+        confirmButtonColor: "#ff6b35",
       });
     } finally {
       setIsProcessing(false);
@@ -389,16 +412,17 @@ export default function BookingSummaryPage() {
   // ✅ Handle regular payment
   const handleContinueToPayment = () => {
     // ✅ Check authentication before proceeding
-    const token = localStorage.getItem('token') || localStorage.getItem('userToken');
+    const token =
+      localStorage.getItem("token") || localStorage.getItem("userToken");
     if (!token) {
       Swal.fire({
-        icon: 'warning',
-        title: 'Authentication Required',
-        text: 'Please log in to complete your booking.',
-        confirmButtonColor: '#ff6b35',
-        confirmButtonText: 'Go to Login'
+        icon: "warning",
+        title: "Authentication Required",
+        text: "Please log in to complete your booking.",
+        confirmButtonColor: "#ff6b35",
+        confirmButtonText: "Go to Login",
       }).then(() => {
-        navigate('/signin', {
+        navigate("/signin", {
           state: {
             from: `/booking-summary/${touristId}/${packageId}`,
             bookingData: {
@@ -406,8 +430,8 @@ export default function BookingSummaryPage() {
               packageId: packageId,
               packageDetails: bookingData.packageDetails,
               centreDetails: bookingData.centreDetails,
-            }
-          }
+            },
+          },
         });
       });
       return;
@@ -418,16 +442,17 @@ export default function BookingSummaryPage() {
   // ✅ Handle installment payment
   const handleInstallmentClick = () => {
     // ✅ Check authentication before proceeding
-    const token = localStorage.getItem('token') || localStorage.getItem('userToken');
+    const token =
+      localStorage.getItem("token") || localStorage.getItem("userToken");
     if (!token) {
       Swal.fire({
-        icon: 'warning',
-        title: 'Authentication Required',
-        text: 'Please log in to complete your booking.',
-        confirmButtonColor: '#ff6b35',
-        confirmButtonText: 'Go to Login'
+        icon: "warning",
+        title: "Authentication Required",
+        text: "Please log in to complete your booking.",
+        confirmButtonColor: "#ff6b35",
+        confirmButtonText: "Go to Login",
       }).then(() => {
-        navigate('/signin', {
+        navigate("/signin", {
           state: {
             from: `/booking-summary/${touristId}/${packageId}`,
             bookingData: {
@@ -435,8 +460,8 @@ export default function BookingSummaryPage() {
               packageId: packageId,
               packageDetails: bookingData.packageDetails,
               centreDetails: bookingData.centreDetails,
-            }
-          }
+            },
+          },
         });
       });
       return;
@@ -452,19 +477,19 @@ export default function BookingSummaryPage() {
           <h1 className="bp-title">Complete Your Booking</h1>
           <p className="bp-subtitle">Just a few more steps to your booking</p>
         </div>
-        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+        <div style={{ textAlign: "center", padding: "60px 20px" }}>
           <h2>No Booking Data Found</h2>
           <p>Please select a package to book.</p>
-          <button 
-            onClick={() => navigate('/discover')}
+          <button
+            onClick={() => navigate("/discover")}
             style={{
-              background: '#ff6b35',
-              color: 'white',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              marginTop: '16px'
+              background: "#ff6b35",
+              color: "white",
+              border: "none",
+              padding: "12px 24px",
+              borderRadius: "8px",
+              cursor: "pointer",
+              marginTop: "16px",
             }}
           >
             Browse Centres
@@ -479,29 +504,45 @@ export default function BookingSummaryPage() {
       <div className="bp-header">
         <h1 className="bp-title">Complete Your Booking</h1>
         <p className="bp-subtitle">Just a few more steps to your booking</p>
-        
+
         {bookingData.centreDetails && (
-          <div className="bp-booking-info" style={{ 
-            background: '#f8f9fa', 
-            padding: '16px 24px', 
-            borderRadius: '12px',
-            marginTop: '16px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap'
-          }}>
+          <div
+            className="bp-booking-info"
+            style={{
+              background: "#f8f9fa",
+              padding: "16px 24px",
+              borderRadius: "12px",
+              marginTop: "16px",
+              display: "flex",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+            }}
+          >
             <div>
-              <strong>{bookingData.centreDetails.centreName || bookingData.centreDetails.name}</strong>
-              <span style={{ marginLeft: '16px', color: '#666' }}>
-                {bookingData.centreDetails.city}, {bookingData.centreDetails.state}
+              <strong>
+                {bookingData.centreDetails.centreName ||
+                  bookingData.centreDetails.name}
+              </strong>
+              <span style={{ marginLeft: "16px", color: "#666" }}>
+                {bookingData.centreDetails.city},{" "}
+                {bookingData.centreDetails.state}
               </span>
             </div>
             <div>
-              <span style={{ color: '#666' }}>
+              <span style={{ color: "#666" }}>
                 Package: {bookingData.packageDetails.packageName}
               </span>
-              <span style={{ marginLeft: '16px', fontWeight: 600, color: '#ff6b35' }}>
-                ₦{bookingData.packageDetails.amount?.toLocaleString() || bookingData.packageDetails.price?.toLocaleString() || '0'}
+              <span
+                style={{
+                  marginLeft: "16px",
+                  fontWeight: 600,
+                  color: "#ff6b35",
+                }}
+              >
+                ₦
+                {bookingData.packageDetails.amount?.toLocaleString() ||
+                  bookingData.packageDetails.price?.toLocaleString() ||
+                  "0"}
               </span>
             </div>
           </div>
@@ -518,7 +559,7 @@ export default function BookingSummaryPage() {
                 className="bp-date-input"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
+                min={new Date().toISOString().split("T")[0]}
               />
             </div>
           </section>
@@ -618,16 +659,21 @@ export default function BookingSummaryPage() {
             <span className="bp-total-value">{formatNaira(total)}</span>
           </div>
 
-          <button 
-            className="bp-cta-btn" 
+          <button
+            className="bp-cta-btn"
             onClick={handleContinueToPayment}
             disabled={bookingLoading || isProcessing}
           >
-            {bookingLoading || isProcessing ? 'Processing...' : 'Continue To Payment'}
+            {bookingLoading || isProcessing
+              ? "Processing..."
+              : "Continue To Payment"}
           </button>
 
           {bookingError && (
-            <p className="bp-error" style={{ color: 'red', textAlign: 'center', marginTop: '12px' }}>
+            <p
+              className="bp-error"
+              style={{ color: "red", textAlign: "center", marginTop: "12px" }}
+            >
               {bookingError}
             </p>
           )}

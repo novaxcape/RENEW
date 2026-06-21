@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, Link, NavLink } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 import "./css/Header.css";
 import {
   FiUser,
@@ -10,8 +11,11 @@ import {
   FiHeart,
 } from "react-icons/fi";
 
+import { logout } from "../redox/authSlice";
+
 const Header = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -19,8 +23,10 @@ const Header = () => {
   const dropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
-  const token = localStorage.getItem("token");
-  const isLoggedIn = !!token;
+  // ✅ Redux Persist source of truth
+  const isLoggedIn = useSelector(
+    (state) => state.auth.isAuthenticated
+  );
 
   const navLinks = [
     { name: "Home", to: "/", end: true },
@@ -32,30 +38,30 @@ const Header = () => {
 
   const toggleDropdown = (e) => {
     e.stopPropagation();
-    setDropdownOpen(!dropdownOpen);
+    setDropdownOpen((prev) => !prev);
   };
 
   const toggleMobileMenu = (e) => {
     e.stopPropagation();
-    setMobileMenuOpen(!mobileMenuOpen);
+    setMobileMenuOpen((prev) => !prev);
   };
 
-  // Close mobile menu completely whenever navigation happens successfully
+  // Close menus on route change
   useEffect(() => {
     setMobileMenuOpen(false);
     setDropdownOpen(false);
   }, [navigate]);
 
-  // Handle outside clicks safely
+  // Click outside handler
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // If desktop user menu is open, close it only if click is outside the ref
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
         setDropdownOpen(false);
       }
 
-      // If mobile menu is open, close it only if click is completely outside the container
-      // and NOT on a valid navigation link
       if (
         mobileMenuOpen &&
         mobileMenuRef.current &&
@@ -68,17 +74,16 @@ const Header = () => {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
+    return () =>
       document.removeEventListener("mousedown", handleClickOutside);
-    };
   }, [mobileMenuOpen]);
 
+  // ✅ Redux logout (no localStorage)
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    dispatch(logout());
     setDropdownOpen(false);
     setMobileMenuOpen(false);
     navigate("/");
-    window.location.reload();
   };
 
   return (
@@ -145,7 +150,10 @@ const Header = () => {
 
                   {dropdownOpen && (
                     <div className="p-profiles-dropdown-menu">
-                      <Link to="/profile-settings" className="p-dropdown-item">
+                      <Link
+                        to="/profile-settings"
+                        className="p-dropdown-item"
+                      >
                         <FiSettings size={16} />
                         Profile Settings
                       </Link>
@@ -164,14 +172,20 @@ const Header = () => {
             )}
           </div>
 
-          {/* Mobile Menu Actions Container */}
+          {/* Mobile Menu */}
           <div className="m-mobile-menu-wrapper" ref={mobileMenuRef}>
             {isLoggedIn && (
               <div className="m-mobile-user-actions">
-                <Link to="/WishList" className="m-mobile-wishlist-link">
+                <Link
+                  to="/WishList"
+                  className="m-mobile-wishlist-link"
+                >
                   <FiHeart size={22} />
                 </Link>
-                <Link to="/profile-settings" className="m-mobile-profile-link">
+                <Link
+                  to="/profile-settings"
+                  className="m-mobile-profile-link"
+                >
                   <FiUser size={22} />
                 </Link>
               </div>
@@ -188,10 +202,9 @@ const Header = () => {
         </div>
       </header>
 
-      {/* Mobile Dropdown Menu */}
+      {/* Mobile Dropdown */}
       {mobileMenuOpen && (
         <div className="m-mobile-dropdown-overlay">
-          {/* Note: Added mobileMenuRef down here as well or ensured click intercepts are safe */}
           <div className="m-mobile-dropdown">
             <div className="m-mobile-nav-links">
               {navLinks.map((link) => (
@@ -226,7 +239,10 @@ const Header = () => {
             )}
 
             {isLoggedIn && (
-              <button onClick={handleLogout} className="m-mobile-logout-btn">
+              <button
+                onClick={handleLogout}
+                className="m-mobile-logout-btn"
+              >
                 <FiLogOut size={18} />
                 Logout
               </button>
