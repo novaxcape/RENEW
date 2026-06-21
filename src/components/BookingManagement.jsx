@@ -13,72 +13,31 @@ const tabs = [
   { label: "Delivered", count: 0, active: false },
 ];
 
-// Static fallback data (for when no API data)
-const staticBookings = [
-  {
-    id: "NOV - 00132",
-    type: "Adult ticket",
-    date: "May 15,2026",
-    amount: "₦13,500",
-    status: "In Progress",
-  },
-  {
-    id: "NOV - 00134",
-    type: "Total package",
-    date: "may 20,2026",
-    amount: "₦11,000",
-    status: "Installment",
-  },
-  {
-    id: "NOV - 00132",
-    type: "Family pack",
-    date: "May 10,2026",
-    amount: "₦13,500",
-    status: "Successful",
-  },
-  {
-    id: "NOV - 00134",
-    type: "Adult Ticket",
-    date: "APR 28,2026",
-    amount: "₦3,000",
-    status: "Cancelled",
-  },
-  {
-    id: "NOV - 00132",
-    type: "Adult ticket",
-    date: "May 04.2026",
-    amount: "₦4,500",
-    status: "Successful",
-  },
-  {
-    id: "NOV - 00134",
-    type: "Children Ticket",
-    date: "Mar 28,2026",
-    amount: "₦7,000",
-    status: "Successful",
-  },
-  {
-    id: "NOV - 00132",
-    type: "Family Pack",
-    date: "May 30,2026",
-    amount: "₦13,200",
-    status: "Successful",
-  },
-  {
-    id: "NOV - 00134",
-    type: "Family Pack",
-    date: "Apr 28,2026",
-    amount: "₦23,500",
-    status: "Cancelled",
-  },
-];
+// Normalizes various backend status spellings/values to the four display statuses
+const normalizeStatus = (booking) => {
+  const status = (booking.status || "").toLowerCase();
+
+  if (status === "cancelled" || status === "camcelled") return "Cancelled";
+  if (status === "confirmed" || status === "completed") return "Successful";
+  if (booking.isInstallment) return "Installment";
+  if (status === "pending" || status === "in_progress") return "In Progress";
+
+  return "In Progress";
+};
 
 export default function BookingManagement() {
   const dispatch = useDispatch();
   const [isMobile, setIsMobile] = useState(false);
   const [activeTab, setActiveTab] = useState("All Booking");
-  
-  const { vendorBookings, vendorCentres, bookingLoading } = useSelector((state) => state.api);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+
+  const {
+    vendorBookings,
+    vendorCentres,
+    vendorBookingPagination,
+    bookingLoading,
+  } = useSelector((state) => state.api);
   const { vendorDetails } = useSelector((state) => state.auth);
 
   useEffect(() => {
@@ -90,45 +49,69 @@ export default function BookingManagement() {
 
   // Fetch vendor's centres on load
   useEffect(() => {
+    console.log("🔍 [BookingManagement] vendorDetails:", vendorDetails);
     if (vendorDetails?.id) {
+      console.log(
+        "🔍 [BookingManagement] dispatching getVendorTouristCenters for vendorId:",
+        vendorDetails.id,
+      );
       dispatch(getVendorTouristCenters(vendorDetails.id));
+    } else {
+      console.warn(
+        "⚠️ [BookingManagement] No vendorDetails.id found — getVendorTouristCenters NOT dispatched. Check state.auth.vendorDetails shape (maybe it's _id instead of id?).",
+      );
     }
   }, [dispatch, vendorDetails]);
 
-  // When centres are loaded, fetch bookings for the first centre and its first package
+  // When centres are loaded, fetch bookings for the first centre
+  // GET /api/v1/booking/get-all/{touristId}
   useEffect(() => {
+    console.log("🔍 [BookingManagement] vendorCentres:", vendorCentres);
     if (vendorCentres && vendorCentres.length > 0) {
       const firstCentre = vendorCentres[0];
-      if (firstCentre.packages && firstCentre.packages.length > 0) {
-        const firstPackage = firstCentre.packages[0];
-        dispatch(getVendorBookings({
+      console.log(
+        "🔍 [BookingManagement] dispatching getVendorBookings for touristId:",
+        firstCentre.id,
+      );
+      dispatch(
+        getVendorBookings({
           touristId: firstCentre.id,
-          packageId: firstPackage.id
-        }));
-      }
+          pageNumber: currentPage,
+          pageSize,
+        }),
+      );
+    } else {
+      console.warn(
+        "⚠️ [BookingManagement] vendorCentres is empty — getVendorBookings NOT dispatched.",
+      );
     }
-  }, [dispatch, vendorCentres]);
+  }, [dispatch, vendorCentres, currentPage]);
 
-  // Map real data to match the expected format
+  // Map real API booking objects to the table row shape
   const mapRealBookings = () => {
-    // If no API data, use static fallback
     if (!vendorBookings || vendorBookings.length === 0) {
-      return staticBookings;
+      return [];
     }
-    
+
     return vendorBookings.map((booking, index) => ({
-      id: booking.bookingNumber || booking.ticketId || `NOV-${String(index + 1).padStart(5, '0')}`,
+      id:
+        booking.bookingNumber ||
+        booking.id ||
+        `NOV-${String(index + 1).padStart(5, "0")}`,
       type: booking.package?.packageName || booking.packageName || "Ticket",
-      date: booking.visitDate ? new Date(booking.visitDate).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }) : "Date TBD",
-      amount: `₦${(booking.package?.amount || booking.amount || 0).toLocaleString()}`,
-      status: booking.status === "cancelled" || booking.status === "camcelled" ? "Cancelled" : 
-              booking.status === "pending" ? "In Progress" :
-              booking.status === "confirmed" || booking.status === "completed" ? "Successful" : 
-              booking.isInstallment ? "Installment" : "In Progress",
+      centreName: booking.tourist?.centreName || "",
+      date: booking.visitDate
+        ? new Date(booking.visitDate).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
+        : "Date TBD",
+      amount: `₦${Number(
+        booking.package?.amount || booking.amount || 0,
+      ).toLocaleString()}`,
+      status: normalizeStatus(booking),
+      passcode: booking.passcode || "",
     }));
   };
 
@@ -136,24 +119,25 @@ export default function BookingManagement() {
   const getTabCounts = () => {
     const realBookings = vendorBookings || [];
     if (realBookings.length === 0) {
-      // Return default counts if no API data
       return {
-        "All Booking": 124,
-        "New Booking": 12,
-        "Canceled": 8,
-        "In progress": 24,
-        "Instalment": 18,
-        "Delivered": 62,
+        "All Booking": 0,
+        "New Booking": 0,
+        Canceled: 0,
+        "In progress": 0,
+        Instalment: 0,
+        Delivered: 0,
       };
     }
-    
+
+    const normalized = realBookings.map(normalizeStatus);
+
     return {
       "All Booking": realBookings.length,
-      "New Booking": realBookings.filter(b => b.status === "pending").length,
-      "Canceled": realBookings.filter(b => b.status === "cancelled" || b.status === "camcelled").length,
-      "In progress": realBookings.filter(b => b.status === "in_progress" || b.status === "pending").length,
-      "Instalment": realBookings.filter(b => b.isInstallment).length,
-      "Delivered": realBookings.filter(b => b.status === "completed" || b.status === "confirmed").length,
+      "New Booking": normalized.filter((s) => s === "In Progress").length,
+      Canceled: normalized.filter((s) => s === "Cancelled").length,
+      "In progress": normalized.filter((s) => s === "In Progress").length,
+      Instalment: normalized.filter((s) => s === "Installment").length,
+      Delivered: normalized.filter((s) => s === "Successful").length,
     };
   };
 
@@ -177,6 +161,23 @@ export default function BookingManagement() {
     Successful: "status-successful",
     Cancelled: "status-cancelled",
   };
+
+  // Pull pagination directly from the API response shape:
+  // { pageNumber, pageSize, totalDocument, totalDocuments, totalPages, hasNextPage, hasPreviousPage }
+  const totalBookings =
+    vendorBookingPagination?.totalDocuments ??
+    vendorBookingPagination?.totalDocument ??
+    vendorBookings?.length ??
+    0;
+
+  const totalPages =
+    vendorBookingPagination?.totalPages ??
+    Math.max(1, Math.ceil(totalBookings / pageSize));
+
+  const hasNextPage =
+    vendorBookingPagination?.hasNextPage ?? currentPage < totalPages;
+  const hasPreviousPage =
+    vendorBookingPagination?.hasPreviousPage ?? currentPage > 1;
 
   if (bookingLoading && vendorBookings?.length === 0) {
     return (
@@ -229,11 +230,7 @@ export default function BookingManagement() {
             {isMobile ? "Recent Bookings" : "Recent Activity"}
           </h2>
           <button className="filter-btn">
-            <img
-              src="/novaxcape/filter.png"
-              alt=""
-              className="filter-icon"
-            />
+            <img src="/novaxcape/filter.png" alt="" className="filter-icon" />
             Filter By
           </button>
         </div>
@@ -286,15 +283,27 @@ export default function BookingManagement() {
       {filteredBookings.length > 0 && (
         <div className="pagination-row">
           <span className="pagination-info">
-            {isMobile ? "Showing Total Pages of 18" : `Total of ${filteredBookings.length} Bookings`}
+            {isMobile
+              ? `Page ${currentPage} of ${totalPages}`
+              : `Total of ${totalBookings} Bookings`}
           </span>
           <div className="pagination-controls">
-            <button className="page-arrow page-arrow-text">
+            <button
+              className="page-arrow page-arrow-text"
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              disabled={!hasPreviousPage}
+            >
               {isMobile && <span className="page-arrow-label">Back</span>}
               <ChevronLeft size={16} />
             </button>
-            <button className="page-btn page-btn-active">1</button>
-            <button className="page-arrow page-arrow-text">
+            <button className="page-btn page-btn-active">{currentPage}</button>
+            <button
+              className="page-arrow page-arrow-text"
+              onClick={() =>
+                setCurrentPage((page) => Math.min(totalPages, page + 1))
+              }
+              disabled={!hasNextPage}
+            >
               <ChevronRight size={16} />
               {isMobile && <span className="page-arrow-label">Next</span>}
             </button>
