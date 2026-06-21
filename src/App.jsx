@@ -4,7 +4,6 @@ import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 // Import your header and layout tool
 import Header from "./components/Header";
 import PaymentHeader from "./components/PaymentHeader";
-// import Home from "./components/Home"
 
 
 // Import your route guard pages
@@ -43,6 +42,7 @@ import KycPage from "./Pages/KycPage";
 import DashboardBookingPage from "./Pages/DashboardBookingPage";
 import WalletPage from "./Pages/WalletPage";
 import PackagePage from "./Pages/PackagePage";
+import ReviewPage from "./Pages/ReviewPage";
 
 
 // Selection Pages
@@ -80,9 +80,11 @@ const App = () => {
         <Route path="centres" element={<ForCentrePage />} />
         <Route path="about" element={<About />} />
         <Route path="support" element={<Support />} />
+         <Route path="review" element={<ReviewPage/>} />
         {/* ✅ ADDED: Product Detail Page Route */}
         <Route path="centre/:id" element={<ProductDetails />} />
         {/* Add all other route tracks below */}
+        <Route path="/my-bookings" element={<MyBookingsPage/>} />
       </Route>
       
       {/* Client Protected Pages (Require login but keep the main header) */}
@@ -298,6 +300,7 @@ const App = () => {
           </PrivateRoute>
         }
       />
+      
       <Route
         path="/payment-confirmation"
         element={

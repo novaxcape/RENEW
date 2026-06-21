@@ -5,12 +5,6 @@ import { FiBell, FiChevronDown, FiSearch, FiMenu } from "react-icons/fi";
 import { logout } from "../redox/authSlice";
 import "../Styles/Dashboard.css";
 
-const notifications = [
-  { id: 1, title: "New booking for lekki conservation centre", time: "3 hours ago" },
-  { id: 2, title: "Payment received – #15,000", time: "2 hours ago" },
-  { id: 3, title: "Review posted by customer", time: "1 hour ago" },
-];
-
 const TopNavbar = ({ onMenuOpen = () => {} }) => {
   const dispatch = useDispatch();
   const [showNotifications, setShowNotifications] = useState(false);

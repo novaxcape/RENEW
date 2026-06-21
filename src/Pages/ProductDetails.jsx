@@ -199,6 +199,7 @@ useEffect(() => {
           </button>
         </div>
         <Footer />
+
       </>
     );
   }
@@ -359,195 +360,97 @@ useEffect(() => {
   return (
     <>
       <Header />
-      <main className="product-page">
-        <div className="container">
-          {/* TITLE SECTION */}
-          <section className="listing-header">
-            <h1 className="title">{centreName}</h1>
-            <div className="meta">
-              <span><FaMapMarkerAlt /> {centreLocation}</span>
-              <span><FaClock /> {openingHours}</span>
-              <span className="rating">
-                {renderStars(rating)}
-                <strong>{rating}</strong> ({reviewCount} reviews)
-              </span>
-            </div>
-            <div className="tags">
-              {facilities.slice(0, 6).map((facility, index) => (
-                <span key={index}>{facility}</span>
-              ))}
-            </div>
-          </section>
+    
+        
+                {/* HERO SECTION */}
+<section className="centre-hero">
 
-          {/* IMAGE GALLERY */}
-          <section className="gallery">
-            <div className="main-image">
-              <img
-                src={images[0] || "https://images.unsplash.com/photo-1506744038136-46273834b3fb"}
-                alt={centreName}
-                onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1506744038136-46273834b3fb"; }}
-              />
-            </div>
-            <div className="side-images">
-              {images.slice(1, 3).map((img, index) => (
-                <img
-                  key={index}
-                  src={img || "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee"}
-                  alt=""
-                  onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee"; }}
-                />
-              ))}
-              {images.length < 2 && (
-                <>
-                  <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee" alt="" />
-                  <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e" alt="" />
-                </>
-              )}
-            </div>
-          </section>
+  <h1 className="centre-title">{centreName}</h1>
 
-          <hr className="divider" />
+  <div className="centre-meta">
+    <span>
+      <FaMapMarkerAlt className="meta-icon" />
+      {centreLocation}
+    </span>
 
-          {/* FEATURES */}
-          <section className="features">
-            <div className="feature">
-              <FaCheckCircle className="feature-icon" />
-              <div>
-                <h4>Duration</h4>
-                <p>1 Day</p>
-              </div>
-            </div>
-            <div className="feature">
-              <FaCheckCircle className="feature-icon" />
-              <div>
-                <h4>Activity Level</h4>
-                <p>Topnotch</p>
-              </div>
-            </div>
-            <div className="feature">
-              <FaCheckCircle className="feature-icon" />
-              <div>
-                <h4>Includes</h4>
-                <p>Ticket, Transportation, Equipment</p>
-              </div>
-            </div>
-          </section>
+    <span>
+      <FaClock className="meta-icon" />
+      {openingHours}
+    </span>
 
-          {/* DESCRIPTION */}
-          <section className="description-section">
-            <div className="description">
+    <span className="centre-rating">
+      {renderStars(rating)}
+      <strong>{rating}</strong>
+      <span>({reviewCount})</span>
+    </span>
+  </div>
 
-              <h2>Description</h2>
-              <p>{getDescription()}</p>
-              {description.length > 200 && (
-                <button 
-                  className="readmore-btn"
-                  onClick={() => setShowFullDescription(!showFullDescription)}
-                >
-                  {showFullDescription ? "Read Less" : "Read More"}
-                </button>
-              )}
-              <div className="actions">
-                
-                <button 
-                  className="book-btn" 
-                  onClick={() => {
-                    if (centrePackages.length === 0) {
-                      Swal.fire({
-                        icon: "info",
-                        title: "No Packages Available",
-                        text: "This centre doesn't have any packages available at the moment.",
-                        confirmButtonColor: "#ff6b35",
-                      });
-                      return;
-                    }
-                    handleBookNow(centrePackages[0]);
-                  }}
-                >
-                  Book Now
-                </button>
-                <button className="fav-btn" onClick={() => setIsWishlist(!isWishlist)}>
-                  {isWishlist ? "Remove from Favourite" : "Add to Favourite"}
-                  {isWishlist ? <FaHeart color="#ff6b35" /> : <FaRegHeart />}
-                </button>
-              </div>
-            </div>
-          </section>
+  <div className="centre-tags">
+    {facilities.slice(0, 4).map((facility, index) => (
+      <span key={index}>{facility}</span>
+    ))}
+  </div>
 
-          {/* ✅ PACKAGES SECTION - NOW DISPLAYS ACTUAL PACKAGES */}
-          {centrePackages.length > 0 && (
-            <section className="packages-section">
-              <h2>Available Packages</h2>
-              <div className="packages-grid">
-                {centrePackages.map((pkg) => (
-                  <div className="package-card" key={pkg.id}>
-                    <h3>{pkg.packageName || pkg.name || "Package"}</h3>
-                    <p className="package-price">₦{pkg.amount || pkg.price || 0}</p>
-                    <p className="package-desc">{pkg.description || "No description"}</p>
-                    <p className="package-type">{pkg.packageType || "Standard"}</p>
-                    <button 
-                      className="book-package-btn"
-                      onClick={() => handleBookNow(pkg)}
-                    >
-                      Book This Package
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+  <div className="centre-gallery">
 
-          {/* REVIEWS */}
-          <section className="reviews">
-            <h2>View all Reviews</h2>
-            <div className="review-grid">
-              {reviews.map((review) => (
-                <div className="review-card" key={review.id}>
-                  <h4>{review.name}</h4>
-                  <div className="review-stars">
-                    {[...Array(5)].map((_, i) => (
-                      <FaStar 
-                        key={i} 
-                        color={i < review.rating ? "#ff6b35" : "#ddd"} 
-                      />
-                    ))}
-                  </div>
-                  <p>{review.comment}</p>
-                </div>
-              ))}
-            </div>
-          </section>
+    <div className="gallery-main">
+      <img
+       
+        alt={centreName}
+      />
+    </div>
 
-          {/* RECOMMENDATIONS */}
-          <section className="recommendations">
-            <h2>Destinations you may also like</h2>
-            <div className="destination-grid">
-              <div className="destination-card">
-                <img src="https://images.unsplash.com/photo-1511497584788-876760111969" alt="" />
-                <div className="card-content">
-                  <h4>Olumo Rock</h4>
-                  <p>Abeokuta</p>
-                  <div className="card-footer">
-                    <span>From ₦2,000</span>
-                    <button>Book Now</button>
-                  </div>
-                </div>
-              </div>
-              <div className="destination-card">
-                <img src="https://images.unsplash.com/photo-1511818966892-d7d671e672a2" alt="" />
-                <div className="card-content">
-                  <h4>Mapo Hall</h4>
-                  <p>Ibadan</p>
-                  <div className="card-footer">
-                    <span>From ₦1,500</span>
-                    <button>Book Now</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-      </main>
+    <div className="gallery-side">
+      <img
+        src={
+          images[1] ||
+          "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee"
+        }
+        alt=""
+      />
+
+      <img
+        src={
+          images[2] ||
+          "https://images.unsplash.com/photo-1441974231531-c6227db76b6e"
+        }
+        alt=""
+      />
+    </div>
+
+  </div>
+</section>
+
+<hr className="centre-divider" />
+
+<section className="centre-features">
+
+  <div className="centre-feature">
+    <FaCheckCircle />
+    <div>
+      <span>Duration</span>
+      <h4>1 day</h4>
+    </div>
+  </div>
+
+  <div className="centre-feature">
+    <FaCheckCircle />
+    <div>
+      <span>Activity Level</span>
+      <h4>Topnotch</h4>
+    </div>
+  </div>
+
+  <div className="centre-feature">
+    <FaCheckCircle />
+    <div>
+      <span>Includes</span>
+      <h4>Ticket, Transportation, Equipment</h4>
+    </div>
+  </div>
+
+</section>
+       
       <Footer />
     </>
   );

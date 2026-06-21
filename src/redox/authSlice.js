@@ -1,18 +1,23 @@
-// redux/authSlice.js
+// src/redox/authSlice.js
 import { createSlice } from "@reduxjs/toolkit";
+
+// ⚡ Check localStorage immediately on app initialization to prevent reload state reset
+const token = localStorage.getItem("token") || localStorage.getItem("userToken") || localStorage.getItem("vendorToken");
+const savedClientId = localStorage.getItem("clientId");
 
 const authSlice = createSlice({
   name: "auth",
   initialState: {
     // Client State
-    loggedInUser: null,
-    userToken: null,
+    loggedInUser: savedClientId ? { id: savedClientId } : null, // Fallback layout stub until hydration completes
+    userToken: token || null,
     loading: false,
     error: null,
-    isAuthenticated: false,
+    isAuthenticated: !!token, // ✅ Instantly true if a token exists, keeping header locked logged-in
+    
     // Vendor State
     vendorDetails: null,
-    isVendor: false,
+    isVendor: !!localStorage.getItem("vendorToken"), // Instantly flag if it's a vendor session
   },
   reducers: {
     // ========== CLIENT AUTH REDUCERS ==========
