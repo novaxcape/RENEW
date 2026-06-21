@@ -1,5 +1,5 @@
 /* ==========================================
-   LEKKI CONSERVATION CENTRE STYLE
+   PRODUCT DETAILS STYLES
 ========================================== */
 
 .product-page {
@@ -15,18 +15,14 @@
 
 /* HERO */
 
-.centre-hero {
-  width: 100%;
-}
-
-.centre-title {
+.title {
   font-size: 44px;
   font-weight: 700;
   color: #222;
   margin-bottom: 10px;
 }
 
-.centre-meta {
+.meta {
   display: flex;
   align-items: center;
   gap: 30px;
@@ -35,29 +31,29 @@
   font-size: 14px;
 }
 
-.meta-icon {
+.meta svg {
   color: #ff6b35;
   margin-right: 5px;
 }
 
-.centre-rating {
+.rating {
   display: flex;
   align-items: center;
   gap: 5px;
 }
 
-.centre-rating svg {
+.rating svg {
   color: #ffb400;
 }
 
-.centre-tags {
+.tags {
   display: flex;
   gap: 14px;
   margin-bottom: 28px;
   flex-wrap: wrap;
 }
 
-.centre-tags span {
+.tags span {
   background: #9e9e9e;
   color: white;
   padding: 10px 20px;
@@ -68,26 +64,26 @@
 
 /* GALLERY */
 
-.centre-gallery {
+.gallery {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 20px;
 }
 
-.gallery-main img {
+.main-image img {
   width: 100%;
   height: 500px;
   border-radius: 20px;
   object-fit: cover;
 }
 
-.gallery-side {
+.side-images {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.gallery-side img {
+.side-images img {
   width: 100%;
   height: 240px;
   border-radius: 20px;
@@ -96,7 +92,7 @@
 
 /* DIVIDER */
 
-.centre-divider {
+.divider {
   border: none;
   border-top: 1px solid #ddd;
   margin: 45px 0 35px;
@@ -104,35 +100,316 @@
 
 /* FEATURES */
 
-.centre-features {
+.features {
   display: flex;
   gap: 80px;
   align-items: center;
   margin-bottom: 60px;
 }
 
-.centre-feature {
+.feature {
   display: flex;
   align-items: center;
   gap: 15px;
 }
 
-.centre-feature svg {
+.feature-icon {
   color: #ff6b35;
   font-size: 30px;
 }
 
-.centre-feature span {
-  display: block;
+.feature p {
   color: #666;
   font-size: 13px;
 }
 
-.centre-feature h4 {
+.feature h4 {
   margin-top: 3px;
   font-size: 15px;
   color: #222;
   font-weight: 600;
+}
+
+/* PACKAGES SECTION */
+
+.packages-section {
+  margin-top: 40px;
+  margin-bottom: 40px;
+}
+
+.packages-section h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 20px;
+}
+
+.packages-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.package-card {
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.package-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.package-card h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #222;
+}
+
+.package-price {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ff6b35;
+  margin-bottom: 8px;
+}
+
+.package-desc {
+  color: #666;
+  margin-bottom: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.package-type {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 16px;
+}
+
+.book-package-btn {
+  width: 100%;
+  background: #ff6b35;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.book-package-btn:hover {
+  background: #e55a2b;
+  transform: scale(1.02);
+}
+
+/* DESCRIPTION SECTION */
+
+.description-section {
+  margin-bottom: 40px;
+}
+
+.description-section h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 12px;
+}
+
+.description-section p {
+  color: #555;
+  line-height: 1.8;
+  font-size: 16px;
+}
+
+.readmore-btn {
+  background: none;
+  border: none;
+  color: #ff6b35;
+  cursor: pointer;
+  font-weight: 600;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.readmore-btn:hover {
+  color: #e55a2b;
+}
+
+.actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.book-btn {
+  background: #ff6b35;
+  color: white;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.book-btn:hover {
+  background: #e55a2b;
+  transform: scale(1.02);
+}
+
+.fav-btn {
+  background: none;
+  border: 2px solid #ddd;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  color: #222;
+}
+
+.fav-btn:hover {
+  border-color: #ff6b35;
+  color: #ff6b35;
+}
+
+/* REVIEWS SECTION */
+
+.reviews {
+  margin-top: 40px;
+  margin-bottom: 40px;
+}
+
+.reviews h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 20px;
+}
+
+.review-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.review-card {
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 20px;
+  background-color: #f8f9fa;
+}
+
+.review-card h4 {
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #222;
+}
+
+.review-stars {
+  margin-bottom: 8px;
+}
+
+.review-stars svg {
+  color: #ffb400;
+}
+
+.review-card p {
+  color: #555;
+  line-height: 1.6;
+}
+
+/* RECOMMENDATIONS SECTION */
+
+.recommendations {
+  margin-top: 40px;
+  margin-bottom: 20px;
+}
+
+.recommendations h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 20px;
+}
+
+.destination-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.destination-card {
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.destination-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.destination-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.card-content {
+  padding: 16px;
+}
+
+.card-content h4 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #222;
+}
+
+.card-content p {
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-footer span {
+  font-weight: bold;
+  color: #ff6b35;
+  font-size: 16px;
+}
+
+.card-footer button {
+  background: #ff6b35;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.card-footer button:hover {
+  background: #e55a2b;
 }
 
 /* MOBILE */
@@ -143,34 +420,101 @@
     padding: 20px;
   }
 
-  .centre-title {
+  .title {
     font-size: 28px;
   }
 
-  .centre-meta {
+  .meta {
     flex-wrap: wrap;
     gap: 10px;
   }
 
-  .centre-gallery {
+  .gallery {
     grid-template-columns: 1fr;
   }
 
-  .gallery-main img {
+  .main-image img {
     height: 250px;
   }
 
-  .gallery-side {
+  .side-images {
     flex-direction: row;
   }
 
-  .gallery-side img {
+  .side-images img {
     height: 120px;
   }
 
-  .centre-features {
+  .features {
     display: grid;
     grid-template-columns: 1fr;
     gap: 18px;
   }
+
+  .packages-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .destination-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .book-btn,
+  .fav-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* LOADING SPINNER */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-container .spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #ff6b35;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+/* ERROR STATES */
+.error-container {
+  text-align: center;
+  padding: 100px 20px;
+}
+
+.error-container h2 {
+  color: #dc3545;
+  margin-bottom: 16px;
+}
+
+.error-container p {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  background: #ff6b35;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  background: #e55a2b;
+  transform: scale(1.02);
 }
