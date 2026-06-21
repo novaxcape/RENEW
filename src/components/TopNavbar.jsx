@@ -1,27 +1,37 @@
-import { useState, useEffect } from "react";
-import { FiSearch, FiMenu } from "react-icons/fi";
+// components/TopNavbar.jsx
+import { useState, useRef, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { FiBell, FiChevronDown, FiSearch, FiMenu } from "react-icons/fi";
+import { logout } from "../redox/authSlice";
 import "../Styles/Dashboard.css";
 
 const TopNavbar = ({ onMenuOpen = () => {} }) => {
-
+  const dispatch = useDispatch();
+  const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [vendorName, setVendorName] = useState("Lekki CC"); // Default fallback
+  const notifRef = useRef(null);
+  
+  // Get vendor name from Redux state instead of localStorage
+  const { loggedInUser, isVendor } = useSelector((state) => state.auth);
+  const vendorName = isVendor 
+    ? loggedInUser?.vendorName || loggedInUser?.name || "Vendor" 
+    : "Guest";
 
-  // Get vendor name from localStorage on component mount
+  // Handle click outside for notifications
   useEffect(() => {
-    const storedName = localStorage.getItem("Names");
-    if (storedName) {
-      setVendorName(storedName);
-    }
+    const handleClickOutside = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setShowNotifications(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Handle logout
+  // Handle logout using Redux action
   const handleLogout = () => {
-    // Clear user data from localStorage
-    localStorage.removeItem("Names");
-    // Add any other cleanup (tokens, etc.)
-    // Redirect to login page
-    window.location.href = "/login";
+    dispatch(logout());
+    window.location.href = "/signinscreen";
   };
 
   return (
@@ -45,12 +55,33 @@ const TopNavbar = ({ onMenuOpen = () => {} }) => {
       </div>
 
       <div className="top-right">
+        <div className="iconwrapper" ref={notifRef}>
+          <div className="iconbell" onClick={() => setShowNotifications(!showNotifications)}>
+            <FiBell size={20} color="#334155" />
+          </div>
+          <span className="icondot"></span>
+
+          {showNotifications && (
+            <div className="notification-dropdown">
+              <div className="notification-header">
+                <p className="notification-title">Notification</p>
+                <span className="notification-badge">1 new</span>
+              </div>
+              {notifications.map((n) => (
+                <div className="notification-item" key={n.id}>
+                  <p className="notification-item-title">{n.title}</p>
+                  <p className="notification-item-time">{n.time}</p>
+                </div>
+              ))}
+              <button className="notification-view-all">View all notifications</button>
+            </div>
+          )}
+        </div>
+
         <div className="profile">
           <img src="/novaxcape/profile.png" alt="Admin" />
           <div className="profile-info">
-            <span className="profile-name">
-              {vendorName}
-            </span>
+            <span className="profile-name">{vendorName}</span>
             <span className="profile-role">Admin</span>
           </div>
         </div>
@@ -64,7 +95,6 @@ const TopNavbar = ({ onMenuOpen = () => {} }) => {
           <FiMenu size={24} />
         </button>
       </div>
-
     </div>
   );
 };

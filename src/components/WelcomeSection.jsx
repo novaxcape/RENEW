@@ -1,8 +1,14 @@
-const WelcomeSection = () => {
-  const storedName = localStorage.getItem("Names");
+// components/WelcomeSection.jsx
+import { useSelector } from "react-redux";
 
-  // If no name is found, show a default greeting
-  const displayName = storedName || "Vendor";
+const WelcomeSection = () => {
+  // Get vendor name from Redux state
+  const { loggedInUser, isVendor } = useSelector((state) => state.auth);
+  
+  // Get vendor name from Redux state
+  const displayName = isVendor 
+    ? loggedInUser?.vendorName || loggedInUser?.name || "Vendor" 
+    : "Vendor";
 
   return (
     <section className="welcome-section">
