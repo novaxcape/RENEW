@@ -26,12 +26,6 @@ const SettingsPage = () => {
     email: ""
   });
 
-  const [notifications, setNotifications] = useState({
-    bookingAlerts: true,
-    reviewAlerts: false,
-    cancellationAlerts: true
-  });
-
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -101,10 +95,6 @@ const SettingsPage = () => {
     setBusinessData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleNotificationToggle = (key) => {
-    setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
     setPasswordData(prev => ({ ...prev, [name]: value }));
@@ -116,15 +106,12 @@ const SettingsPage = () => {
 
   const handleBusinessSubmit = async (e) => {
     e.preventDefault();
-    
+
     const formData = new FormData();
     formData.append('businessName', businessData.businessName);
     formData.append('address', businessData.address);
     formData.append('phoneNumber', businessData.phoneNumber);
     formData.append('email', businessData.email);
-    
-    // Add notification preferences to profile
-    formData.append('notifications', JSON.stringify(notifications));
 
     try {
       await dispatch(updateVendorProfile(formData)).unwrap();
@@ -187,18 +174,17 @@ const SettingsPage = () => {
   };
 
   const handleSaveAllChanges = async () => {
-    // Save business info first
+    // Save business info
     const formData = new FormData();
     formData.append('businessName', businessData.businessName);
     formData.append('address', businessData.address);
     formData.append('phoneNumber', businessData.phoneNumber);
     formData.append('email', businessData.email);
-    formData.append('notifications', JSON.stringify(notifications));
 
     try {
       await dispatch(updateVendorProfile(formData)).unwrap();
       dispatch(getVendorDetails());
-      
+
       Swal.fire({
         icon: 'success',
         title: 'All Changes Saved!',
@@ -275,62 +261,6 @@ const SettingsPage = () => {
           {vendorLoading ? "Saving..." : "Update Business Info"}
         </button>
       </form>
-
-      {/* Notifications */}
-      <div className="settings-card">
-        <h2>Notification Preferences</h2>
-        <p className="sub-text">
-          Choose which notifications you would like to receive
-        </p>
-
-        <div className="notification-row">
-          <div>
-            <h4>Booking Alerts</h4>
-            <p>Get notified when a new booking is placed</p>
-          </div>
-
-          <label className="switch">
-            <input 
-              type="checkbox" 
-              checked={notifications.bookingAlerts}
-              onChange={() => handleNotificationToggle('bookingAlerts')}
-            />
-            <span className="slider"></span>
-          </label>
-        </div>
-
-        <div className="notification-row">
-          <div>
-            <h4>New Reviews Alert</h4>
-            <p>Get notified when a new user drops a review</p>
-          </div>
-
-          <label className="switch">
-            <input 
-              type="checkbox" 
-              checked={notifications.reviewAlerts}
-              onChange={() => handleNotificationToggle('reviewAlerts')}
-            />
-            <span className="slider"></span>
-          </label>
-        </div>
-
-        <div className="notification-row">
-          <div>
-            <h4>Cancellation Alerts</h4>
-            <p>Get notified when a user cancels during booking</p>
-          </div>
-
-          <label className="switch">
-            <input 
-              type="checkbox" 
-              checked={notifications.cancellationAlerts}
-              onChange={() => handleNotificationToggle('cancellationAlerts')}
-            />
-            <span className="slider"></span>
-          </label>
-        </div>
-      </div>
 
       {/* Password */}
       <form className="settings-card password-card" onSubmit={handlePasswordSubmit}>
@@ -418,7 +348,7 @@ const SettingsPage = () => {
       </div>
     </div>
     </>
-    
+
   );
 };
 

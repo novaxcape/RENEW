@@ -1,19 +1,11 @@
-import { useState, useRef, useEffect } from "react";
-import { FiBell, FiChevronDown, FiSearch, FiMenu } from "react-icons/fi";
+import { useState, useEffect } from "react";
+import { FiSearch, FiMenu } from "react-icons/fi";
 import "../Styles/Dashboard.css";
 
-const notifications = [
-  { id: 1, title: "New booking for lekki conservation centre", time: "3 hours ago" },
-  { id: 2, title: "Payment received – #15,000", time: "2 hours ago" },
-  { id: 3, title: "Review posted by customer", time: "1 hour ago" },
-];
-
 const TopNavbar = ({ onMenuOpen = () => {} }) => {
-   
-  const [showNotifications, setShowNotifications] = useState(false);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [vendorName, setVendorName] = useState("Lekki CC"); // Default fallback
-  const notifRef = useRef(null);
 
   // Get vendor name from localStorage on component mount
   useEffect(() => {
@@ -22,18 +14,6 @@ const TopNavbar = ({ onMenuOpen = () => {} }) => {
       setVendorName(storedName);
     }
   }, []);
-
-  // Handle click outside for notifications
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (notifRef.current && !notifRef.current.contains(e.target)) {
-        setShowNotifications(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
 
   // Handle logout
   const handleLogout = () => {
@@ -65,29 +45,6 @@ const TopNavbar = ({ onMenuOpen = () => {} }) => {
       </div>
 
       <div className="top-right">
-        <div className="iconwrapper" ref={notifRef}>
-        <div className="iconbell" onClick={() => setShowNotifications(!showNotifications)}>
-          <FiBell size={20} color="#334155" />
-        </div>
-        <span className="icondot"></span>
-
-          {showNotifications && (
-            <div className="notification-dropdown">
-              <div className="notification-header">
-                <p className="notification-title">Notification</p>
-                <span className="notification-badge">1 new</span>
-              </div>
-              {notifications.map((n) => (
-                <div className="notification-item" key={n.id}>
-                  <p className="notification-item-title">{n.title}</p>
-                  <p className="notification-item-time">{n.time}</p>
-                </div>
-              ))}
-              <button className="notification-view-all">View all notifications</button>
-            </div>
-          )}
-        </div>
-
         <div className="profile">
           <img src="/novaxcape/profile.png" alt="Admin" />
           <div className="profile-info">
