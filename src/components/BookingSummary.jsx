@@ -308,7 +308,9 @@ export default function BookingSummaryPage() {
           })
         ).unwrap();
 
-        console.log("📄 Payment Response:", paymentResponse);
+        console.log("📄 FULL Payment Response:", JSON.stringify(paymentResponse, null, 2));
+        console.log("📄 Payment Response Type:", typeof paymentResponse);
+        console.log("📄 Payment Response Keys:", Object.keys(paymentResponse || {}));
 
         const bookingState = {
           bookingId: bookingId,
@@ -331,10 +333,22 @@ export default function BookingSummaryPage() {
 
         localStorage.setItem("pendingBookingState", JSON.stringify(bookingState));
 
-        const redirectUrl = paymentResponse?.data?.redirect_url || paymentResponse?.redirect_url;
-        console.log("Redirect URL:", redirectUrl);
+        // ✅ Check multiple possible locations for the redirect URL
+        const redirectUrl = 
+          paymentResponse?.data?.redirect_url ||
+          paymentResponse?.data?.url ||
+          paymentResponse?.data?.paymentUrl ||
+          paymentResponse?.data?.authorization_url ||
+          paymentResponse?.data?.link ||
+          paymentResponse?.redirect_url ||
+          paymentResponse?.url ||
+          paymentResponse?.paymentUrl ||
+          paymentResponse?.authorization_url ||
+          paymentResponse?.link;
 
-        if (redirectUrl) {
+        console.log("✅ Found redirect URL:", redirectUrl);
+
+        if (redirectUrl && redirectUrl.startsWith('http')) {
           // ✅ Show payment redirect alert
           await Swal.fire({
             icon: "info",
@@ -347,28 +361,39 @@ export default function BookingSummaryPage() {
           
           window.location.href = redirectUrl;
         } else {
-          // ✅ Payment initialized but no redirect URL
+          // ✅ No valid redirect URL found - show booking success with manual payment link
+          console.error("❌ No valid redirect URL found in response:", paymentResponse);
+          
           await Swal.fire({
             icon: "success",
             title: "Booking Created Successfully!",
             html: `
               <p>Your booking has been created with ID: <strong>${bookingId}</strong></p>
               <p>Total Amount: <strong>${formatNaira(total)}</strong></p>
-              <p>Please complete your payment using the link below:</p>
-              <p style="margin-top: 10px;">
+              <p style="margin-top: 10px; color: #666; font-size: 14px;">
+                Booking Reference: ${bookingResult?.booking?.bookingNumber || bookingResult?.data?.bookingNumber || 'N/A'}
+              </p>
+              <p style="margin-top: 15px;">
                 <button onclick="window.location.href='/payment-checkout/${bookingId}'" 
-                        style="background: #ff6b35; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+                        style="background: #ff6b35; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px;">
                   Complete Payment
                 </button>
               </p>
             `,
             confirmButtonColor: "#ff6b35",
-            confirmButtonText: "OK",
+            confirmButtonText: "View My Bookings",
+          }).then(() => {
+            navigate("/my-bookings");
           });
         }
       } catch (paymentError) {
         // ✅ Payment initialization failed but booking was created
         console.error("❌ Payment initialization failed:", paymentError);
+        console.error("❌ Payment error details:", {
+          message: paymentError.message,
+          response: paymentError.response?.data,
+          status: paymentError.response?.status
+        });
         
         await Swal.fire({
           icon: "warning",
@@ -376,7 +401,8 @@ export default function BookingSummaryPage() {
           html: `
             <p>Your booking was created successfully with ID: <strong>${bookingId}</strong></p>
             <p>Total Amount: <strong>${formatNaira(total)}</strong></p>
-            <p>Please try to complete your payment later or contact support.</p>
+            <p style="color: #666; font-size: 14px;">Error: ${paymentError.message || 'Payment initialization failed'}</p>
+            <p style="margin-top: 15px;">Please try to complete your payment later or contact support.</p>
           `,
           confirmButtonColor: "#ff6b35",
           confirmButtonText: "Go to My Bookings",
