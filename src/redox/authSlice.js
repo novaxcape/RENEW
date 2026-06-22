@@ -13,6 +13,10 @@ const authSlice = createSlice({
     // Vendor State
     vendorDetails: null,
     isVendor: false,
+    vendorId: null,
+    vendorHasCentre: false,
+    vendorHasPackages: false,
+    successMessage: null,
   },
   reducers: {
     // ========== CLIENT AUTH REDUCERS ==========
@@ -20,7 +24,7 @@ const authSlice = createSlice({
       state.loggedInUser = action.payload;
       state.isVendor = false;
       state.isAuthenticated = true;
-      // ✅ Store client ID in localStorage
+      // Store client ID in localStorage
       const clientId = action.payload?.id || action.payload?._id;
       if (clientId) {
         localStorage.setItem('clientId', clientId);
@@ -63,6 +67,9 @@ const authSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    clearSuccess: (state) => {
+      state.successMessage = null;
+    },
     
     // ========== CLIENT OTP REDUCERS ==========
     resendOTP: (state) => {
@@ -94,6 +101,12 @@ const authSlice = createSlice({
       state.loggedInUser = action.payload;
       state.isVendor = true;
       state.isAuthenticated = true;
+      state.vendorId = action.payload?.id || action.payload?._id;
+      if (state.vendorId) {
+        localStorage.setItem("vendorId", state.vendorId);
+      }
+      localStorage.setItem("isVendor", "true");
+      localStorage.setItem("vendorName", action.payload?.centreName || action.payload?.name || "");
     },
     updateVendorToken: (state, action) => {
       state.userToken = action.payload;
@@ -113,9 +126,16 @@ const authSlice = createSlice({
       state.userToken = null;
       state.isVendor = false;
       state.isAuthenticated = false;
+      state.vendorId = null;
+      state.vendorHasCentre = false;
+      state.vendorHasPackages = false;
       localStorage.removeItem("token");
       localStorage.removeItem("vendorToken");
       localStorage.removeItem("clientId");
+      localStorage.removeItem("vendorId");
+      localStorage.removeItem("isVendor");
+      localStorage.removeItem("vendorName");
+      localStorage.removeItem("centreId");
     },
 
     // ========== VENDOR OTP REDUCERS ==========
@@ -141,9 +161,87 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
+
+    // ========== VENDOR STATUS REDUCERS ==========
+    setVendorStatus: (state, action) => {
+      state.vendorHasCentre = action.payload.hasCentre || false;
+      state.vendorHasPackages = action.payload.hasPackages || false;
+      state.vendorId = action.payload.vendorId || state.vendorId;
+      state.isVendor = true;
+      
+      if (state.vendorId) {
+        localStorage.setItem("vendorId", state.vendorId);
+      }
+      localStorage.setItem("isVendor", "true");
+    },
+    clearVendorStatus: (state) => {
+      state.vendorHasCentre = false;
+      state.vendorHasPackages = false;
+    },
+
+    // ========== REGISTER REDUCERS ==========
+    registerStart: (state) => {
+      state.loading = true;
+      state.error = null;
+      state.successMessage = null;
+    },
+    registerSuccess: (state, action) => {
+      state.loading = false;
+      state.isAuthenticated = true;
+      state.loggedInUser = action.payload.user || action.payload;
+      state.userToken = action.payload.token || action.payload.userToken;
+      state.isVendor = action.payload.isVendor || false;
+      state.vendorId = action.payload.vendorId || null;
+      state.successMessage = "Registration successful!";
+      state.error = null;
+      
+      if (state.userToken) {
+        localStorage.setItem("userToken", state.userToken);
+        localStorage.setItem("token", state.userToken);
+      }
+      if (state.vendorId) {
+        localStorage.setItem("vendorId", state.vendorId);
+      }
+      if (state.isVendor) {
+        localStorage.setItem("isVendor", "true");
+      }
+    },
+    registerFail: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+      state.successMessage = null;
+    },
+
+    // ========== LOGIN REDUCERS ==========
+    loginStart: (state) => {
+      state.loading = true;
+      state.error = null;
+      state.successMessage = null;
+    },
+    loginFail: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+      state.successMessage = null;
+    },
+
+    // ========== RESET STATE ==========
+    resetAuthState: () => ({
+      loggedInUser: null,
+      userToken: null,
+      loading: false,
+      error: null,
+      isAuthenticated: false,
+      vendorDetails: null,
+      isVendor: false,
+      vendorId: null,
+      vendorHasCentre: false,
+      vendorHasPackages: false,
+      successMessage: null,
+    }),
   },
 });
 
+// ========== EXPORT ACTIONS ==========
 export const {
   // Client Actions
   setUserDetails,
@@ -152,6 +250,7 @@ export const {
   setLoading,
   setError,
   clearError,
+  clearSuccess,
   resendOTP,
   resendOTPSuccess,
   resendOTPFail,
@@ -159,6 +258,11 @@ export const {
   verifyAdminSuccess,
   verifyAdminFail,
   loginSuccess,
+  loginStart,
+  loginFail,
+  registerStart,
+  registerSuccess,
+  registerFail,
   // Vendor Actions
   setVendorDetails,
   updateVendorToken,
@@ -169,6 +273,43 @@ export const {
   vendorVerifyOTP,
   vendorVerifyOTPSuccess,
   vendorVerifyOTPFail,
+  // Vendor Status
+  setVendorStatus,
+  clearVendorStatus,
+  // Reset
+  resetAuthState,
 } = authSlice.actions;
+
+// ========== SELECTORS ==========
+export const selectAuth = (state) => state.auth;
+export const selectUser = (state) => state.auth.loggedInUser;
+export const selectUserToken = (state) => state.auth.userToken;
+export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
+export const selectIsVendor = (state) => state.auth.isVendor;
+export const selectVendorId = (state) => state.auth.vendorId;
+export const selectVendorDetails = (state) => state.auth.vendorDetails;
+export const selectVendorHasCentre = (state) => state.auth.vendorHasCentre;
+export const selectVendorHasPackages = (state) => state.auth.vendorHasPackages;
+export const selectAuthLoading = (state) => state.auth.loading;
+export const selectAuthError = (state) => state.auth.error;
+export const selectAuthSuccess = (state) => state.auth.successMessage;
+
+export const selectIsVendorComplete = (state) => {
+  return state.auth.isVendor && 
+         state.auth.vendorHasCentre && 
+         state.auth.vendorHasPackages;
+};
+
+export const selectVendorOnboardingStep = (state) => {
+  if (!state.auth.isVendor) return null;
+  if (!state.auth.vendorHasCentre) return "add-centre";
+  if (!state.auth.vendorHasPackages) return "add-package";
+  return "complete";
+};
+
+export const selectAuthHeaders = (state) => {
+  const token = state.auth.userToken || localStorage.getItem("userToken");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 export default authSlice.reducer;
