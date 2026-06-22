@@ -483,88 +483,21 @@ export const getPaymentPlans = createThunk(
 // ========== BOOKING API THUNKS - IMPROVED ==========
 export const createBooking = createAsyncThunk(
   "api/booking/create",
-  async (
-    { touristId, packageId, bookingData },
-    { getState, rejectWithValue },
-  ) => {
+  async ({ touristId, packageId, bookingData }, { getState, rejectWithValue }) => {
     try {
       const state = getState();
       const token = getToken(state);
 
       console.log("📦 Creating booking with:");
       console.log("📦 Tourist ID:", touristId);
-      console.log("📦 Package ID:", packageId );
+      console.log("📦 Package ID:", packageId);
       console.log("📦 Booking Data:", bookingData);
       console.log("📦 Token:", token ? "Present" : "Missing");
 
-      // Use clientId from bookingData if provided
-      let clientId = bookingData?.clientId;
-
-      // If not in bookingData, try to get from Redux
-      if (!clientId) {
-        clientId =
-          state.auth?.loggedInUser?.id ||
-          state.auth?.loggedInUser?._id ||
-          state.auth?.loggedInUser?.clientId ||
-          state.auth?.loggedInUser?.userId;
-      }
-
-      // Try localStorage
-      if (!clientId) {
-        clientId = localStorage.getItem("clientId");
-      }
-
-      // Try decoding from token
-      if (!clientId && token) {
-        try {
-          const base64Url = token.split(".")[1];
-          const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-          const jsonPayload = decodeURIComponent(
-            atob(base64)
-              .split("")
-              .map(function (c) {
-                return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
-              })
-              .join(""),
-          );
-          const decoded = JSON.parse(jsonPayload);
-          clientId =
-            decoded.id ||
-            decoded.sub ||
-            decoded.userId ||
-            decoded.clientId ||
-            decoded._id;
-          console.log("📦 Client ID from token:", clientId);
-          if (clientId) {
-            localStorage.setItem("clientId", clientId);
-          }
-        } catch (e) {
-          console.error("Error decoding token:", e);
-        }
-      }
-
-      // Format visit date
-      let visitDate = bookingData.visitDate || bookingData.date;
-      if (visitDate && visitDate.includes("-")) {
-        const parts = visitDate.split("-");
-        visitDate = `${parts[1]}/${parts[2]}/${parts[0]}`;
-      }
-
-      console.log("📦 Final Client ID:", clientId);
-      console.log("📦 Formatted Visit Date:", visitDate);
-
-      // Prepare payload
+      // ✅ The API only expects visitDate in the body
       const payload = {
-        visitDate: visitDate,
+        visitDate: bookingData.visitDate, // Should be in MM/DD/YYYY format
       };
-
-      // Only add clientId if we have one
-      if (clientId) {
-        payload.clientId = clientId;
-        console.log("📦 Adding clientId to payload:", clientId);
-      } else {
-        console.warn("⚠️ No clientId available - API may reject this request");
-      }
 
       console.log("📦 Final payload:", JSON.stringify(payload, null, 2));
 
@@ -579,31 +512,25 @@ export const createBooking = createAsyncThunk(
         },
       );
 
-      console.log("✅ Booking API Response Status:", response.status);
-      console.log("✅ Booking API Response Data:", response.data);
+      console.log("✅ Booking API Response:", response.data);
 
-      return response;
+      // Return the data from the response
+      return response.data;
+
     } catch (error) {
       console.error("❌ Booking creation error:", error);
 
       if (error.response) {
-        console.error("❌ Error response data:", error.response.data);
-        console.error("❌ Error response status:", error.response.status);
-
-        // If client not found, return specific error
-        if (
-          error.response.status === 404 &&
-          error.response.data?.message === "Client not found"
-        ) {
-          return rejectWithValue("Client not found");
-        }
+        console.error("❌ Error response:", error.response.data);
+        return rejectWithValue(
+          error.response.data?.message || "Failed to create booking"
+        );
       }
 
       return rejectWithValue(getErrorMessage(error));
     }
   },
 );
-
 export const getAllClientBookings = createThunk(
   "api/booking/getAllClient",
   (_, { getState }) =>
