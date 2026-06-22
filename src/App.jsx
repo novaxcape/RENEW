@@ -4,7 +4,6 @@ import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 // Import your header and layout tool
 import Header from "./components/Header";
 import PaymentHeader from "./components/PaymentHeader";
-// import Home from "./components/Home"
 
 
 // Import your route guard pages
@@ -85,6 +84,7 @@ const App = () => {
         {/* ✅ ADDED: Product Detail Page Route */}
         <Route path="centre/:id" element={<ProductDetails />} />
         {/* Add all other route tracks below */}
+        <Route path="/my-bookings" element={<MyBookingsPage/>} />
       </Route>
       
       {/* Client Protected Pages (Require login but keep the main header) */}

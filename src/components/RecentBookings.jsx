@@ -1,8 +1,8 @@
+// components/RecentBookings.jsx
 import { useState } from "react";
 import StatusBadge from "./StatusBadge";
 
-
-const bookings = [
+const defaultBookings = [
   { id: "NOV - 00132", ticket: "Adult ticket",    date: "May 15,2026", amount: "₦13,500", status: "In Progress" },
   { id: "NOV - 00134", ticket: "Children Ticket", date: "may 20,2026", amount: "₦11,000", status: "Installment" },
   { id: "NOV - 00132", ticket: "Family pack",     date: "May 10,2026", amount: "₦13,500", status: "Successful" },
@@ -13,7 +13,12 @@ const bookings = [
   { id: "NOV - 00134", ticket: "Family Pack",     date: "Apr 28,2026", amount: "₦23,500", status: "Cancelled" }
 ];
 
-const RecentBookings = () => {
+const RecentBookings = ({ 
+  bookings = defaultBookings,
+  title = "Recent Booking",
+  viewAllText = "View all",
+  onViewAll = () => {}
+}) => {
   const [checkedRows, setCheckedRows] = useState({});
   const [allChecked, setAllChecked] = useState(false);
 
@@ -32,8 +37,10 @@ const RecentBookings = () => {
   return (
     <div className="single-booking-container">
       <div className="booking-top-header">
-        <h3>Recent Booking</h3>
-        <button className="view-all-link">View all</button>
+        <h3>{title}</h3>
+        <button className="view-all-link" onClick={onViewAll}>
+          {viewAllText}
+        </button>
       </div>
 
       <div className="table-wrapper">
@@ -56,25 +63,33 @@ const RecentBookings = () => {
             </tr>
           </thead>
           <tbody>
-            {bookings.map((booking, index) => (
-              <tr key={index}>
-                <td className="checkbox-col">
-                  <input
-                    type="checkbox"
-                    className="orange-checkbox"
-                    checked={!!checkedRows[index]}
-                    onChange={() => toggleRow(index)}
-                  />
-                </td>
-                <td className="ticket-id">{booking.id}</td>
-                <td>{booking.ticket}</td>
-                <td>{booking.date}</td>
-                <td>{booking.amount}</td>
-                <td>
-                  <StatusBadge status={booking.status} />
+            {bookings.length === 0 ? (
+              <tr>
+                <td colSpan="6" style={{ textAlign: "center", padding: "20px", color: "#64748b" }}>
+                  No bookings available
                 </td>
               </tr>
-            ))}
+            ) : (
+              bookings.map((booking, index) => (
+                <tr key={index}>
+                  <td className="checkbox-col">
+                    <input
+                      type="checkbox"
+                      className="orange-checkbox"
+                      checked={!!checkedRows[index]}
+                      onChange={() => toggleRow(index)}
+                    />
+                  </td>
+                  <td className="ticket-id">{booking.id || booking.ticketId || "N/A"}</td>
+                  <td>{booking.ticket || booking.ticketType || "N/A"}</td>
+                  <td>{booking.date || booking.createdAt || "N/A"}</td>
+                  <td>{booking.amount || booking.price || "N/A"}</td>
+                  <td>
+                    <StatusBadge status={booking.status || "Pending"} />
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

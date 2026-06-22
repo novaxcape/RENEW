@@ -23,14 +23,20 @@ const Header = () => {
   const dropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
-  // ✅ Redux Persist source of truth
+  // Redux Persist authentication state
   const isLoggedIn = useSelector(
     (state) => state.auth.isAuthenticated
   );
 
+  // Navigation Links
   const navLinks = [
     { name: "Home", to: "/", end: true },
     { name: "Discover", to: "/discover" },
+
+    ...(isLoggedIn
+      ? [{ name: "My Bookings", to: "/my-bookings" }]
+      : []),
+
     { name: "For Centres", to: "/centres" },
     { name: "About us", to: "/about" },
     { name: "Support", to: "/support" },
@@ -46,13 +52,11 @@ const Header = () => {
     setMobileMenuOpen((prev) => !prev);
   };
 
-  // Close menus on route change
   useEffect(() => {
     setMobileMenuOpen(false);
     setDropdownOpen(false);
   }, [navigate]);
 
-  // Click outside handler
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -74,15 +78,17 @@ const Header = () => {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
+
     return () =>
       document.removeEventListener("mousedown", handleClickOutside);
   }, [mobileMenuOpen]);
 
-  // ✅ Redux logout (no localStorage)
   const handleLogout = () => {
     dispatch(logout());
+
     setDropdownOpen(false);
     setMobileMenuOpen(false);
+
     navigate("/");
   };
 
@@ -90,6 +96,7 @@ const Header = () => {
     <>
       <header className="payment-navbar-header m-header">
         <div className="p-navbar-inner-container m-header-body">
+          
           {/* Logo */}
           <div className="p-navbar-logo-wrapper m-logo">
             <Link to="/">
@@ -127,20 +134,36 @@ const Header = () => {
             {!isLoggedIn ? (
               <>
                 <Link to="/signupscreen">
-                  <button className="m-signup-btn">Sign Up</button>
+                  <button className="m-signup-btn">
+                    Sign Up
+                  </button>
                 </Link>
 
                 <Link to="/signinscreen">
-                  <button className="m-signin-btn">Sign In</button>
+                  <button className="m-signin-btn">
+                    Sign In
+                  </button>
                 </Link>
               </>
             ) : (
               <div className="p-user-actions-wrapper">
-                <Link to="/WishList" className="p-wishlist-link">
-                  <FiHeart size={22} className="p-wishlist-icon" />
+                
+                {/* Wishlist */}
+                <Link
+                  to="/WishList"
+                  className="p-wishlist-link"
+                >
+                  <FiHeart
+                    size={22}
+                    className="p-wishlist-icon"
+                  />
                 </Link>
 
-                <div className="p-users-menu-container" ref={dropdownRef}>
+                {/* User Dropdown */}
+                <div
+                  className="p-users-menu-container"
+                  ref={dropdownRef}
+                >
                   <button
                     className="p-navbars-action-btn"
                     onClick={toggleDropdown}
@@ -150,6 +173,7 @@ const Header = () => {
 
                   {dropdownOpen && (
                     <div className="p-profiles-dropdown-menu">
+                      
                       <Link
                         to="/profile-settings"
                         className="p-dropdown-item"
@@ -165,6 +189,7 @@ const Header = () => {
                         <FiLogOut size={16} />
                         Logout
                       </button>
+
                     </div>
                   )}
                 </div>
@@ -173,21 +198,27 @@ const Header = () => {
           </div>
 
           {/* Mobile Menu */}
-          <div className="m-mobile-menu-wrapper" ref={mobileMenuRef}>
+          <div
+            className="m-mobile-menu-wrapper"
+            ref={mobileMenuRef}
+          >
             {isLoggedIn && (
               <div className="m-mobile-user-actions">
+                
                 <Link
                   to="/WishList"
                   className="m-mobile-wishlist-link"
                 >
                   <FiHeart size={22} />
                 </Link>
+
                 <Link
                   to="/profile-settings"
                   className="m-mobile-profile-link"
                 >
                   <FiUser size={22} />
                 </Link>
+
               </div>
             )}
 
@@ -196,7 +227,11 @@ const Header = () => {
               onClick={toggleMobileMenu}
               aria-label="Toggle menu"
             >
-              {mobileMenuOpen ? <FiX size={26} /> : <FiMenu size={26} />}
+              {mobileMenuOpen ? (
+                <FiX size={26} />
+              ) : (
+                <FiMenu size={26} />
+              )}
             </button>
           </div>
         </div>
@@ -206,13 +241,16 @@ const Header = () => {
       {mobileMenuOpen && (
         <div className="m-mobile-dropdown-overlay">
           <div className="m-mobile-dropdown">
+
             <div className="m-mobile-nav-links">
               {navLinks.map((link) => (
                 <Link
                   key={link.to}
                   to={link.to}
                   className="m-mobile-nav-link"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={() =>
+                    setMobileMenuOpen(false)
+                  }
                 >
                   {link.name}
                 </Link>
@@ -224,14 +262,19 @@ const Header = () => {
                 <Link
                   to="/signupscreen"
                   className="m-mobile-auth-link"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={() =>
+                    setMobileMenuOpen(false)
+                  }
                 >
                   Sign Up
                 </Link>
+
                 <Link
                   to="/signinscreen"
                   className="m-mobile-auth-link"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={() =>
+                    setMobileMenuOpen(false)
+                  }
                 >
                   Sign In
                 </Link>

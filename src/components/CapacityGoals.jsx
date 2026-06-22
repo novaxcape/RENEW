@@ -1,23 +1,35 @@
-// import "./css/Capacity.css";
+// components/CapacityGoals.jsx
+const CapacityGoals = ({ 
+  centreName = "Lekki Conservation",
+  capacity = 1200,
+  filled = 900,
+  percentage = 75,
+  title = "Capacity goals"
+}) => {
+  // Calculate percentage if not provided
+  const calculatedPercentage = percentage || Math.round((filled / capacity) * 100);
+  const displayPercentage = Math.min(calculatedPercentage, 100);
 
-const CapacityGoals = () => {
   return (
     <div className="capacity-card">
       <div className="capacity-header">
-        <h3>Capacity goals</h3>
+        <h3>{title}</h3>
         <button className="capacity-menu">⋮</button>
       </div>
 
       <div className="capacity-row">
-        <span>Lekki Conservation</span>
-        <strong>1,200 cap</strong>
+        <span>{centreName}</span>
+        <strong>{capacity.toLocaleString()} cap</strong>
       </div>
 
       <div className="progress-bar">
-        <div className="progress-fill"></div>
+        <div 
+          className="progress-fill" 
+          style={{ width: `${displayPercentage}%` }}
+        ></div>
       </div>
 
-      <p className="goal-info">75% filled this week</p>
+      <p className="goal-info">{displayPercentage}% filled this week</p>
     </div>
   );
 };

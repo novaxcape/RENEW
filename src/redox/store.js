@@ -12,6 +12,7 @@ import {
 } from "redux-persist";
 import authReducer from "./authSlice";
 import apiReducer from "./apiSlice";
+import  dashboardReducer from "./dashboardSlice"
 
 const customStorage = {
   getItem: (key) => {
@@ -55,6 +56,7 @@ export const store = configureStore({
   reducer: {
     auth: persistedReducer,
     api: apiReducer,
+    dashboard:dashboardReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

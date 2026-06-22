@@ -45,22 +45,22 @@ const Whychooseus = () => {
           <div className="whyChoose-features">
 
             <div className="feature">
- <span className="feature-icon"><BsCheck2Circle  color="white"/></span>
+ <span className="feature-icons"><BsCheck2Circle  size={30}color="white"/></span>
                <span className="feature-text">Instant booking</span>
             </div>
             
             <div className="feature">
- <span className="feature-icon"><BsCheck2Circle  color="white"/></span>
+ <span className="feature-icons"><BsCheck2Circle size={30} color="white"/></span>
                <span className="feature-text">Flexible payment</span>
             </div>
 
             <div className="feature">
- <span className="feature-icon"><BsCheck2Circle  color="white"/></span>
+ <span className="feature-icons"><BsCheck2Circle size={30} color="white"/></span>
                <span className="feature-text">Skip the Queue</span>
             </div>
 
             <div className="feature">
-              <span className="feature-icon"><BsCheck2Circle  color="white"/></span>
+              <span className="feature-icons"><BsCheck2Circle size={30} color="white"/></span>
               <span className="feature-text">Transparent pricing</span>
             </div>
 
