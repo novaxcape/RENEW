@@ -1,31 +1,15 @@
 import React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Swal from "sweetalert2";
 import "./css/BookingSummary.css";
-import { createBooking, initializePayment } from "../redox/apiSlice";
-
-const ticketTypes = [
-  {
-    id: "adult",
-    label: "Adult",
-    description: "Ages 18+ - N2,500",
-    price: 2500,
-  },
-  {
-    id: "child",
-    label: "Child",
-    description: "Ages 5-7 - N1,500",
-    price: 1500,
-  },
-  {
-    id: "family",
-    label: "Family pack",
-    description: "2 Adults + 2 Childrens - N7,000",
-    price: 7000,
-  },
-];
+import { 
+  createBooking, 
+  initializePayment, 
+  getPackageById,
+  getPaymentPlans 
+} from "../redox/apiSlice";
 
 const SERVICE_FEE = 500;
 
@@ -38,7 +22,14 @@ export default function BookingSummaryPage() {
   const { loggedInUser, userToken, isAuthenticated } = useSelector(
     (state) => state.auth,
   );
-  const { bookingLoading, bookingError } = useSelector((state) => state.api);
+  const { 
+    bookingLoading, 
+    bookingError,
+    selectedPackage,
+    packagesLoading,
+    paymentPlans,
+    paymentPlanLoading
+  } = useSelector((state) => state.api);
 
   const [bookingData, setBookingData] = useState({
     packageDetails: location.state?.packageDetails || null,
@@ -46,33 +37,175 @@ export default function BookingSummaryPage() {
   });
 
   const [date, setDate] = useState("");
-  const [quantities, setQuantities] = useState({
-    adult: 1,
-    child: 1,
-    family: 1,
-  });
-
+  const [quantities, setQuantities] = useState({});
   const [isProcessing, setIsProcessing] = useState(false);
+  const [packageData, setPackageData] = useState(null);
+  const [ticketTypes, setTicketTypes] = useState([]);
 
   console.log("📄 BookingSummaryPage - Mounted");
   console.log("📄 touristId:", touristId);
   console.log("📄 packageId:", packageId);
-  console.log("📄 isAuthenticated:", isAuthenticated);
-  console.log("📄 userToken:", userToken ? "Present" : "Missing");
-  console.log("📄 loggedInUser:", loggedInUser);
 
-  // ✅ Check authentication on mount - redirect if not logged in
+  // ✅ Fetch package details and payment plans
+  useEffect(() => {
+    const fetchPackageData = async () => {
+      // If we already have package details from location state
+      if (location.state?.packageDetails) {
+        const pkg = location.state.packageDetails;
+        setPackageData(pkg);
+        setBookingData(prev => ({
+          ...prev,
+          packageDetails: pkg,
+          centreDetails: location.state.centreDetails || prev.centreDetails,
+        }));
+        
+        // Generate ticket types from package
+        generateTicketTypes(pkg);
+        return;
+      }
+
+      if (packageId) {
+        try {
+          console.log("📦 Fetching package details for ID:", packageId);
+          
+          // Fetch package details
+          const packageResult = await dispatch(getPackageById(packageId)).unwrap();
+          console.log("📦 Package details fetched:", packageResult);
+          
+          const pkg = packageResult?.data || packageResult?.package || packageResult;
+          setPackageData(pkg);
+          setBookingData(prev => ({
+            ...prev,
+            packageDetails: pkg,
+            centreDetails: pkg?.touristCentre || pkg?.centre || prev.centreDetails,
+          }));
+
+          // ✅ Fetch payment plans for this package
+          console.log("📋 Fetching payment plans for package:", packageId);
+          const plansResult = await dispatch(getPaymentPlans(packageId)).unwrap();
+          console.log("📋 Payment plans fetched:", plansResult);
+          
+          const plans = plansResult?.data || plansResult?.plans || plansResult || [];
+          
+          // Generate ticket types from payment plans
+          generateTicketTypes(pkg, plans);
+          
+        } catch (error) {
+          console.error("❌ Failed to fetch package data:", error);
+          // Try to get from localStorage as fallback
+          const savedData = localStorage.getItem("selectedPackage");
+          if (savedData) {
+            try {
+              const parsed = JSON.parse(savedData);
+              setPackageData(parsed);
+              setBookingData(prev => ({
+                ...prev,
+                packageDetails: parsed,
+              }));
+              generateTicketTypes(parsed);
+            } catch (e) {
+              console.error("Error parsing saved package:", e);
+            }
+          }
+        }
+      }
+    };
+
+    fetchPackageData();
+  }, [dispatch, packageId, location.state]);
+
+  // ✅ Generate ticket types from package data and payment plans
+  const generateTicketTypes = (pkg, plans = []) => {
+    console.log("🔄 Generating ticket types from:", { pkg, plans });
+    
+    let types = [];
+
+    // If package has payment plans
+    if (plans && plans.length > 0) {
+      types = plans.map((plan, index) => ({
+        id: plan.id || `plan-${index}`,
+        label: plan.planName || plan.name || `Plan ${index + 1}`,
+        description: plan.description || `${plan.planName || 'Package'} - ₦${(plan.amount || 0).toLocaleString()}`,
+        price: plan.amount || plan.price || 0,
+        planId: plan.id,
+        isInstallment: plan.isInstallment || false,
+      }));
+    } 
+    // If package has packages array (like Adult, Child, Family)
+    else if (pkg?.packages && Array.isArray(pkg.packages) && pkg.packages.length > 0) {
+      types = pkg.packages.map((pkgItem, index) => ({
+        id: pkgItem.id || `pkg-${index}`,
+        label: pkgItem.packageType || pkgItem.name || `Package ${index + 1}`,
+        description: pkgItem.description || `${pkgItem.packageType || 'Package'} - ₦${(pkgItem.amount || 0).toLocaleString()}`,
+        price: pkgItem.amount || pkgItem.price || 0,
+        packageId: pkgItem.id,
+      }));
+    }
+    // If package has ticket types directly
+    else if (pkg?.ticketTypes && Array.isArray(pkg.ticketTypes)) {
+      types = pkg.ticketTypes.map((ticket, index) => ({
+        id: ticket.id || `ticket-${index}`,
+        label: ticket.name || ticket.label || `Ticket ${index + 1}`,
+        description: ticket.description || `${ticket.name || 'Ticket'} - ₦${(ticket.price || 0).toLocaleString()}`,
+        price: ticket.price || 0,
+      }));
+    }
+    // Fallback: Use package amount as a single ticket type
+    else if (pkg?.amount || pkg?.price) {
+      const amount = pkg.amount || pkg.price || 0;
+      types = [{
+        id: 'standard',
+        label: 'Standard Ticket',
+        description: `${pkg.packageName || pkg.name || 'Package'} - ₦${amount.toLocaleString()}`,
+        price: amount,
+      }];
+    }
+
+    console.log("✅ Generated ticket types:", types);
+    setTicketTypes(types);
+
+    // Initialize quantities for each ticket type
+    const initialQuantities = {};
+    types.forEach((ticket, index) => {
+      initialQuantities[ticket.id] = index === 0 ? 1 : 0;
+    });
+    setQuantities(initialQuantities);
+  };
+
+  // ✅ Fallback ticket types if API fails
+  const fallbackTicketTypes = useMemo(() => [
+    {
+      id: "adult",
+      label: "Adult",
+      description: "Ages 18+ - N2,500",
+      price: 2500,
+    },
+    {
+      id: "child",
+      label: "Child",
+      description: "Ages 5-7 - N1,500",
+      price: 1500,
+    },
+    {
+      id: "family",
+      label: "Family pack",
+      description: "2 Adults + 2 Childrens - N7,000",
+      price: 7000,
+    },
+  ], []);
+
+  // ✅ Use fetched ticket types or fallback
+  const displayTicketTypes = ticketTypes.length > 0 ? ticketTypes : fallbackTicketTypes;
+
+  // ✅ Check authentication on mount
   useEffect(() => {
     const token =
       localStorage.getItem("token") || localStorage.getItem("userToken");
     const isLoggedIn = !!token || isAuthenticated;
 
-    console.log("🔐 Auth check - isLoggedIn:", isLoggedIn);
-
     if (!isLoggedIn) {
       console.log("🚫 User not authenticated - redirecting to signin");
 
-      // Save booking data to localStorage for after login
       const pendingData = {
         touristId: touristId,
         packageId: packageId,
@@ -81,7 +214,6 @@ export default function BookingSummaryPage() {
         returnUrl: `/booking-summary/${touristId}/${packageId}`,
       };
       localStorage.setItem("pendingBooking", JSON.stringify(pendingData));
-      console.log("bookingdetails", pendingData);
 
       Swal.fire({
         icon: "warning",
@@ -100,10 +232,10 @@ export default function BookingSummaryPage() {
     }
   }, [isAuthenticated, navigate, touristId, packageId, bookingData]);
 
+  // ✅ Restore from localStorage if needed
   useEffect(() => {
     if (!bookingData.packageDetails) {
       const pendingBooking = localStorage.getItem("pendingBooking");
-      console.log("📄 pendingBooking from localStorage:", pendingBooking);
       if (pendingBooking) {
         try {
           const parsed = JSON.parse(pendingBooking);
@@ -111,6 +243,12 @@ export default function BookingSummaryPage() {
             packageDetails: parsed.packageDetails,
             centreDetails: parsed.centreDetails,
           });
+          setPackageData(parsed.packageDetails);
+          
+          // Try to generate ticket types from saved data
+          if (parsed.packageDetails) {
+            generateTicketTypes(parsed.packageDetails);
+          }
         } catch (e) {
           console.error("Error parsing pending booking:", e);
         }
@@ -118,37 +256,41 @@ export default function BookingSummaryPage() {
     }
   }, [bookingData.packageDetails]);
 
-  console.log("booking data found:", bookingData);
+  console.log("booking data:", bookingData);
+  console.log("ticket types:", displayTicketTypes);
 
   const increment = (id) =>
-    setQuantities((prev) => ({ ...prev, [id]: prev[id] + 1 }));
+    setQuantities((prev) => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
 
   const decrement = (id) =>
     setQuantities((prev) => ({
       ...prev,
-      [id]: Math.max(0, prev[id] - 1),
+      [id]: Math.max(0, (prev[id] || 0) - 1),
     }));
 
-  const subtotal = ticketTypes.reduce(
-    (sum, t) => sum + t.price * quantities[t.id],
+  // ✅ Calculate subtotal using dynamic ticket types
+  const subtotal = displayTicketTypes.reduce(
+    (sum, t) => sum + t.price * (quantities[t.id] || 0),
     0,
   );
   const total = subtotal + SERVICE_FEE;
 
   const formatNaira = (amount) => `₦${amount.toLocaleString("en-NG")}`;
 
-  const summaryItems = ticketTypes.filter((t) => quantities[t.id] > 0);
+  const summaryItems = displayTicketTypes.filter(
+    (t) => (quantities[t.id] || 0) > 0
+  );
 
-  // ✅ Helper function to create booking and redirect to Korapay
-  const createBookingAndRedirectToKorapay = async (isInstallment = false) => {
-    // ✅ Double-check authentication before proceeding
-    const token =
-      localStorage.getItem("token") || localStorage.getItem("userToken");
+  // ✅ Handle payment
+  const handleContinueToPayment = async () => {
+    console.log("🚀 Starting payment process...");
+    
+    const token = localStorage.getItem("token") || localStorage.getItem("userToken");
     if (!token) {
       Swal.fire({
         icon: "warning",
-        title: "Session Expired",
-        text: "Please log in again to complete your booking.",
+        title: "Authentication Required",
+        text: "Please log in to complete your booking.",
         confirmButtonColor: "#ff6b35",
         confirmButtonText: "Go to Login",
       }).then(() => {
@@ -167,7 +309,6 @@ export default function BookingSummaryPage() {
       return;
     }
 
-    // Validate date
     if (!date) {
       Swal.fire({
         icon: "error",
@@ -178,7 +319,6 @@ export default function BookingSummaryPage() {
       return;
     }
 
-    // Validate tickets
     if (summaryItems.length === 0) {
       Swal.fire({
         icon: "error",
@@ -192,88 +332,44 @@ export default function BookingSummaryPage() {
     setIsProcessing(true);
 
     try {
-      // ✅ Get client ID from multiple sources
-      let clientId = null;
-
-      // 1. Check loggedInUser from Redux
-      if (loggedInUser) {
-        clientId =
-          loggedInUser.id ||
-          loggedInUser._id ||
-          loggedInUser.clientId ||
-          loggedInUser.userId;
-        console.log("📄 Client ID from Redux:", clientId);
+      let formattedDate = date;
+      if (formattedDate && formattedDate.includes("-")) {
+        const parts = formattedDate.split("-");
+        formattedDate = `${parts[1]}/${parts[2]}/${parts[0]}`;
       }
 
-      // 2. Check localStorage
-      if (!clientId) {
-        clientId = localStorage.getItem("clientId");
-        console.log("📄 Client ID from localStorage:", clientId);
-      }
-
-      // 3. Try to decode from token
-      if (!clientId && token) {
-        try {
-          const tokenParts = token.split(".");
-          if (tokenParts.length === 3) {
-            const payload = JSON.parse(atob(tokenParts[1]));
-            console.log("📄 Token payload:", payload);
-            clientId =
-              payload.id ||
-              payload.sub ||
-              payload.userId ||
-              payload.clientId ||
-              payload._id;
-            console.log("📄 Client ID from token:", clientId);
-
-            // Save for future use
-            if (clientId) {
-              localStorage.setItem("clientId", clientId);
-            }
-          }
-        } catch (e) {
-          console.error("❌ Error decoding token:", e);
-        }
-      }
-
-      console.log("📄 Final Client ID:", clientId);
-
-      // ✅ Step 1: Create the booking
       const bookingDataPayload = {
-        visitDate: date,
-        clientId: clientId,
+        visitDate: formattedDate,
       };
 
       const bookingResult = await dispatch(
         createBooking({
           touristId: touristId,
           packageId: packageId,
-          bookingData: bookingDataPayload,
-        }),
+          bookingData: bookingDataPayload
+        })
       ).unwrap();
 
-      console.log("📄 Booking Creation Response:", bookingResult);
-
-      if (!bookingResult) {
-        throw new Error("No response from server");
-      }
-
       const bookingId =
-        bookingResult?.booking?.id ||
-        bookingResult?.data?.booking?.id ||
         bookingResult?.data?.id ||
+        bookingResult?.booking?.id ||
         bookingResult?.id;
 
-      console.log("📄 Booking Result:", bookingResult);
-      console.log("📄 Booking ID:", bookingId);
-
       if (!bookingId) {
-        throw new Error("Could not retrieve booking ID from server response");
+        throw new Error("Could not retrieve booking ID");
       }
+
+      await Swal.fire({
+        icon: "success",
+        title: "🎉 Booking Created Successfully!",
+        text: "Your booking has been created. Now redirecting to payment...",
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
 
       localStorage.removeItem("pendingBooking");
 
-      // ✅ Step 2: Initialize payment with Korapay
       const customerEmail =
         loggedInUser?.email ||
         loggedInUser?.Email ||
@@ -287,93 +383,134 @@ export default function BookingSummaryPage() {
         loggedInUser?.firstName ||
         "Customer";
 
-      console.log("Logged In User:", loggedInUser);
-      console.log("Customer Email:", customerEmail);
-
       const paymentData = {
         amount: total,
-
         customer: {
           email: customerEmail,
           name: customerName,
         },
-
-        // callbackUrl: `${window.location.origin}/payment-checkout/${bookingId}`,
-
         subtotal,
         serviceFee: SERVICE_FEE,
-        date,
-
+        date: formattedDate,
         numberOfPeople: summaryItems.reduce(
-          (sum, t) => sum + quantities[t.id],
+          (sum, t) => sum + (quantities[t.id] || 0),
           0,
         ),
-
         ticketDetails: summaryItems.map((t) => ({
           ticketType: t.id,
-          quantity: quantities[t.id],
+          ticketLabel: t.label,
+          quantity: quantities[t.id] || 0,
           price: t.price,
+          planId: t.planId || null,
+          packageId: t.packageId || null,
         })),
-
-        isInstallment,
+        packageId: packageId,
+        packageName: packageData?.packageName || packageData?.name || "Package",
+        touristId: touristId,
       };
-      console.log("📄 Initializing Korapay payment with data:", paymentData);
 
-      const paymentResponse = await dispatch(
-        initializePayment({
+      console.log("📄 Payment Data:", paymentData);
+
+      try {
+        const paymentResponse = await dispatch(
+          initializePayment({
+            bookingId: bookingId,
+            paymentData: paymentData,
+          })
+        ).unwrap();
+
+        const bookingState = {
           bookingId: bookingId,
-          paymentData: paymentData,
-        }),
-      ).unwrap();
+          amount: total,
+          subtotal: subtotal,
+          serviceFee: SERVICE_FEE,
+          centreDetails: bookingData.centreDetails,
+          packageDetails: bookingData.packageDetails,
+          ticketDetails: summaryItems.map((t) => ({
+            ticketType: t.id,
+            ticketLabel: t.label,
+            quantity: quantities[t.id] || 0,
+            price: t.price,
+          })),
+          numberOfPeople: summaryItems.reduce(
+            (sum, t) => sum + (quantities[t.id] || 0),
+            0,
+          ),
+          date: formattedDate,
+          packageId: packageId,
+          touristId: touristId,
+        };
 
-      console.log("📄 Korapay Payment Response:", paymentResponse);
+        localStorage.setItem("pendingBookingState", JSON.stringify(bookingState));
 
-      // ✅ Step 3: Save booking data to localStorage for when user returns from Korapay
-      const bookingState = {
-        bookingId: bookingId,
-        amount: total,
-        subtotal: subtotal,
-        serviceFee: SERVICE_FEE,
-        centreDetails: bookingData.centreDetails,
-        packageDetails: bookingData.packageDetails,
-        ticketDetails: summaryItems.map((t) => ({
-          ticketType: t.id,
-          quantity: quantities[t.id],
-          price: t.price,
-        })),
-        numberOfPeople: summaryItems.reduce(
-          (sum, t) => sum + quantities[t.id],
-          0,
-        ),
-        date: date,
-        isInstallment: isInstallment,
-      };
+        const redirectUrl = 
+          paymentResponse?.data?.redirect_url ||
+          paymentResponse?.data?.url ||
+          paymentResponse?.data?.paymentUrl ||
+          paymentResponse?.redirect_url ||
+          paymentResponse?.url ||
+          paymentResponse?.paymentUrl ||
+          paymentResponse?.link;
 
-      // Store booking data for when user returns from Korapay
-      localStorage.setItem("pendingBookingState", JSON.stringify(bookingState));
+        console.log("✅ Found redirect URL:", redirectUrl);
 
-      // ✅ Step 4: Redirect to Korapay payment page
-      // const redirectUrl = paymentResponse?.data?.redirect_url;
-
-      console.log("Payment Response:", paymentResponse);
-      // console.log("Redirect URL:", redirectUrl);
-
-      // if (redirectUrl) {
-      //   window.location.href = redirectUrl;
-      // } else {
-      //   throw new Error("No redirect URL received from payment gateway");
-      // }
+        if (redirectUrl && redirectUrl.startsWith('http')) {
+          await Swal.fire({
+            icon: "info",
+            title: "Redirecting to Payment",
+            text: "You will be redirected to the payment gateway to complete your transaction.",
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          });
+          
+          window.location.href = redirectUrl;
+        } else {
+          console.error("❌ No valid redirect URL found");
+          
+          await Swal.fire({
+            icon: "success",
+            title: "Booking Created Successfully!",
+            html: `
+              <p>Your booking has been created with ID: <strong>${bookingId}</strong></p>
+              <p>Total Amount: <strong>${formatNaira(total)}</strong></p>
+              <p style="margin-top: 15px;">
+                <button onclick="window.location.href='/payment-checkout/${bookingId}'" 
+                        style="background: #ff6b35; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px;">
+                  Complete Payment
+                </button>
+              </p>
+            `,
+            confirmButtonColor: "#ff6b35",
+            confirmButtonText: "View My Bookings",
+          }).then(() => {
+            navigate("/my-bookings");
+          });
+        }
+      } catch (paymentError) {
+        console.error("❌ Payment initialization failed:", paymentError);
+        
+        await Swal.fire({
+          icon: "warning",
+          title: "Booking Created but Payment Failed",
+          html: `
+            <p>Your booking was created successfully with ID: <strong>${bookingId}</strong></p>
+            <p>Total Amount: <strong>${formatNaira(total)}</strong></p>
+            <p style="margin-top: 15px;">Please try to complete your payment later or contact support.</p>
+          `,
+          confirmButtonColor: "#ff6b35",
+          confirmButtonText: "Go to My Bookings",
+        }).then(() => {
+          navigate("/my-bookings");
+        });
+      }
     } catch (error) {
       console.error("❌ Error:", error);
 
       let errorMessage = "Unable to process your booking. Please try again.";
 
-      if (
-        error === "Client not found" ||
-        error?.message === "Client not found"
-      ) {
+      if (error?.message === "Client not found") {
         errorMessage = "Your account was not found. Please log in again.";
-
         Swal.fire({
           icon: "error",
           title: "Session Expired",
@@ -400,7 +537,7 @@ export default function BookingSummaryPage() {
 
       Swal.fire({
         icon: "error",
-        title: "Payment Initialization Failed",
+        title: "Booking Failed",
         text: errorMessage,
         confirmButtonColor: "#ff6b35",
       });
@@ -409,68 +546,22 @@ export default function BookingSummaryPage() {
     }
   };
 
-  // ✅ Handle regular payment
-  const handleContinueToPayment = () => {
-    // ✅ Check authentication before proceeding
-    const token =
-      localStorage.getItem("token") || localStorage.getItem("userToken");
-    if (!token) {
-      Swal.fire({
-        icon: "warning",
-        title: "Authentication Required",
-        text: "Please log in to complete your booking.",
-        confirmButtonColor: "#ff6b35",
-        confirmButtonText: "Go to Login",
-      }).then(() => {
-        navigate("/signin", {
-          state: {
-            from: `/booking-summary/${touristId}/${packageId}`,
-            bookingData: {
-              touristId: touristId,
-              packageId: packageId,
-              packageDetails: bookingData.packageDetails,
-              centreDetails: bookingData.centreDetails,
-            },
-          },
-        });
-      });
-      return;
-    }
-    createBookingAndRedirectToKorapay(false);
-  };
+  // ✅ Loading state
+  if (packagesLoading || paymentPlanLoading) {
+    return (
+      <div className="bp-page">
+        <div className="bp-header">
+          <h1 className="bp-title">Loading Package Details...</h1>
+        </div>
+        <div style={{ textAlign: "center", padding: "60px 20px" }}>
+          <div className="spinner"></div>
+          <p>Please wait...</p>
+        </div>
+      </div>
+    );
+  }
 
-  // ✅ Handle installment payment
-  const handleInstallmentClick = () => {
-    // ✅ Check authentication before proceeding
-    const token =
-      localStorage.getItem("token") || localStorage.getItem("userToken");
-    if (!token) {
-      Swal.fire({
-        icon: "warning",
-        title: "Authentication Required",
-        text: "Please log in to complete your booking.",
-        confirmButtonColor: "#ff6b35",
-        confirmButtonText: "Go to Login",
-      }).then(() => {
-        navigate("/signin", {
-          state: {
-            from: `/booking-summary/${touristId}/${packageId}`,
-            bookingData: {
-              touristId: touristId,
-              packageId: packageId,
-              packageDetails: bookingData.packageDetails,
-              centreDetails: bookingData.centreDetails,
-            },
-          },
-        });
-      });
-      return;
-    }
-    createBookingAndRedirectToKorapay(true);
-  };
-
-  // ✅ Show loading/redirect if no package details
-  if (!bookingData.packageDetails) {
+  if (!bookingData.packageDetails && !packageData) {
     return (
       <div className="bp-page">
         <div className="bp-header">
@@ -499,13 +590,16 @@ export default function BookingSummaryPage() {
     );
   }
 
+  const displayPackage = packageData || bookingData.packageDetails;
+  const displayCentre = bookingData.centreDetails;
+
   return (
     <div className="bp-page">
       <div className="bp-header">
         <h1 className="bp-title">Complete Your Booking</h1>
         <p className="bp-subtitle">Just a few more steps to your booking</p>
 
-        {bookingData.centreDetails && (
+        {displayCentre && (
           <div
             className="bp-booking-info"
             style={{
@@ -520,17 +614,15 @@ export default function BookingSummaryPage() {
           >
             <div>
               <strong>
-                {bookingData.centreDetails.centreName ||
-                  bookingData.centreDetails.name}
+                {displayCentre.centreName || displayCentre.name}
               </strong>
               <span style={{ marginLeft: "16px", color: "#666" }}>
-                {bookingData.centreDetails.city},{" "}
-                {bookingData.centreDetails.state}
+                {displayCentre.city}, {displayCentre.state}
               </span>
             </div>
             <div>
               <span style={{ color: "#666" }}>
-                Package: {bookingData.packageDetails.packageName}
+                Package: {displayPackage?.packageName || displayPackage?.name || "Package"}
               </span>
               <span
                 style={{
@@ -540,8 +632,8 @@ export default function BookingSummaryPage() {
                 }}
               >
                 ₦
-                {bookingData.packageDetails.amount?.toLocaleString() ||
-                  bookingData.packageDetails.price?.toLocaleString() ||
+                {displayPackage?.amount?.toLocaleString() ||
+                  displayPackage?.price?.toLocaleString() ||
                   "0"}
               </span>
             </div>
@@ -567,7 +659,7 @@ export default function BookingSummaryPage() {
           <section className="bp-section">
             <h2 className="bp-section-title">Select Ticket</h2>
             <div className="bp-tickets">
-              {ticketTypes.map((ticket) => (
+              {displayTicketTypes.map((ticket) => (
                 <div key={ticket.id} className="bp-ticket-row">
                   <div className="bp-ticket-info">
                     <span className="bp-ticket-label">{ticket.label}</span>
@@ -589,7 +681,7 @@ export default function BookingSummaryPage() {
                       </svg>
                     </button>
                     <span className="bp-counter-value">
-                      {quantities[ticket.id]}
+                      {quantities[ticket.id] || 0}
                     </span>
                     <button
                       className="bp-counter-btn"
@@ -620,20 +712,42 @@ export default function BookingSummaryPage() {
         <div className="bp-card bp-right-card">
           <h2 className="bp-summary-title">Booking Summary</h2>
 
+          {displayPackage && (
+            <div className="bp-summary-package" style={{
+              background: "#f8f9fa",
+              padding: "12px 16px",
+              borderRadius: "8px",
+              marginBottom: "16px",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontWeight: 600 }}>
+                  {displayPackage.packageName || displayPackage.name || "Package"}
+                </span>
+                <span style={{ color: "#ff6b35", fontWeight: 600 }}>
+                  ₦{(displayPackage.amount || displayPackage.price || 0).toLocaleString()}
+                </span>
+              </div>
+              {displayPackage.description && (
+                <p style={{ fontSize: "14px", color: "#666", marginTop: "4px" }}>
+                  {displayPackage.description}
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="bp-summary-items">
             {summaryItems.map((t) => (
               <div key={t.id} className="bp-summary-row">
                 <div className="bp-summary-item-info">
                   <span className="bp-summary-item-name">
-                    {t.id === "family" ? "Family Pack" : t.label} x
-                    {quantities[t.id]}
+                    {t.label} x {quantities[t.id] || 0}
                   </span>
                   <span className="bp-summary-item-price-desc">
                     ₦{t.price.toLocaleString("en-NG")} each
                   </span>
                 </div>
                 <span className="bp-summary-item-total">
-                  {formatNaira(t.price * quantities[t.id])}
+                  {formatNaira(t.price * (quantities[t.id] || 0))}
                 </span>
               </div>
             ))}
@@ -677,17 +791,6 @@ export default function BookingSummaryPage() {
               {bookingError}
             </p>
           )}
-
-          <p className="bp-installment">
-            Or{" "}
-            <span
-              className="bp-installment-link"
-              onClick={handleInstallmentClick}
-              style={{ cursor: "pointer" }}
-            >
-              Pay Instalmentally
-            </span>
-          </p>
         </div>
       </div>
     </div>

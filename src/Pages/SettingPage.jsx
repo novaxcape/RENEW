@@ -179,7 +179,7 @@ const SettingsPage = () => {
     formData.append('businessName', businessData.businessName);
     formData.append('address', businessData.address);
     formData.append('phoneNumber', businessData.phoneNumber);
-    formData.append('email', businessData.email);
+    // formData.append('email', businessData.email);
 
     try {
       await dispatch(updateVendorProfile(formData)).unwrap();
@@ -245,7 +245,7 @@ const SettingsPage = () => {
           />
         </div>
 
-        <div className="form-group">
+        {/* <div className="form-group">
           <label>Email</label>
           <input
             type="email"
@@ -255,7 +255,7 @@ const SettingsPage = () => {
             placeholder="lekkiconservationcenter688@gmail.com"
             required
           />
-        </div>
+        </div> */}
 
         <button type="submit" className="orange-btn" disabled={vendorLoading}>
           {vendorLoading ? "Saving..." : "Update Business Info"}

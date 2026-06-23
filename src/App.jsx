@@ -1,5 +1,6 @@
 import React from "react";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import ScrollToTop from "./components/ScrollToTop"
 
 // Import your header and layout tool
 import Header from "./components/Header";
@@ -71,219 +72,221 @@ import DashboardPackageInactive from "./Pages/DashboardPackageInactive";
 
 const App = () => {
   return (
-    <Routes>
-    
-      {/* The RootLayout houses the conditional header switcher */}
-      <Route path="/" element={<RootLayout />}>
-        {/* All pages inside here will get injected into the <Outlet /> */}
-        <Route index element={<LandingPage />} />
-        <Route path="discover" element={<Discover />} />
-        <Route path="centres" element={<ForCentrePage />} />
-        <Route path="about" element={<About />} />
-        <Route path="support" element={<Support />} />
-         <Route path="review" element={<ReviewPage/>} />
-        {/* ✅ ADDED: Product Detail Page Route */}
-        <Route path="centre/:id" element={<ProductDetails />} />
-        {/* Add all other route tracks below */}
-        <Route path="/my-bookings" element={<MyBookingsPage/>} />
-      </Route>
+    <>
+      <ScrollToTop />
+      <Routes>
       
-      {/* Client Protected Pages (Require login but keep the main header) */}
-      <Route
-        path="/wishlist"
-        element={
-          <PrivateRoute>
-            <WishList />
-          </PrivateRoute>
-        }
-      />
-
-   
-      
-      {/* ✅ PAYMENT CHECKOUT ROUTE - Using touristId and packageId */}
-      <Route
-        path="/payment-checkout/:touristId/:packageId"
-        element={
-          <PrivateRoute>
-            <PaymentCheckout />
-          </PrivateRoute>
-        }
-      />
-
-      <Route
-        path="/payment"
-        element={
-          <PrivateRoute>
-            <PaymentOptionPage />
-          </PrivateRoute>
-        }
-      />
-      
-      {/* ✅ BOOKING CONFIRMATION ROUTE - From components */}
-      <Route
-        path="/booking-confirmation/:bookingId"
-        element={
-          <PrivateRoute>
-            <BookingConfirmation />
-          </PrivateRoute>
-        }
-      />
-      
-      <Route
-        path="/my-bookings"
-        element={
-          <PrivateRoute>
-            <MyBookingsPage />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/payment-confirmation"
-        element={
-          <PrivateRoute>
-            <PaymentConfirmationPage />
-          </PrivateRoute>
-        }
-      />
+        {/* The RootLayout houses the conditional header switcher */}
+        <Route path="/" element={<RootLayout />}>
+          {/* All pages inside here will get injected into the <Outlet /> */}
+          <Route index element={<LandingPage />} />
+          <Route path="discover" element={<Discover />} />
+          <Route path="centres" element={<ForCentrePage />} />
+          <Route path="about" element={<About />} />
+          <Route path="support" element={<Support />} />
+           <Route path="review" element={<ReviewPage/>} />
+          {/* ✅ ADDED: Product Detail Page Route */}
+          <Route path="centre/:id" element={<ProductDetails />} />
+          {/* Add all other route tracks below */}
+          <Route path="/my-bookings" element={<MyBookingsPage/>} />
+        </Route>
         
-      <Route
-        path="/settings"
-        element={
-          <PrivateRoute>
-            <SettingsPage />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/profile-settings"
-        element={
-          <PrivateRoute>
-            <ProfileSettingPage />
-          </PrivateRoute>
-        }
-      />
+        {/* Client Protected Pages (Require login but keep the main header) */}
+        <Route
+          path="/wishlist"
+          element={
+            <PrivateRoute>
+              <WishList />
+            </PrivateRoute>
+          }
+        />
 
-      <Route
-        path="/signupscreen"
-        element={
-          <PublicRoute>
-            <SignupScreen />
-          </PublicRoute>
-        }
-      />
+     
+        
+        {/* ✅ PAYMENT CHECKOUT ROUTE - Using touristId and packageId */}
+        <Route
+          path="/payment-checkout/:touristId/:packageId"
+          element={
+            <PrivateRoute>
+              <PaymentCheckout />
+            </PrivateRoute>
+          }
+        />
 
-   
+        <Route
+          path="/payment"
+          element={
+            <PrivateRoute>
+              <PaymentOptionPage />
+            </PrivateRoute>
+          }
+        />
+        
+        {/* ✅ BOOKING CONFIRMATION ROUTE - From components */}
+        <Route
+          path="/booking-confirmation/:bookingId"
+          element={
+            <PrivateRoute>
+              <BookingConfirmation />
+            </PrivateRoute>
+          }
+        />
+        
+        <Route
+          path="/my-bookings"
+          element={
+            <PrivateRoute>
+              <MyBookingsPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/payment-confirmation"
+          element={
+            <PrivateRoute>
+              <PaymentConfirmationPage />
+            </PrivateRoute>
+          }
+        />
+          
+        <Route
+          path="/settings"
+          element={
+            <PrivateRoute>
+              <SettingsPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/profile-settings"
+          element={
+            <PrivateRoute>
+              <ProfileSettingPage />
+            </PrivateRoute>
+          }
+        />
 
-      <Route
-        path="/signinscreen"
-        element={
-          <PublicRoute>
-            <SignInScreen />
-          </PublicRoute>
-        }
-      />
+        <Route
+          path="/signupscreen"
+          element={
+            <PublicRoute>
+              <SignupScreen />
+            </PublicRoute>
+          }
+        />
 
-      <Route
-        path="/signup"
-        element={
-          <PublicRoute>
-            <SignUp />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/signin"
-        element={
-          <PublicRoute>
-            <Login />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/forgot-password"
-        element={
-          <PublicRoute>
-            <ForgotPassword />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/verify-email"
-        element={
-          <PublicRoute>
-            <VerifyOtp />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/reset-password"
-        element={
-          <PublicRoute>
-            <ResetPassword />
-          </PublicRoute>
-        }
-      />
+     
 
-      {/* Vendor Auth */}
-      {/* ========== VENDOR AUTH ROUTES (Public) ========== */}
-      <Route
-        path="/signupvendor"
-        element={
-          <PublicRoute role="vendor">
-            <SignUpVendor />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/vendor/verify-otp"
-        element={
-          <PublicRoute role="vendor">
-            <VendorVerifyOtp />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/vendor/login"
-        element={
-          <PublicRoute role="vendor">
-            <VendorLogin />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/vendor/forgot-password"
-        element={
-          <PublicRoute role="vendor">
-            <VendorForgotPassword />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/vendor/reset-password"
-        element={
-          <PublicRoute role="vendor">
-            <VendorResetPassword />
-          </PublicRoute>
-        }
-      />
+        <Route
+          path="/signinscreen"
+          element={
+            <PublicRoute>
+              <SignInScreen />
+            </PublicRoute>
+          }
+        />
 
-      <Route
-        path="DashboardPackageActive"
-        element={
-          <PublicRoute role="DashboardPackageActive">
-            <DashboardPackageActive />
-          </PublicRoute>
-        }
-      />
+        <Route
+          path="/signup"
+          element={
+            <PublicRoute>
+              <SignUp />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/signin"
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <PublicRoute>
+              <ForgotPassword />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/verify-email"
+          element={
+            <PublicRoute>
+              <VerifyOtp />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <PublicRoute>
+              <ResetPassword />
+            </PublicRoute>
+          }
+        />
 
-      <Route
-        path="DashboardPackageInactive"
-        element={
-          <PublicRoute role="DashboardPackageInactive">
-            <DashboardPackageInactive />
-          </PublicRoute>
-        }
-      />
+        {/* Vendor Auth */}
+        {/* ========== VENDOR AUTH ROUTES (Public) ========== */}
+        <Route
+          path="/signupvendor"
+          element={
+            <PublicRoute role="vendor">
+              <SignUpVendor />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/vendor/verify-otp"
+          element={
+            <PublicRoute role="vendor">
+              <VendorVerifyOtp />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/vendor/login"
+          element={
+            <PublicRoute role="vendor">
+              <VendorLogin />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/vendor/forgot-password"
+          element={
+            <PublicRoute role="vendor">
+              <VendorForgotPassword />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/vendor/reset-password"
+          element={
+            <PublicRoute role="vendor">
+              <VendorResetPassword />
+            </PublicRoute>
+          }
+        />
+
+        <Route
+          path="DashboardPackageActive"
+          element={
+            <PublicRoute role="DashboardPackageActive">
+              <DashboardPackageActive />
+            </PublicRoute>
+          }
+        />
+
+        <Route
+          path="DashboardPackageInactive"
+          element={
+            <PublicRoute role="DashboardPackageInactive">
+              <DashboardPackageInactive />
+            </PublicRoute>
+          }
+        />
 
       <Route
         path="/wishlist"
@@ -311,16 +314,17 @@ const App = () => {
         }
       />
 
-      {/* ✅ BOOKING SUMMARY ROUTE */}
-      <Route
-        path="/booking-summary/:touristId/:packageId"
-        element={
-          <PrivateRoute>
-            <BookingSummaryPage />
-          </PrivateRoute>
-        }
-      />
+        {/* ✅ BOOKING SUMMARY ROUTE */}
+        <Route
+          path="/booking-summary/:touristId/:packageId"
+          element={
+            <PrivateRoute>
+              <BookingSummaryPage />
+            </PrivateRoute>
+          }
+        />
 
+       
       {/* ========== VENDOR DASHBOARD ROUTES (Protected) ========== */}
       <Route
         path="/vendor/dashboard"
@@ -339,73 +343,74 @@ const App = () => {
         <Route path="support" element={<Support />} />
       </Route>
 
-      <Route
-        path="/dashboard"
-        element={<Navigate to="/vendor/dashboard" replace />}
-      />
+        <Route
+          path="/dashboard"
+          element={<Navigate to="/vendor/dashboard" replace />}
+        />
 
-      {/* ========== VENDOR PROTECTED ROUTES (Require login) ========== */}
-      <Route
-        path="/vendor/change-password"
-        element={
-          <PrivateRoute role="vendor">
-            <VendorChangePassword />
-          </PrivateRoute>
-        }
-      />
+        {/* ========== VENDOR PROTECTED ROUTES (Require login) ========== */}
+        <Route
+          path="/vendor/change-password"
+          element={
+            <PrivateRoute role="vendor">
+              <VendorChangePassword />
+            </PrivateRoute>
+          }
+        />
 
-      {/* ========== STANDALONE PROTECTED PAGES ========== */}
-      <Route
-        path="/settings"
-        element={
-          <PrivateRoute>
-            <SettingsPage />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/profile-settings"
-        element={
-          <PrivateRoute>
-            <ProfileSettingPage />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/add-centre"
-        element={
-          <PrivateRoute role="vendor">
-            <AddCentre />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/kyc"
-        element={
-          <PrivateRoute role="vendor">
-            <KycPage />
-          </PrivateRoute>
-        }
-      />
+        {/* ========== STANDALONE PROTECTED PAGES ========== */}
+        <Route
+          path="/settings"
+          element={
+            <PrivateRoute>
+              <SettingsPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/profile-settings"
+          element={
+            <PrivateRoute>
+              <ProfileSettingPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/add-centre"
+          element={
+            <PrivateRoute role="vendor">
+              <AddCentre />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/kyc"
+          element={
+            <PrivateRoute role="vendor">
+              <KycPage />
+            </PrivateRoute>
+          }
+        />
 
-      {/* ========== FALLBACK for 404 ========== */}
-      <Route
-        path="*"
-        element={
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "100vh",
-              fontSize: "24px",
-            }}
-          >
-            404 - Page Not Found
-          </div>
-        }
-      />
-    </Routes>
+        {/* ========== FALLBACK for 404 ========== */}
+        <Route
+          path="*"
+          element={
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100vh",
+                fontSize: "24px",
+              }}
+            >
+              404 - Page Not Found
+            </div>
+          }
+        />
+      </Routes>
+    </>
   );
 };
 
