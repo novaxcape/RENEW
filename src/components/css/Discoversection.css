@@ -1,5 +1,7 @@
 .discover {
   width: 90%;
+  /* height:50%; */
+  /* background-color:gray ; */
   margin: 50px auto;
 }
 
@@ -8,7 +10,7 @@
   justify-content: space-between;
   gap: 20px;
   flex-wrap: wrap;
-  margin-bottom: 40px;
+  /* margin-bottom: 40px; */
 }
 
 .category-btn {
@@ -141,42 +143,38 @@
 
   .category-container {
     justify-content: center;
-  }
-}
-/* Prevent layout shifts and glitching */
+  }}
+/* }
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
-  /* Optimize rendering */
   will-change: contents;
   contain: layout style paint;
-  /* Prevent jumps when items load */
   min-height: 200px;
 }
 
 .card {
-  /* Prevent reflow */
   contain: content;
   transition: none !important;
   will-change: auto;
-  /* Smooth rendering */
+
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   transform: translateZ(0);
-  /* Prevent content jumping */
+
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
 .card img {
-  /* Prevent image flicker */
+
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   transform: translateZ(0);
   image-rendering: auto;
-  /* Prevent layout shift during load */
+  
   aspect-ratio: 16/9;
   object-fit: cover;
   width: 100%;
@@ -193,14 +191,14 @@
   margin-top: auto;
 }
 
-/* Prevent flash of unstyled content */
+
 .category-container,
 .card-grid {
   opacity: 1;
   transition: opacity 0.15s ease;
 }
 
-/* Spinner animation - smooth */
+
 .spinner {
   width: 40px;
   height: 40px;
@@ -224,4 +222,4 @@
 .loading-container p {
   margin-top: 16px;
   color: #666;
-}
+} */

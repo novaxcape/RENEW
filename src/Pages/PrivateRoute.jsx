@@ -10,21 +10,144 @@ const PrivateRoute = ({ children, role = "client" }) => {
   const dispatch = useDispatch();
   const [checking, setChecking] = useState(true);
   const [redirectTo, setRedirectTo] = useState(null);
-  
-  const { 
-    userToken, 
-    isAuthenticated, 
-    isVendor, 
+
+  const {
+    userToken,
+    isAuthenticated,
+    isVendor,
     vendorId,
     vendorHasCentre,
-    vendorHasPackages 
+    vendorHasPackages,
   } = useSelector((state) => state.auth);
-  const { vendorCentres, packages } = useSelector((state) => state.api);
 
-  // Check for token in localStorage as fallback
-  const token = userToken || localStorage.getItem("userToken") || localStorage.getItem("token");
+  const token =
+    userToken ||
+    localStorage.getItem("userToken") ||
+    localStorage.getItem("token");
   const vendorToken = localStorage.getItem("vendorToken");
   const vendorIdFromStorage = vendorId || localStorage.getItem("vendorId");
+
+  // ✅ Define onboarding pages that should skip status checks
+  const onboardingPages = ["/add-centre", "/kyc", "/vendor/dashboard/package"];
+
+  useEffect(() => {
+    const checkVendorStatus = async () => {
+      try {
+        // ✅ Skip checking on onboarding pages
+        if (onboardingPages.includes(location.pathname)) {
+          console.log(
+            `📄 Onboarding page detected: ${location.pathname}, skipping status check`,
+          );
+          setChecking(false);
+          return;
+        }
+
+        // ✅ Check localStorage for KYC completion
+        const kycSubmitted = localStorage.getItem("kycSubmitted") === "true";
+        const hasCentreFromStorage =
+          localStorage.getItem("vendorHasCentre") === "true";
+        const hasPackagesFromStorage =
+          localStorage.getItem("vendorHasPackages") === "true";
+
+        if (kycSubmitted && hasCentreFromStorage && hasPackagesFromStorage) {
+          console.log("✅ KYC already submitted, vendor is complete");
+
+          dispatch(
+            setVendorStatus({
+              hasCentre: true,
+              hasPackages: true,
+              vendorId: vendorIdFromStorage,
+            }),
+          );
+
+          // ✅ Clear any previous redirect
+          setRedirectTo(null);
+          setChecking(false);
+          return;
+        }
+
+        if (!vendorIdFromStorage) {
+          setRedirectTo("/add-centre");
+          setChecking(false);
+          return;
+        }
+
+        // ✅ Check Redux state first before API call
+        if (vendorHasCentre !== undefined && vendorHasPackages !== undefined) {
+          const currentPath = location.pathname;
+
+          if (!vendorHasCentre) {
+            setRedirectTo("/add-centre");
+          } else if (!vendorHasPackages) {
+            setRedirectTo("/vendor/dashboard/package");
+          } else if (vendorHasCentre && vendorHasPackages) {
+            if (onboardingPages.includes(currentPath)) {
+              setRedirectTo("/vendor/dashboard");
+            }
+          }
+
+          setChecking(false);
+          return;
+        }
+
+        // Fetch vendor centres
+        const centresResult = await dispatch(
+          getVendorTouristCenters(vendorIdFromStorage),
+        ).unwrap();
+
+        const centres = centresResult?.data || centresResult || [];
+        const hasCentre = centres.length > 0;
+
+        let hasPackages = false;
+        if (hasCentre && centres[0]?.id) {
+          try {
+            const packagesResult = await dispatch(
+              getAllPackages(centres[0].id),
+            ).unwrap();
+            const packagesList = packagesResult?.data || packagesResult || [];
+            hasPackages = packagesList.length > 0;
+          } catch (pkgError) {
+            console.error("Error fetching packages:", pkgError);
+            hasPackages = false;
+          }
+        }
+
+        // Update vendor status in auth state
+        dispatch(
+          setVendorStatus({
+            hasCentre,
+            hasPackages,
+            vendorId: vendorIdFromStorage,
+          }),
+        );
+
+        if (!hasCentre) {
+          setRedirectTo("/add-centre");
+        } else if (!hasPackages) {
+          setRedirectTo("/vendor/dashboard/package");
+        }
+      } catch (error) {
+        console.error("Error checking vendor status:", error);
+        setRedirectTo("/add-centre");
+      } finally {
+        setChecking(false);
+      }
+    };
+
+    if (isAuthenticated && isVendor) {
+      checkVendorStatus();
+    } else {
+      setChecking(false);
+    }
+  }, [
+    dispatch,
+    isAuthenticated,
+    isVendor,
+    vendorIdFromStorage,
+    location.pathname,
+    vendorHasCentre,
+    vendorHasPackages,
+  ]);
 
   // For vendor routes
   if (role === "vendor") {
@@ -34,112 +157,56 @@ const PrivateRoute = ({ children, role = "client" }) => {
       return <Navigate to="/vendor/login" state={{ from: location }} replace />;
     }
 
-    // Check vendor status and redirect
-    useEffect(() => {
-      const checkVendorStatus = async () => {
-        try {
-          // Skip if already checked or no vendor ID
-          if (!vendorIdFromStorage) {
-            setRedirectTo("/vendor/add-centre");
-            setChecking(false);
-            return;
-          }
-
-          // If we already have status in Redux, use it
-          if (vendorHasCentre !== undefined) {
-            setChecking(false);
-            return;
-          }
-
-          // Fetch vendor centres
-          const centresResult = await dispatch(
-            getVendorTouristCenters(vendorIdFromStorage)
-          ).unwrap();
-          
-          const centres = centresResult?.data || centresResult || [];
-          const hasCentre = centres.length > 0;
-
-          // Check if vendor has packages
-          let hasPackages = false;
-          if (hasCentre && centres[0]?.id) {
-            const packagesResult = await dispatch(
-              getAllPackages(centres[0].id)
-            ).unwrap();
-            const packagesList = packagesResult?.data || packagesResult || [];
-            hasPackages = packagesList.length > 0;
-          }
-
-          // Update vendor status in auth state
-          dispatch(
-            setVendorStatus({
-              hasCentre,
-              hasPackages,
-              vendorId: vendorIdFromStorage,
-            })
-          );
-
-          // Determine redirect based on status and current path
-          const currentPath = location.pathname;
-          
-          if (!hasCentre) {
-            if (currentPath !== "/vendor/add-centre") {
-              setRedirectTo("/vendor/add-centre");
-            }
-          } else if (!hasPackages) {
-            if (currentPath !== "/vendor/add-package") {
-              setRedirectTo("/vendor/add-package");
-            }
-          } else {
-            // Has both - redirect to dashboard if on add pages
-            if (currentPath === "/vendor/add-centre" || currentPath === "/vendor/add-package") {
-              setRedirectTo("/vendor/dashboard");
-            }
-          }
-        } catch (error) {
-          console.error("Error checking vendor status:", error);
-          setRedirectTo("/vendor/add-centre");
-        } finally {
-          setChecking(false);
-        }
-      };
-
-      // Only check if authenticated and vendor
-      if (isAuthenticated && isVendor) {
-        checkVendorStatus();
-      } else {
-        setChecking(false);
-      }
-    }, [dispatch, isAuthenticated, isVendor, vendorIdFromStorage, location.pathname]);
-
-    // Show loading while checking
     if (checking) {
       return (
-        <div style={{ 
-          display: "flex", 
-          justifyContent: "center", 
-          alignItems: "center", 
-          height: "100vh",
-          flexDirection: "column",
-          gap: "20px"
-        }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+            flexDirection: "column",
+            gap: "20px",
+          }}
+        >
           <div className="spinner"></div>
           <p>Checking vendor status...</p>
         </div>
       );
     }
 
-    // Redirect if needed
-    if (redirectTo) {
-      return <Navigate to={redirectTo} replace />;
-    }
+    // ✅ Check if KYC is submitted
+    const kycSubmitted = localStorage.getItem("kycSubmitted") === "true";
 
-    // If vendor has centre and packages, render children
-    if (vendorHasCentre && vendorHasPackages) {
+    // ✅ Get status from Redux or localStorage
+    const hasCentre = vendorHasCentre || localStorage.getItem("vendorHasCentre") === "true";
+    const hasPackages = vendorHasPackages || localStorage.getItem("vendorHasPackages") === "true";
+
+    // ✅ If KYC is completed, allow access to all pages
+    if (kycSubmitted && hasCentre && hasPackages) {
       return children;
     }
 
-    // If vendor doesn't have centre or packages, don't render
-    return null;
+    // ✅ If on onboarding page, allow access
+    if (onboardingPages.includes(location.pathname)) {
+      return children;
+    }
+
+    // ✅ Redirect if needed
+    if (redirectTo && !onboardingPages.includes(location.pathname)) {
+      return <Navigate to={redirectTo} replace />;
+    }
+
+    // ✅ Check status and redirect
+    if (!hasCentre) {
+      return <Navigate to="/add-centre" replace />;
+    }
+
+    if (!hasPackages) {
+      return <Navigate to="/vendor/dashboard/package" replace />;
+    }
+
+    return children;
   }
 
   // For client routes
