@@ -87,7 +87,7 @@ const Login = () => {
                 centreDetails: booking.centreDetails,
               },
               replace: true,
-            },
+            }
           );
           return;
         }
@@ -119,9 +119,65 @@ const Login = () => {
     }
   };
 
+  // Helper function to extract error message from response
+  const extractErrorMessage = (error) => {
+    console.error("Full error object:", error);
+    console.error("Response status:", error.response?.status);
+    console.error("Response headers:", error.response?.headers);
+    console.error("Response data:", error.response?.data);
+    console.error("Response data type:", typeof error.response?.data);
+
+    let errorMessage = "Invalid email or password. Please try again.";
+
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      const responseData = error.response.data;
+
+      if (typeof responseData === "string") {
+        // If response is a string
+        errorMessage = responseData;
+      } else if (responseData.message) {
+        // If response has a message property
+        errorMessage = responseData.message;
+      } else if (responseData.error) {
+        // If response has an error property
+        errorMessage = responseData.error;
+      } else if (responseData.msg) {
+        // If response has a msg property
+        errorMessage = responseData.msg;
+      } else if (responseData.detail) {
+        // If response has a detail property
+        errorMessage = responseData.detail;
+      } else if (responseData.errors && Array.isArray(responseData.errors)) {
+        // If response has an errors array
+        errorMessage = responseData.errors
+          .map((e) => e.msg || e.message || e)
+          .join(", ");
+      } else if (typeof responseData === "object") {
+        // Try to get the first error message from the object
+        const firstError = Object.values(responseData)[0];
+        if (typeof firstError === "string") {
+          errorMessage = firstError;
+        } else if (Array.isArray(firstError) && firstError.length > 0) {
+          errorMessage = firstError[0];
+        }
+      }
+    } else if (error.request) {
+      // The request was made but no response was received
+      errorMessage = "No response from server. Please check your internet connection.";
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      errorMessage = error.message || "An unexpected error occurred";
+    }
+
+    return errorMessage;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validate form data
     const result = loginSchema.safeParse(formData);
 
     if (!result.success) {
@@ -148,16 +204,15 @@ const Login = () => {
         email: formData.email,
         password: formData.password,
       });
-// 
+
       console.log("✅ Login response:", response);
 
       // ✅ Store token and user details
-  if (response.data?.token) {
-  dispatch(updateToken(response.data.token));
-
-  localStorage.setItem("token", response.data.token);
-  localStorage.setItem("userToken", response.data.token);
-}
+      if (response.data?.token) {
+        dispatch(updateToken(response.data.token));
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("userToken", response.data.token);
+      }
 
       if (response.data) {
         dispatch(setUserDetails(response.data));
@@ -183,9 +238,9 @@ const Login = () => {
 
       // ✅ The useEffect will handle the redirect
     } catch (error) {
-      console.error("Login error:", error.response?.data);
-      const errorMessage =
-        error.response?.data || "Invalid email or password";
+      // Extract error message using helper function
+      const errorMessage = extractErrorMessage(error);
+      
       setLocalError(errorMessage);
 
       Swal.fire({
