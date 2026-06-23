@@ -43,6 +43,7 @@ import DashboardBookingPage from "./Pages/DashboardBookingPage";
 import WalletPage from "./Pages/WalletPage";
 import PackagePage from "./Pages/PackagePage";
 import ReviewPage from "./Pages/ReviewPage";
+import VerifyPage from "./Pages/VerifyPage.jsx";
 
 
 // Selection Pages
@@ -331,6 +332,7 @@ const App = () => {
       >
         <Route index element={<Dashboard />} />
         <Route path="bookings" element={<DashboardBookingPage />} />
+        <Route path="verify" element={<VerifyPage />} />
         <Route path="wallet" element={<WalletPage />} />
         <Route path="package" element={<PackagePage />} />
         <Route path="settings" element={<SettingsPage />} />
