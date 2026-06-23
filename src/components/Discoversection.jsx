@@ -1,9 +1,11 @@
-import React, { useState, useCallback, useMemo, memo, useRef, useEffect } from "react";
+// Discoversection.jsx
+import React, { useState, useCallback, useMemo, memo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaStar, FaRegClock } from "react-icons/fa";
+import { FiTrendingUp } from "react-icons/fi";
 import "./css/Discoversection.css";
 
-// Static images
+// Static images (fallback)
 import lekki from "/novaxcape/lekki.png";
 import olumo from "/novaxcape/olumo.png";
 import mapo from "/novaxcape/mapo.png";
@@ -35,6 +37,7 @@ const staticAttractions = [
     reviews: 567,
     time: "8:30 AM - 5:00 PM",
     price: "₦2,500",
+    isTrending: true,
   },
   {
     id: 2,
@@ -45,6 +48,7 @@ const staticAttractions = [
     reviews: 66,
     time: "9:00 AM - 6:00 PM",
     price: "₦2,000",
+    isTrending: false,
   },
   {
     id: 3,
@@ -55,6 +59,7 @@ const staticAttractions = [
     reviews: 70,
     time: "8:30 AM - 5:00 PM",
     price: "₦1,500",
+    isTrending: false,
   },
   {
     id: 4,
@@ -65,6 +70,7 @@ const staticAttractions = [
     reviews: 434,
     time: "8:30 AM - 10:00 PM",
     price: "₦1,500",
+    isTrending: true,
   },
   {
     id: 5,
@@ -75,6 +81,7 @@ const staticAttractions = [
     reviews: 70,
     time: "8:30 AM - 7:00 PM",
     price: "₦2,000",
+    isTrending: true,
   },
   {
     id: 6,
@@ -85,6 +92,7 @@ const staticAttractions = [
     reviews: 90,
     time: "10:30 AM - 5:00 PM",
     price: "₦3,000",
+    isTrending: true,
   },
   {
     id: 7,
@@ -95,6 +103,7 @@ const staticAttractions = [
     reviews: 643,
     time: "8:30 AM - 8:30 PM",
     price: "₦2,500",
+    isTrending: false,
   },
   {
     id: 8,
@@ -105,6 +114,7 @@ const staticAttractions = [
     reviews: 567,
     time: "8:30 AM - 6:00 PM",
     price: "₦1,500",
+    isTrending: false,
   },
   {
     id: 9,
@@ -115,251 +125,85 @@ const staticAttractions = [
     reviews: 567,
     time: "8:00 AM - 5:00 PM",
     price: "₦1,500",
+    isTrending: true,
   },
 ];
 
-// ✅ Helper function to get image URL with better debugging
+// ========== HELPER FUNCTIONS ==========
+
+// ✅ Get image URL from API response
 const getImageUrl = (place) => {
-  console.log("🔍 Getting image for place:", place?.centreName || place?.title);
-  
-  // ✅ Check if place has imagesPublicUrl (array)
+  // Check for imagesPublicUrl array
   if (place.imagesPublicUrl && Array.isArray(place.imagesPublicUrl) && place.imagesPublicUrl.length > 0) {
-    const url = place.imagesPublicUrl[0];
-    console.log("✅ Found imagesPublicUrl[0]:", url);
-    return url;
+    return place.imagesPublicUrl[0];
   }
   
-  // ✅ Check if place has images (array) with objects containing publicUrl
+  // Check for images array with secureUrl
   if (place.images && Array.isArray(place.images) && place.images.length > 0) {
+    if (place.images[0]?.secureUrl) {
+      return place.images[0].secureUrl;
+    }
     if (place.images[0]?.publicUrl) {
-      console.log("✅ Found images[0].publicUrl:", place.images[0].publicUrl);
       return place.images[0].publicUrl;
     }
     if (typeof place.images[0] === 'string') {
-      console.log("✅ Found images[0] (string):", place.images[0]);
       return place.images[0];
     }
   }
   
-  // ✅ Check for single imagePublicUrl field
-  if (place.imagePublicUrl) {
-    console.log("✅ Found imagePublicUrl:", place.imagePublicUrl);
-    return place.imagePublicUrl;
-  }
-  
-  // ✅ Check for single image field
-  if (place.image) {
-    console.log("✅ Found image:", place.image);
-    return place.image;
-  }
-  
-  // ✅ Check for coverImage
-  if (place.coverImage) {
-    console.log("✅ Found coverImage:", place.coverImage);
-    return place.coverImage;
-  }
-  
-  // ✅ Check for photo or photos
-  if (place.photo) {
-    console.log("✅ Found photo:", place.photo);
-    return place.photo;
-  }
+  // Check for single image fields
+  if (place.imagePublicUrl) return place.imagePublicUrl;
+  if (place.image) return place.image;
+  if (place.coverImage) return place.coverImage;
+  if (place.photo) return place.photo;
   
   if (place.photos && Array.isArray(place.photos) && place.photos.length > 0) {
-    console.log("✅ Found photos[0]:", place.photos[0]);
     return place.photos[0];
   }
   
-  console.log("❌ No image found, using placeholder");
+  // Fallback
   return "/novaxcape/placeholder.jpg";
 };
 
-// ✅ Image component with caching and stable rendering
-const CachedImage = memo(({ src, alt, className, onError }) => {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [hasError, setHasError] = useState(false);
-  const [currentSrc, setCurrentSrc] = useState(src);
+// ✅ Get rating
+const getRating = (place) => {
+  return place.rating || place.averageRating || 4.0;
+};
 
-  // ✅ Reset state when src changes
-  useEffect(() => {
-    setCurrentSrc(src);
-    setIsLoaded(false);
-    setHasError(false);
-  }, [src]);
+// ✅ Get review count
+const getReviewCount = (place) => {
+  return place.reviews || place.reviewCount || place._count?.reviews || 0;
+};
 
-  const handleLoad = useCallback(() => {
-    console.log("✅ Image loaded:", currentSrc);
-    setIsLoaded(true);
-  }, [currentSrc]);
+// ✅ Get price
+const getPrice = (place) => {
+  if (place.price) return place.price;
+  if (place.adultPrice) return `₦${place.adultPrice.toLocaleString()}`;
+  if (place.ticketPrice) return `₦${place.ticketPrice.toLocaleString()}`;
+  if (place.packages && place.packages.length > 0) {
+    const adultPackage = place.packages.find(pkg => pkg.packageType === "Adult");
+    if (adultPackage) return `₦${adultPackage.amount.toLocaleString()}`;
+    return `₦${place.packages[0].amount.toLocaleString()}`;
+  }
+  return "Contact";
+};
 
-  const handleError = useCallback((e) => {
-    console.log("❌ Image failed to load:", currentSrc);
-    setHasError(true);
-    if (onError) onError(e);
-  }, [currentSrc, onError]);
+// ✅ Get location
+const getLocation = (place) => {
+  return [place.city, place.state].filter(Boolean).join(", ") || place.location || "Location not specified";
+};
 
-  // ✅ If there's an error or no src, show placeholder
-  const displaySrc = hasError ? '/novaxcape/placeholder.jpg' : currentSrc;
+// ✅ Get opening hours
+const getOpeningHours = (place) => {
+  return place.openingHours || place.time || "Hours not specified";
+};
 
-  return (
-    <div className="image-wrapper" style={{ position: 'relative', width: '100%', aspectRatio: '16/9' }}>
-      {!isLoaded && !hasError && (
-        <div className="image-placeholder" style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          background: '#f0f0f0',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <div className="image-loader" style={{
-            width: '30px',
-            height: '30px',
-            border: '3px solid #f3f3f3',
-            borderTop: '3px solid #ff6b35',
-            borderRadius: '50%',
-            animation: 'spin 0.8s linear infinite',
-          }} />
-        </div>
-      )}
-      <img
-        src={displaySrc}
-        alt={alt || "Attraction"}
-        className={className}
-        loading="lazy"
-        onLoad={handleLoad}
-        onError={handleError}
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          display: (isLoaded || hasError) ? 'block' : 'none',
-          opacity: isLoaded ? 1 : 0,
-          transition: 'opacity 0.3s ease',
-        }}
-      />
-    </div>
-  );
-});
+// ✅ Get trending status
+const getIsTrending = (place) => {
+  return place.isTrending || false;
+};
 
-CachedImage.displayName = 'CachedImage';
-
-// ✅ Create a memoized card component
-const AttractionCard = memo(({ 
-  place, 
-  isStatic, 
-  onViewDetails, 
-  onBookNow,
-  getPrice 
-}) => {
-  // ✅ Memoize all computed values
-  const imageSrc = useMemo(() => {
-    if (isStatic) {
-      return place.image;
-    }
-    return getImageUrl(place);
-  }, [place, isStatic]);
-
-  // ✅ Log the image source for debugging
-  useEffect(() => {
-    if (!isStatic) {
-      console.log(`📸 Image for ${place.centreName || place.name}:`, imageSrc);
-    }
-  }, [imageSrc, place, isStatic]);
-
-  const title = useMemo(() => {
-    return isStatic ? place.title : (place.centreName || place.name || "Tourist Centre");
-  }, [place, isStatic]);
-
-  const location = useMemo(() => {
-    return isStatic ? place.location : ([place.city, place.state].filter(Boolean).join(", ") || "Location not specified");
-  }, [place, isStatic]);
-
-  const rating = useMemo(() => {
-    return isStatic ? place.rating : (place.rating || place.averageRating || 4.0);
-  }, [place, isStatic]);
-
-  const reviews = useMemo(() => {
-    return isStatic ? place.reviews : (place.reviews || place.reviewCount || 0);
-  }, [place, isStatic]);
-
-  const time = useMemo(() => {
-    return isStatic ? place.time : (place.openingHours || "Hours not specified");
-  }, [place, isStatic]);
-
-  const price = useMemo(() => {
-    if (isStatic) {
-      return place.price;
-    }
-    return getPrice(place);
-  }, [place, isStatic, getPrice]);
-
-  const handleCardClick = useCallback(() => {
-    onViewDetails(place);
-  }, [onViewDetails, place]);
-
-  const handleBookClick = useCallback((e) => {
-    onBookNow(e, place);
-  }, [onBookNow, place]);
-
-  return (
-    <div
-      className="card"
-      onClick={handleCardClick}
-      style={{ cursor: "pointer" }}
-    >
-      <CachedImage 
-        src={imageSrc} 
-        alt={title} 
-        className="card-image"
-      />
-      <div className="card-content">
-        <h3>{title}</h3>
-        <p>{location}</p>
-        <div className="info-row">
-          <div className="rating">
-            {[...Array(5)].map((_, i) => (
-              <FaStar
-                key={i}
-                color={i < Math.floor(rating) ? "#ff6b35" : "#ddd"}
-              />
-            ))}
-            <span>{rating}</span>
-            <small>({reviews} reviews)</small>
-          </div>
-          <div className="time">
-            <FaRegClock />
-            <span>{time}</span>
-          </div>
-        </div>
-      </div>
-      <div className="card-footer">
-        <div>
-          <p>From</p>
-          <h2>{price}</h2>
-        </div>
-        <button
-          className="book-btn"
-          onClick={handleBookClick}
-        >
-          Book Now
-        </button>
-      </div>
-    </div>
-  );
-}, (prevProps, nextProps) => {
-  return (
-    prevProps.place?.id === nextProps.place?.id &&
-    prevProps.place?._id === nextProps.place?._id &&
-    prevProps.isStatic === nextProps.isStatic
-  );
-});
-
-AttractionCard.displayName = 'AttractionCard';
-
+// ========== DISCOVERSECTION COMPONENT ==========
 const Discoversection = ({
   searchState = "",
   searchSubmitted = false,
@@ -371,6 +215,7 @@ const Discoversection = ({
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("All");
   
+  // ✅ Get valid centres from API data
   const getValidCentres = useCallback((centres) => {
     if (!centres || !Array.isArray(centres)) return [];
     return centres.filter((centre) => {
@@ -396,6 +241,7 @@ const Discoversection = ({
 
   const hasValidCentres = validTouristCentres.length > 0;
 
+  // ✅ Navigation handlers
   const handleViewDetails = useCallback((centre) => {
     const centreId = centre.id || centre._id || centre.centreId;
     if (!centreId) return;
@@ -414,6 +260,7 @@ const Discoversection = ({
     });
   }, [navigate]);
 
+  // ✅ Format price
   const formatPrice = useCallback((price) => {
     if (!price) return "Contact";
     if (typeof price === "number") {
@@ -422,6 +269,7 @@ const Discoversection = ({
     return price;
   }, []);
 
+  // ✅ Get centre price
   const getCentrePrice = useCallback((centre) => {
     if (centre.packages && centre.packages.length > 0) {
       const adultPackage = centre.packages.find(
@@ -433,6 +281,7 @@ const Discoversection = ({
     return formatPrice(centre.adultPrice || centre.ticketPrice);
   }, [formatPrice]);
 
+  // ✅ Display centers (API data or static fallback)
   const displayCenters = useMemo(() => {
     const hasActiveSearch = searchSubmitted && searchState;
     if (hasActiveSearch) {
@@ -441,6 +290,7 @@ const Discoversection = ({
     return staticAttractions;
   }, [searchSubmitted, searchState, hasValidCentres, validTouristCentres]);
 
+  // ✅ Filter by category
   const filteredCenters = useMemo(() => {
     if (activeCategory === "All") return displayCenters;
     return displayCenters.filter((center) => {
@@ -461,23 +311,101 @@ const Discoversection = ({
     setActiveCategory(category);
   }, []);
 
-  const cardProps = useMemo(() => ({
-    onViewDetails: handleViewDetails,
-    onBookNow: handleBookNow,
-    getPrice: getCentrePrice,
-  }), [handleViewDetails, handleBookNow, getCentrePrice]);
+  // ✅ Render stars
+  const renderStars = (rating) => {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
 
-  // ✅ Log the data for debugging
-  useEffect(() => {
-    if (touristCentres && touristCentres.length > 0) {
-      console.log("📊 Tourist centres data:", touristCentres);
-      console.log("📊 First centre images:", touristCentres[0]?.imagesPublicUrl);
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(<FaStar key={`star-${i}`} className="star star--full" />);
     }
-  }, [touristCentres]);
 
+    if (hasHalfStar) {
+      stars.push(<FaStar key="half-star" className="star star--half" />);
+    }
+
+    const emptyStars = 5 - stars.length;
+    for (let i = 0; i < emptyStars; i++) {
+      stars.push(<FaStar key={`empty-${i}`} className="star star--empty" />);
+    }
+
+    return stars;
+  };
+
+  // ✅ Render a single place card
+  const renderPlaceCard = (place, isStatic) => {
+    const imageSrc = isStatic ? place.image : getImageUrl(place);
+    const title = isStatic ? place.title : (place.centreName || place.name || "Tourist Centre");
+    const location = isStatic ? place.location : getLocation(place);
+    const rating = isStatic ? place.rating : getRating(place);
+    const reviews = isStatic ? place.reviews : getReviewCount(place);
+    const time = isStatic ? place.time : getOpeningHours(place);
+    const price = isStatic ? place.price : getCentrePrice(place);
+    const isTrending = isStatic ? place.isTrending : getIsTrending(place);
+
+    return (
+      <div 
+        className="place-card" 
+        key={place.id || place._id}
+        onClick={() => handleViewDetails(place)}
+        style={{ cursor: "pointer" }}
+      >
+        <div className="place-image-wrapper">
+          <img
+            src={imageSrc}
+            alt={title}
+            className="place-image"
+            onError={(e) => {
+              e.target.src = "/novaxcape/placeholder.jpg";
+            }}
+          />
+          {isTrending && (
+            <span className="trending-badge">
+              <FiTrendingUp className="badge-icon" /> Trending
+            </span>
+          )}
+        </div>
+
+        <div className="place-body">
+          <h3>{title}</h3>
+          <p className="location">{location}</p>
+
+          <div className="details-row">
+            <div className="rating">
+              {renderStars(rating)}
+              <span>{typeof rating === 'number' ? rating.toFixed(1) : '0.0'}</span>
+              <small>({reviews})</small>
+            </div>
+
+            <div className="time">
+              <FaRegClock />
+              <span>{time}</span>
+            </div>
+          </div>
+
+          <div className="price-row">
+            <div>
+              <small>From</small>
+              <h4>{price}</h4>
+            </div>
+
+            <button 
+              className="book-btn"
+              onClick={(e) => handleBookNow(e, place)}
+            >
+              Book Now
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ✅ Loading state
   if (loading && hasActiveSearch) {
     return (
-      <section className="discover">
+      <section className="discover-section">
         <div className="category-container">
           {categories.map((category) => (
             <button
@@ -497,9 +425,10 @@ const Discoversection = ({
     );
   }
 
+  // ✅ Error state
   if (error && hasActiveSearch) {
     return (
-      <section className="discover">
+      <section className="discover-section">
         <div className="category-container">
           {categories.map((category) => (
             <button
@@ -513,14 +442,9 @@ const Discoversection = ({
         </div>
         <div className="error-container">
           <p className="error-text">
-            {typeof error === "string"
-              ? error
-              : error.message || "Failed to load centers"}
+            {typeof error === "string" ? error : error.message || "Failed to load centers"}
           </p>
-          <button
-            className="try-again-btn"
-            onClick={() => window.location.reload()}
-          >
+          <button className="try-again-btn" onClick={() => window.location.reload()}>
             Try Again
           </button>
         </div>
@@ -528,8 +452,37 @@ const Discoversection = ({
     );
   }
 
+  // ✅ No results state
+  if (!loading && hasActiveSearch && !error && !hasValidCentres) {
+    return (
+      <section className="discover-section">
+        <div className="category-container">
+          {categories.map((category) => (
+            <button
+              key={category}
+              className={`category-btn ${activeCategory === category ? "active" : ""}`}
+              onClick={() => handleCategoryClick(category)}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+        <div className="no-results-container">
+          <p className="no-results-text">
+            No centres found in "{searchState}". Try a different state or check back later.
+          </p>
+          <button className="browse-all-btn" onClick={onClearSearch}>
+            Browse All Centres
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  // ✅ Main render
   return (
-    <section className="discover">
+    <section className="discover-section">
+      {/* Categories */}
       <div className="category-container">
         {categories.map((category) => (
           <button
@@ -542,6 +495,7 @@ const Discoversection = ({
         ))}
       </div>
 
+      {/* Search Results Header */}
       {hasActiveSearch && (
         <div className="search-results-header">
           <h2>Search results for "{searchState}"</h2>
@@ -551,32 +505,12 @@ const Discoversection = ({
         </div>
       )}
 
-      {!loading && hasActiveSearch && !error && !hasValidCentres && (
-        <div className="no-results-container">
-          <p className="no-results-text">
-            No centres found in "{searchState}". Try a different state or check
-            back later.
-          </p>
-          <button className="browse-all-btn" onClick={onClearSearch}>
-            Browse All Centres
-          </button>
-        </div>
-      )}
-
+      {/* Places Grid */}
       {!loading && !error && filteredCenters.length > 0 && (
-        <div className="card-grid">
+        <div className="places-grid">
           {filteredCenters.map((place, index) => {
             const isStatic = place.title && !place.centreName;
-            const key = place.id || place._id || `card-${index}`;
-            
-            return (
-              <AttractionCard
-                key={key}
-                place={place}
-                isStatic={isStatic}
-                {...cardProps}
-              />
-            );
+            return renderPlaceCard(place, isStatic);
           })}
         </div>
       )}
@@ -584,4 +518,4 @@ const Discoversection = ({
   );
 };
 
-export default memo(Discoversection);
+export default Discoversection;
