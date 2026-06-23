@@ -120,9 +120,8 @@ export const updateVendorProfile = createThunk(
     try {
       console.log("📤 Updating vendor profile...");
 
-      // ✅ Try the correct endpoint
       const response = await axios.put(
-        `${API_BASE_URL}/vendor/profile`, // Changed from /vendor/update-profile
+        `${API_BASE_URL}/vendor/profile`,
         toFormData(payload),
         authConfig(getState()),
       );
@@ -132,7 +131,6 @@ export const updateVendorProfile = createThunk(
     } catch (error) {
       console.error("❌ Update vendor profile error:", error);
 
-      // ✅ If first endpoint fails, try alternative
       if (error.response?.status === 404) {
         try {
           console.log("🔄 Trying fallback endpoint: /vendor/update");
@@ -170,7 +168,6 @@ export const resetVendorPassword = createThunk(
   (payload) => axios.post(`${API_BASE_URL}/vendor/reset-password`, payload),
 );
 
-// ✅ FIXED: Using the correct endpoint from API docs
 export const changeVendorPassword = createThunk(
   "api/vendor/changePassword",
   async (payload, { getState, rejectWithValue }) => {
@@ -178,8 +175,8 @@ export const changeVendorPassword = createThunk(
       console.log("🔑 Changing vendor password...");
 
       const response = await axios.post(
-        `${API_BASE_URL}/vendor/change-password`, // ✅ Correct endpoint
-        payload, // { oldPassword, newPassword }
+        `${API_BASE_URL}/vendor/change-password`,
+        payload,
         authConfig(getState()),
       );
 
@@ -192,7 +189,6 @@ export const changeVendorPassword = createThunk(
         console.error("❌ Error response:", error.response.data);
         console.error("❌ Error status:", error.response.status);
 
-        // Handle specific error cases
         if (error.response.status === 400) {
           return rejectWithValue("Old password is invalid");
         } else if (error.response.status === 404) {
@@ -604,6 +600,49 @@ export const cancelBooking = createThunk(
       {},
       authConfig(getState()),
     ),
+);
+
+// ========== PASSCODE VERIFICATION ==========
+export const verifyPasscode = createThunk(
+  "api/booking/verifyPasscode",
+  async ({ passcode }, { getState, rejectWithValue }) => {
+    try {
+      console.log(`🔑 Verifying passcode: ${passcode}`);
+      
+      const response = await axios.post(
+        `${API_BASE_URL}/tourist/verify-client-passcode`,
+        { passcode },
+        authConfig(getState()),
+      );
+      
+      console.log("✅ Passcode verification response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Passcode verification error:", error);
+      
+      if (error.response) {
+        console.error("❌ Error response:", error.response.data);
+        console.error("❌ Error status:", error.response.status);
+        
+        // Handle specific error cases
+        if (error.response.status === 404) {
+          return rejectWithValue("Invalid passcode");
+        } else if (error.response.status === 400) {
+          return rejectWithValue("Passcode is required");
+        } else if (error.response.status === 403) {
+          return rejectWithValue("Vendor access required");
+        } else if (error.response.status === 401) {
+          return rejectWithValue("Unauthorized. Please login again.");
+        }
+        
+        // Return the error message from the response if available
+        const errorMessage = error.response.data?.message || getErrorMessage(error);
+        return rejectWithValue(errorMessage);
+      }
+      
+      return rejectWithValue(getErrorMessage(error));
+    }
+  },
 );
 
 // ========== PAYMENT API THUNKS ==========
