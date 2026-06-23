@@ -118,24 +118,88 @@ const staticAttractions = [
   },
 ];
 
+// ✅ Helper function to get image URL with better debugging
+const getImageUrl = (place) => {
+  console.log("🔍 Getting image for place:", place?.centreName || place?.title);
+  
+  // ✅ Check if place has imagesPublicUrl (array)
+  if (place.imagesPublicUrl && Array.isArray(place.imagesPublicUrl) && place.imagesPublicUrl.length > 0) {
+    const url = place.imagesPublicUrl[0];
+    console.log("✅ Found imagesPublicUrl[0]:", url);
+    return url;
+  }
+  
+  // ✅ Check if place has images (array) with objects containing publicUrl
+  if (place.images && Array.isArray(place.images) && place.images.length > 0) {
+    if (place.images[0]?.publicUrl) {
+      console.log("✅ Found images[0].publicUrl:", place.images[0].publicUrl);
+      return place.images[0].publicUrl;
+    }
+    if (typeof place.images[0] === 'string') {
+      console.log("✅ Found images[0] (string):", place.images[0]);
+      return place.images[0];
+    }
+  }
+  
+  // ✅ Check for single imagePublicUrl field
+  if (place.imagePublicUrl) {
+    console.log("✅ Found imagePublicUrl:", place.imagePublicUrl);
+    return place.imagePublicUrl;
+  }
+  
+  // ✅ Check for single image field
+  if (place.image) {
+    console.log("✅ Found image:", place.image);
+    return place.image;
+  }
+  
+  // ✅ Check for coverImage
+  if (place.coverImage) {
+    console.log("✅ Found coverImage:", place.coverImage);
+    return place.coverImage;
+  }
+  
+  // ✅ Check for photo or photos
+  if (place.photo) {
+    console.log("✅ Found photo:", place.photo);
+    return place.photo;
+  }
+  
+  if (place.photos && Array.isArray(place.photos) && place.photos.length > 0) {
+    console.log("✅ Found photos[0]:", place.photos[0]);
+    return place.photos[0];
+  }
+  
+  console.log("❌ No image found, using placeholder");
+  return "/novaxcape/placeholder.jpg";
+};
+
 // ✅ Image component with caching and stable rendering
 const CachedImage = memo(({ src, alt, className, onError }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [currentSrc, setCurrentSrc] = useState(src);
 
+  // ✅ Reset state when src changes
   useEffect(() => {
+    setCurrentSrc(src);
     setIsLoaded(false);
     setHasError(false);
   }, [src]);
 
   const handleLoad = useCallback(() => {
+    console.log("✅ Image loaded:", currentSrc);
     setIsLoaded(true);
-  }, []);
+  }, [currentSrc]);
 
   const handleError = useCallback((e) => {
+    console.log("❌ Image failed to load:", currentSrc);
     setHasError(true);
     if (onError) onError(e);
-  }, [onError]);
+  }, [currentSrc, onError]);
+
+  // ✅ If there's an error or no src, show placeholder
+  const displaySrc = hasError ? '/novaxcape/placeholder.jpg' : currentSrc;
 
   return (
     <div className="image-wrapper" style={{ position: 'relative', width: '100%', aspectRatio: '16/9' }}>
@@ -162,8 +226,8 @@ const CachedImage = memo(({ src, alt, className, onError }) => {
         </div>
       )}
       <img
-        src={hasError ? '/novaxcape/placeholder.jpg' : src}
-        alt={alt}
+        src={displaySrc}
+        alt={alt || "Attraction"}
         className={className}
         loading="lazy"
         onLoad={handleLoad}
@@ -172,7 +236,7 @@ const CachedImage = memo(({ src, alt, className, onError }) => {
           width: '100%',
           height: '100%',
           objectFit: 'cover',
-          display: isLoaded || hasError ? 'block' : 'none',
+          display: (isLoaded || hasError) ? 'block' : 'none',
           opacity: isLoaded ? 1 : 0,
           transition: 'opacity 0.3s ease',
         }}
@@ -196,8 +260,15 @@ const AttractionCard = memo(({
     if (isStatic) {
       return place.image;
     }
-    return place.images?.[0] || place.image || "/novaxcape/placeholder.jpg";
+    return getImageUrl(place);
   }, [place, isStatic]);
+
+  // ✅ Log the image source for debugging
+  useEffect(() => {
+    if (!isStatic) {
+      console.log(`📸 Image for ${place.centreName || place.name}:`, imageSrc);
+    }
+  }, [imageSrc, place, isStatic]);
 
   const title = useMemo(() => {
     return isStatic ? place.title : (place.centreName || place.name || "Tourist Centre");
@@ -223,7 +294,6 @@ const AttractionCard = memo(({
     if (isStatic) {
       return place.price;
     }
-    // ✅ getPrice is now defined and passed as prop
     return getPrice(place);
   }, [place, isStatic, getPrice]);
 
@@ -281,7 +351,6 @@ const AttractionCard = memo(({
     </div>
   );
 }, (prevProps, nextProps) => {
-  // ✅ Custom comparison to prevent unnecessary re-renders
   return (
     prevProps.place?.id === nextProps.place?.id &&
     prevProps.place?._id === nextProps.place?._id &&
@@ -302,7 +371,6 @@ const Discoversection = ({
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("All");
   
-  // ✅ Memoize the validation function
   const getValidCentres = useCallback((centres) => {
     if (!centres || !Array.isArray(centres)) return [];
     return centres.filter((centre) => {
@@ -322,14 +390,12 @@ const Discoversection = ({
     });
   }, []);
 
-  // ✅ Memoize the valid centres
   const validTouristCentres = useMemo(() => {
     return getValidCentres(touristCentres);
   }, [touristCentres, getValidCentres]);
 
   const hasValidCentres = validTouristCentres.length > 0;
 
-  // ✅ Memoize handlers with useCallback
   const handleViewDetails = useCallback((centre) => {
     const centreId = centre.id || centre._id || centre.centreId;
     if (!centreId) return;
@@ -348,7 +414,6 @@ const Discoversection = ({
     });
   }, [navigate]);
 
-  // ✅ Memoize price formatting
   const formatPrice = useCallback((price) => {
     if (!price) return "Contact";
     if (typeof price === "number") {
@@ -368,7 +433,6 @@ const Discoversection = ({
     return formatPrice(centre.adultPrice || centre.ticketPrice);
   }, [formatPrice]);
 
-  // ✅ Memoize the display centers
   const displayCenters = useMemo(() => {
     const hasActiveSearch = searchSubmitted && searchState;
     if (hasActiveSearch) {
@@ -377,7 +441,6 @@ const Discoversection = ({
     return staticAttractions;
   }, [searchSubmitted, searchState, hasValidCentres, validTouristCentres]);
 
-  // ✅ Memoize filtered centers
   const filteredCenters = useMemo(() => {
     if (activeCategory === "All") return displayCenters;
     return displayCenters.filter((center) => {
@@ -394,19 +457,24 @@ const Discoversection = ({
 
   const hasActiveSearch = searchSubmitted && searchState;
 
-  // ✅ Memoize category click handler
   const handleCategoryClick = useCallback((category) => {
     setActiveCategory(category);
   }, []);
 
-  // ✅ Create stable props for AttractionCard
   const cardProps = useMemo(() => ({
     onViewDetails: handleViewDetails,
     onBookNow: handleBookNow,
     getPrice: getCentrePrice,
   }), [handleViewDetails, handleBookNow, getCentrePrice]);
 
-  // ✅ Early return for loading state
+  // ✅ Log the data for debugging
+  useEffect(() => {
+    if (touristCentres && touristCentres.length > 0) {
+      console.log("📊 Tourist centres data:", touristCentres);
+      console.log("📊 First centre images:", touristCentres[0]?.imagesPublicUrl);
+    }
+  }, [touristCentres]);
+
   if (loading && hasActiveSearch) {
     return (
       <section className="discover">
@@ -429,7 +497,6 @@ const Discoversection = ({
     );
   }
 
-  // ✅ Early return for error state
   if (error && hasActiveSearch) {
     return (
       <section className="discover">
@@ -463,7 +530,6 @@ const Discoversection = ({
 
   return (
     <section className="discover">
-      {/* Categories */}
       <div className="category-container">
         {categories.map((category) => (
           <button
@@ -476,7 +542,6 @@ const Discoversection = ({
         ))}
       </div>
 
-      {/* Search Results Header */}
       {hasActiveSearch && (
         <div className="search-results-header">
           <h2>Search results for "{searchState}"</h2>
@@ -486,7 +551,6 @@ const Discoversection = ({
         </div>
       )}
 
-      {/* No Results */}
       {!loading && hasActiveSearch && !error && !hasValidCentres && (
         <div className="no-results-container">
           <p className="no-results-text">
@@ -499,7 +563,6 @@ const Discoversection = ({
         </div>
       )}
 
-      {/* Cards Grid */}
       {!loading && !error && filteredCenters.length > 0 && (
         <div className="card-grid">
           {filteredCenters.map((place, index) => {
@@ -521,5 +584,4 @@ const Discoversection = ({
   );
 };
 
-// ✅ Memoize the entire component
 export default memo(Discoversection);

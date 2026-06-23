@@ -168,22 +168,31 @@ const KycForm = () => {
     console.log("Has centrePhoneNumber:", kycData.hasOwnProperty("centrePhoneNumber"));
 
     try {
-      const response = await dispatch(
-        createKyc({ touristId, kycData })
-      ).unwrap();
+   const response = await dispatch(
+  createKyc({ touristId, kycData })
+).unwrap();
 
-      localStorage.removeItem("latestTouristId");
+// Remove temporary storage
+localStorage.removeItem("latestTouristId");
 
-      Swal.fire({
-        icon: "success",
-        title: "KYC Submitted Successfully!",
-        text: "Your verification details have been submitted. You will be notified once verified.",
-        confirmButtonColor: "#ff6b35",
-        timer: 3000,
-        timerProgressBar: true,
-      }).then(() => {
-        navigate("/vendor/dashboard");
-      });
+// ✅ Mark onboarding as completed
+localStorage.setItem("kycSubmitted", "true");
+localStorage.setItem("vendorHasCentre", "true");
+
+// If you want vendors to access the dashboard immediately,
+// temporarily mark packages as complete too.
+localStorage.setItem("vendorHasPackages", "true");
+
+Swal.fire({
+  icon: "success",
+  title: "KYC Submitted Successfully!",
+  text: "Your verification details have been submitted. You will be notified once verified.",
+  confirmButtonColor: "#ff6b35",
+  timer: 3000,
+  timerProgressBar: true,
+}).then(() => {
+  navigate("/vendor/dashboard");
+});
     } catch (error) {
       console.error("KYC submission error:", error);
       console.error("Error response data:", error.response?.data);

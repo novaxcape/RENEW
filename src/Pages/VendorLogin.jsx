@@ -47,7 +47,8 @@ const VendorLogin = () => {
 
     if (!vendorId) {
       console.warn("No vendor ID found, redirecting to add centre");
-      navigate("/vendor/add-centre", { replace: true });
+      // ✅ FIXED: Use /add-centre (without /vendor/)
+      navigate("/add-centre", { replace: true });
       return;
     }
 
@@ -60,18 +61,15 @@ const VendorLogin = () => {
         const centresResp = await dispatch(getVendorTouristCenters(vendorId)).unwrap();
         console.log("Centres response:", centresResp);
         
-        // Extract centres array from response
         centres = centresResp?.data || centresResp?.touristCentres || centresResp || [];
         hasCentre = centres.length > 0;
         console.log("Number of centres found:", centres.length);
       } catch (err) {
-        // Check if it's a 404 error (no centres found)
         if (err?.response?.status === 404 || err?.message?.includes("404") || err === "Route not found") {
           console.log("No centres found (404), this is normal for new vendors");
           hasCentre = false;
           centres = [];
         } else {
-          // Re-throw other errors
           throw err;
         }
       }
@@ -81,7 +79,6 @@ const VendorLogin = () => {
       let hasPackages = false;
       let centreId = null;
 
-      // Check if vendor has packages (only if they have a centre)
       if (hasCentre && centres.length > 0 && centres[0]?.id) {
         centreId = centres[0].id;
         try {
@@ -105,7 +102,7 @@ const VendorLogin = () => {
         })
       );
 
-      // Show appropriate message and redirect based on status
+      // ✅ FIXED: Use correct routes based on App.jsx
       if (!hasCentre) {
         console.log("No centres found, redirecting to add centre");
         await Swal.fire({
@@ -115,7 +112,8 @@ const VendorLogin = () => {
           confirmButtonColor: "#ff6b35",
           confirmButtonText: "Add Centre",
         });
-        navigate("/vendor/add-centre", { replace: true });
+        // ✅ Redirect to /add-centre (without /vendor/)
+        navigate("/add-centre", { replace: true });
         return;
       }
 
@@ -128,7 +126,8 @@ const VendorLogin = () => {
           confirmButtonColor: "#ff6b35",
           confirmButtonText: "Add Packages",
         });
-        navigate("/vendor/add-package", { replace: true });
+        // ✅ Redirect to /vendor/dashboard/package (matches App.jsx)
+        navigate("/vendor/dashboard/package", { replace: true });
         return;
       }
 
@@ -147,7 +146,6 @@ const VendorLogin = () => {
     } catch (err) {
       console.error("Post-login flow check failed:", err);
       
-      // If it's a 404 or route not found error, it means no centres exist
       if (err?.response?.status === 404 || err?.message?.includes("404") || err === "Route not found") {
         await Swal.fire({
           icon: "info",
@@ -156,18 +154,19 @@ const VendorLogin = () => {
           confirmButtonColor: "#ff6b35",
           confirmButtonText: "Add Centre",
         });
-        navigate("/vendor/add-centre", { replace: true });
+        // ✅ Redirect to /add-centre (without /vendor/)
+        navigate("/add-centre", { replace: true });
         return;
       }
       
-      // For other errors, show error and redirect to add centre as fallback
       await Swal.fire({
         icon: "warning",
         title: "Could Not Verify Status",
         text: "Please add your tourism centre to get started.",
         confirmButtonColor: "#ff6b35",
       });
-      navigate("/vendor/add-centre", { replace: true });
+      // ✅ Redirect to /add-centre (without /vendor/)
+      navigate("/add-centre", { replace: true });
     }
   };
 
@@ -204,10 +203,8 @@ const VendorLogin = () => {
       }
       
       if (user) {
-        // Get vendor ID from user object
         const vendorId = getEntityId(user);
         
-        // Dispatch login success with vendor flag
         dispatch(
           loginSuccess({
             user: user,
@@ -225,7 +222,6 @@ const VendorLogin = () => {
 
       localStorage.setItem("vendorEmail", formData.email);
 
-      // Show login success message
       await Swal.fire({
         icon: "success",
         title: "Login Successful",
@@ -235,7 +231,6 @@ const VendorLogin = () => {
         showConfirmButton: false,
       });
 
-      // Run post-login checks to determine where to navigate next
       await handlePostLoginFlow(user, token);
       
     } catch (error) {
