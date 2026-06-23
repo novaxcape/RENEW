@@ -1,3 +1,4 @@
+// apiSlice.js
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
@@ -115,12 +116,41 @@ export const getGoogleCallback = createThunk(
 // Vendor Profile Management
 export const updateVendorProfile = createThunk(
   "api/vendor/updateProfile",
-  (payload, { getState }) =>
-    axios.put(
-      `${API_BASE_URL}/vendor/update-profile`,
-      toFormData(payload),
-      authConfig(getState()),
-    ),
+  async (payload, { getState, rejectWithValue }) => {
+    try {
+      console.log("📤 Updating vendor profile...");
+
+      // ✅ Try the correct endpoint
+      const response = await axios.put(
+        `${API_BASE_URL}/vendor/profile`, // Changed from /vendor/update-profile
+        toFormData(payload),
+        authConfig(getState()),
+      );
+
+      console.log("✅ Vendor profile updated:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Update vendor profile error:", error);
+
+      // ✅ If first endpoint fails, try alternative
+      if (error.response?.status === 404) {
+        try {
+          console.log("🔄 Trying fallback endpoint: /vendor/update");
+          const response = await axios.put(
+            `${API_BASE_URL}/vendor/update`,
+            toFormData(payload),
+            authConfig(getState()),
+          );
+          return response.data;
+        } catch (fallbackError) {
+          console.error("❌ Fallback also failed:", fallbackError);
+          return rejectWithValue(getErrorMessage(fallbackError));
+        }
+      }
+
+      return rejectWithValue(getErrorMessage(error));
+    }
+  },
 );
 
 export const getVendorDetails = createThunk(
@@ -140,17 +170,42 @@ export const resetVendorPassword = createThunk(
   (payload) => axios.post(`${API_BASE_URL}/vendor/reset-password`, payload),
 );
 
+// ✅ FIXED: Using the correct endpoint from API docs
 export const changeVendorPassword = createThunk(
   "api/vendor/changePassword",
-  (payload, { getState }) =>
-    axios.post(
-      `${API_BASE_URL}/vendor/change-password`,
-      payload,
-      authConfig(getState()),
-    ),
+  async (payload, { getState, rejectWithValue }) => {
+    try {
+      console.log("🔑 Changing vendor password...");
+
+      const response = await axios.post(
+        `${API_BASE_URL}/vendor/change-password`, // ✅ Correct endpoint
+        payload, // { oldPassword, newPassword }
+        authConfig(getState()),
+      );
+
+      console.log("✅ Password changed successfully:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Change password error:", error);
+
+      if (error.response) {
+        console.error("❌ Error response:", error.response.data);
+        console.error("❌ Error status:", error.response.status);
+
+        // Handle specific error cases
+        if (error.response.status === 400) {
+          return rejectWithValue("Old password is invalid");
+        } else if (error.response.status === 404) {
+          return rejectWithValue("Vendor not found");
+        }
+      }
+
+      return rejectWithValue(getErrorMessage(error));
+    }
+  },
 );
 
-// ========== PACKAGE API THUNKS - CORRECTED ==========
+// ========== PACKAGE API THUNKS ==========
 export const createPackage = createThunk(
   "api/package/create",
   async ({ touristId, packageData }, { getState, rejectWithValue }) => {
@@ -172,45 +227,29 @@ export const createPackage = createThunk(
     }
   },
 );
+
 export const getAllPackages = createThunk(
-"api/package/getAll",
-async (touristId, { getState, rejectWithValue }) => {
-try {
-console.log(
-"📦 Fetching packages for touristId:",
-touristId
-);
+  "api/package/getAll",
+  async (touristId, { getState, rejectWithValue }) => {
+    try {
+      console.log("📦 Fetching packages for touristId:", touristId);
 
+      const response = await axios.get(
+        `${API_BASE_URL}/package/all/${touristId}`,
+        authConfig(getState()),
+      );
 
-  const response = await axios.get(
-    `${API_BASE_URL}/package/all/${touristId}`,
-    authConfig(getState())
-  );
-
-  console.log(
-    "✅ Packages fetched:",
-    response.data
-  );
-
-  return response.data;
-} catch (error) {
-  console.error(
-    "❌ Get all packages error:",
-    error
-  );
-
-  console.error(
-    "❌ Request URL:",
-    `${API_BASE_URL}/package/all/${touristId}`
-  );
-
-  return rejectWithValue(
-    getErrorMessage(error)
-  );
-}
-
-
-}
+      console.log("✅ Packages fetched:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Get all packages error:", error);
+      console.error(
+        "❌ Request URL:",
+        `${API_BASE_URL}/package/all/${touristId}`,
+      );
+      return rejectWithValue(getErrorMessage(error));
+    }
+  },
 );
 
 export const getPackageById = createThunk(
@@ -436,7 +475,7 @@ export const getKycStatus = createThunk(
     axios.get(`${API_BASE_URL}/kyc/${touristId}`, authConfig(getState())),
 );
 
-// ========== PAYMENT PLAN API THUNKS - CORRECTED ==========
+// ========== PAYMENT PLAN API THUNKS ==========
 export const createPaymentPlan = createThunk(
   "api/paymentPlan/create",
   async ({ packageId, planData }, { getState, rejectWithValue }) => {
@@ -465,7 +504,6 @@ export const getPaymentPlans = createThunk(
     try {
       console.log(`📋 Fetching payment plans for package ${packageId}...`);
 
-      // ✅ FIXED: Changed from /package/${packageId} to /get-all/${packageId}
       const response = await axios.get(
         `${API_BASE_URL}/plan/get-all/${packageId}`,
         authConfig(getState()),
@@ -480,10 +518,13 @@ export const getPaymentPlans = createThunk(
   },
 );
 
-// ========== BOOKING API THUNKS - IMPROVED ==========
+// ========== BOOKING API THUNKS ==========
 export const createBooking = createAsyncThunk(
   "api/booking/create",
-  async ({ touristId, packageId, bookingData }, { getState, rejectWithValue }) => {
+  async (
+    { touristId, packageId, bookingData },
+    { getState, rejectWithValue },
+  ) => {
     try {
       const state = getState();
       const token = getToken(state);
@@ -494,9 +535,8 @@ export const createBooking = createAsyncThunk(
       console.log("📦 Booking Data:", bookingData);
       console.log("📦 Token:", token ? "Present" : "Missing");
 
-      // ✅ The API only expects visitDate in the body
       const payload = {
-        visitDate: bookingData.visitDate, // Should be in MM/DD/YYYY format
+        visitDate: bookingData.visitDate,
       };
 
       console.log("📦 Final payload:", JSON.stringify(payload, null, 2));
@@ -513,17 +553,14 @@ export const createBooking = createAsyncThunk(
       );
 
       console.log("✅ Booking API Response:", response.data);
-
-      // Return the data from the response
       return response.data;
-
     } catch (error) {
       console.error("❌ Booking creation error:", error);
 
       if (error.response) {
         console.error("❌ Error response:", error.response.data);
         return rejectWithValue(
-          error.response.data?.message || "Failed to create booking"
+          error.response.data?.message || "Failed to create booking",
         );
       }
 
@@ -531,6 +568,7 @@ export const createBooking = createAsyncThunk(
     }
   },
 );
+
 export const getAllClientBookings = createThunk(
   "api/booking/getAllClient",
   (_, { getState }) =>
@@ -547,7 +585,7 @@ export const getVendorBookings = createThunk(
   "api/booking/getVendorBookings",
   ({ touristId, packageId }, { getState }) =>
     axios.get(
-      `${API_BASE_URL}/booking/get-all/${touristId}/${packageId}`,
+      `${API_BASE_URL}/booking/get-all/${touristId}`,
       authConfig(getState()),
     ),
 );
@@ -568,7 +606,7 @@ export const cancelBooking = createThunk(
     ),
 );
 
-// ========== PAYMENT API THUNKS - VERIFIED ==========
+// ========== PAYMENT API THUNKS ==========
 export const initializePayment = createThunk(
   "api/payment/initialize",
   async ({ bookingId, paymentData }, { getState, rejectWithValue }) => {
@@ -584,22 +622,18 @@ export const initializePayment = createThunk(
 
       console.log(`✅ Payment initialized:`, response.data);
       return response.data;
-    } 
-catch (error) {
-  console.error("❌ Initialize payment error:", error);
+    } catch (error) {
+      console.error("❌ Initialize payment error:", error);
 
-  console.log("STATUS:", error.response?.status);
-  console.log("RESPONSE DATA:", error.response?.data);
-  console.log("RESPONSE:", error.response);
+      console.log("STATUS:", error.response?.status);
+      console.log("RESPONSE DATA:", error.response?.data);
+      console.log("RESPONSE:", error.response);
 
-  return rejectWithValue(
-    error.response?.data ||
-    error.response?.data?.message ||
-    error.message
-  );
-}
+      return rejectWithValue(
+        error.response?.data || error.response?.data?.message || error.message,
+      );
     }
-
+  },
 );
 
 export const verifyPayment = createThunk(
