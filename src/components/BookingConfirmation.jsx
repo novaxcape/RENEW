@@ -97,8 +97,6 @@ const BookingConfirmation = () => {
           const result = await dispatch(verifyPayment({ reference, bookingId })).unwrap();
 
           if (isMounted) {
-            // result is the raw unwrapped API response:
-            // { message: "...", data: { ... }, otp: "123456" }
             const responseData = result?.data || result;
 
             const paymentStatus =
@@ -117,11 +115,9 @@ const BookingConfirmation = () => {
 
               const bookingData = responseData?.data || responseData || {};
 
-              // ✅ FIX: otp lives at the ROOT of the API response (result.otp),
-              // not inside result.data — check there first before falling through
               const otp =
-                result?.otp ||           // ✅ root level — this is where the API puts it
-                responseData?.otp ||     // fallback if responseData is the full response
+                result?.otp ||
+                responseData?.otp ||
                 bookingData.passcode ||
                 bookingData.bookingPasscode ||
                 'N/A';
@@ -283,7 +279,7 @@ const BookingConfirmation = () => {
               Retry Payment
             </button>
             <button
-              className="homepage-redirect-btn secondary"
+              className="homepage-redirect-btn"
               onClick={handleBackToHome}
               style={{ marginTop: '12px', background: '#e2e8f0', color: '#334155' }}
             >
@@ -313,7 +309,7 @@ const BookingConfirmation = () => {
               Complete Payment
             </button>
             <button
-              className="homepage-redirect-btn secondary"
+              className="homepage-redirect-btn"
               onClick={handleBackToHome}
               style={{ marginTop: '12px', background: '#e2e8f0', color: '#334155' }}
             >
@@ -332,94 +328,100 @@ const BookingConfirmation = () => {
     <div className="confirmation-page-wrapper">
       <div className="confirmation-card">
 
-        {/* ── Green header banner ── */}
-        <div className="conf-header-banner">
-          <div className="conf-check-ring">
-            <FiShield className="conf-check-icon" />
+        {/* ── Check image ── */}
+        <div className="success-badge-container">
+          <img
+            src="/novaxcape/check.png"
+            alt="Booking Confirmed"
+            className="success-checkmark-img"
+          />
+        </div>
+
+        <h1 className="confirmation-title">Booking Confirmed!</h1>
+        <p className="confirmation-subtitle">Your booking has been successfully confirmed.</p>
+
+        {/* ── Email bar ── */}
+        <div className="email-toast-message">
+          <div className="email-left-content">
+            <HiOutlineMail className="email-toast-icon" />
+            <span className="email-toast-text">
+              Your digital ticket has been sent to your email.
+            </span>
           </div>
-          <h1 className="conf-banner-title">Booking Confirmed!</h1>
-          <p className="conf-banner-subtitle">Your reservation is all set and ready to go.</p>
         </div>
 
-        {/* ── Email notification bar ── */}
-        <div className="conf-email-bar">
-          <HiOutlineMail />
-          <span>Digital ticket sent to your email address</span>
-        </div>
+        {/* ── Booking details ── */}
+        <div className="booking-details-box">
+          <h3 className="details-section-title">Booking Details</h3>
 
-        {/* ── Body ── */}
-        <div className="conf-body">
-          <p className="conf-section-label">Booking details</p>
-
-          <div className="conf-detail-row">
-            <div className="conf-detail-icon-wrap"><FiMapPin /></div>
-            <div>
-              <span className="conf-detail-label">Location</span>
-              <span className="conf-detail-value">{bookingDetails.location || 'Not specified'}</span>
+          <div className="detail-item-row">
+            <FiMapPin className="detail-meta-icon" />
+            <div className="detail-text-cell">
+              <span className="detail-field-label">Location</span>
+              <span className="detail-field-value">{bookingDetails.location || 'Not specified'}</span>
             </div>
           </div>
 
-          <div className="conf-detail-row">
-            <div className="conf-detail-icon-wrap"><FiCalendar /></div>
-            <div>
-              <span className="conf-detail-label">Visit date</span>
-              <span className="conf-detail-value">{formatDate(bookingDetails.visitDate)}</span>
+          <div className="detail-item-row">
+            <FiCalendar className="detail-meta-icon" />
+            <div className="detail-text-cell">
+              <span className="detail-field-label">Visit Date</span>
+              <span className="detail-field-value">{formatDate(bookingDetails.visitDate)}</span>
             </div>
           </div>
 
-          <div className="conf-detail-row">
-            <div className="conf-detail-icon-wrap"><RiIdCardLine /></div>
-            <div>
-              <span className="conf-detail-label">Booking ID</span>
-              <span className="conf-detail-value">{bookingDetails.bookingId || 'N/A'}</span>
+          <div className="detail-item-row">
+            <RiIdCardLine className="detail-meta-icon" />
+            <div className="detail-text-cell">
+              <span className="detail-field-label">Booking ID</span>
+              <span className="detail-field-value">{bookingDetails.bookingId || 'N/A'}</span>
             </div>
           </div>
 
           {bookingDetails.amount > 0 && (
-            <div className="conf-detail-row">
-              <div className="conf-detail-icon-wrap">
-                <span style={{ fontSize: '14px', fontWeight: 600, color: '#555' }}>₦</span>
-              </div>
-              <div>
-                <span className="conf-detail-label">Amount paid</span>
-                <span className="conf-detail-value">
-                  <span className="conf-amount-badge">
-                    ✓ ₦{Number(bookingDetails.amount).toLocaleString()}
-                  </span>
+            <div className="detail-item-row">
+              <span className="detail-meta-icon">₦</span>
+              <div className="detail-text-cell">
+                <span className="detail-field-label">Amount Paid</span>
+                <span className="detail-field-value">
+                  ₦{Number(bookingDetails.amount).toLocaleString()}
                 </span>
               </div>
             </div>
           )}
+        </div>
 
-          {/* ── Passcode block ── */}
-          <div className="conf-passcode-block">
-            <div className="conf-passcode-header">
-              <FiShield />
-              <span>Gate verification passcode</span>
-            </div>
-            <p className="conf-passcode-caption">
-              Tap digits to copy · show at the gate for entry
-            </p>
+        {/* ── Passcode ── */}
+        <div className="passcode-container-card">
+          <div className="passcode-header-row">
+            <FiShield className="passcode-shield-icon" />
+            <h4 className="passcode-main-heading">Gate Verification Passcode</h4>
+          </div>
+          <p className="passcode-sub-caption">
+            Tap to copy · show this code at the gate for entry
+          </p>
 
-            <div
-              className="conf-passcode-digits"
-              onClick={handleCopyPasscode}
-              style={{ cursor: 'pointer' }}
-              title="Tap to copy"
-            >
-              {displayPasscode.split('').map((digit, index) => (
-                <div key={index} className="conf-passcode-digit">{digit}</div>
-              ))}
-            </div>
-
-            <button className="conf-download-btn" onClick={handleDownloadPasscode}>
-              <FiDownload />
-              Download ticket details
-            </button>
+          <div
+            className="passcode-display-block"
+            onClick={handleCopyPasscode}
+            style={{ cursor: 'pointer' }}
+            title="Tap to copy"
+          >
+            {displayPasscode.split('').map((digit, index) => (
+              <span key={index} className="passcode-digit">{digit}</span>
+            ))}
           </div>
 
-          <button className="conf-home-btn" onClick={handleBackToHome}>
-            ← Back to homepage
+          <button className="download-passcode-action-btn" onClick={handleDownloadPasscode}>
+            <FiDownload className="download-action-icon" />
+            Download Ticket Details
+          </button>
+        </div>
+
+        {/* ── Footer ── */}
+        <div className="navigation-footer-action">
+          <button className="homepage-redirect-btn" onClick={handleBackToHome}>
+            Back to Homepage
           </button>
         </div>
 
