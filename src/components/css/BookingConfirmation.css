@@ -1,585 +1,406 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
+/* ============================================
+   BookingConfirmation.css
+   ============================================ */
 
+/* Page wrapper */
 .confirmation-page-wrapper {
-  background-color: #fafafa;
-  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
   min-height: 100vh;
-  width: 100%;
+  background: #f5f5f0;
   display: flex;
-  justify-content: center;
   align-items: flex-start;
-  padding: 24px 16px;
-  box-sizing: border-box;
+  justify-content: center;
+  padding: 2rem 1rem 4rem;
 }
 
+/* Main card */
 .confirmation-card {
-  background-color: #ffffff;
-  border: 1px solid #eaeaea;
-  border-radius: 16px;
+  background: #ffffff;
+  border-radius: 20px;
   width: 100%;
-  max-width: 580px;
-  padding: 36px 24px 32px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  max-width: 480px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
 }
 
-.success-badge-container {
-  margin-bottom: 16px;
+/* ============================================
+   SUCCESS STATE
+   ============================================ */
+
+/* Green header banner */
+.conf-header-banner {
+  background: #0f6e56;
+  padding: 2.25rem 1.5rem 1.75rem;
+  text-align: center;
+}
+
+.conf-check-ring {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0 auto 1rem;
 }
 
-.success-checkmark-img {
-  width: 64px;
-  height: 64px;
-  object-fit: contain;
+.conf-check-icon {
+  font-size: 34px;
+  color: #ffffff;
+}
+
+.conf-banner-title {
+  color: #ffffff;
+  font-size: 21px;
+  font-weight: 600;
+  margin: 0 0 6px;
+  letter-spacing: -0.2px;
+}
+
+.conf-banner-subtitle {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 13.5px;
+  margin: 0;
+}
+
+/* Email notification bar */
+.conf-email-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f7f8f6;
+  border-bottom: 1px solid #ebebeb;
+  padding: 10px 1.5rem;
+}
+
+.conf-email-bar svg {
+  font-size: 16px;
+  color: #888;
+  flex-shrink: 0;
+}
+
+.conf-email-bar span {
+  font-size: 13px;
+  color: #666;
+}
+
+/* Body */
+.conf-body {
+  padding: 1.5rem;
+}
+
+/* Section label */
+.conf-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin: 0 0 12px;
+}
+
+/* Detail rows */
+.conf-detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.conf-detail-row:last-child {
+  border-bottom: none;
+}
+
+.conf-detail-icon-wrap {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.conf-detail-icon-wrap svg {
+  font-size: 16px;
+  color: #555;
+}
+
+.conf-detail-label {
+  font-size: 11.5px;
+  color: #999;
+  margin: 0 0 2px;
   display: block;
 }
 
-.confirmation-title {
-  font-size: 28px;
-  line-height: 1.3;
-  font-weight: 700;
-  letter-spacing: 0px;
-  font-family: 'Manrope', sans-serif;
-  color: #111111;
-  margin: 0 0 6px 0;
-  text-align: center;
-}
-
-.confirmation-subtitle {
-  line-height: 1.5;
+.conf-detail-value {
+  font-size: 14px;
   font-weight: 500;
-  font-size: 15px;
-  letter-spacing: 0px;
-  font-family: 'Manrope', sans-serif;
-  color: #000000;
-  margin: 0 0 20px 0;
-  text-align: center;
+  color: #1a1a1a;
+  margin: 0;
+  display: block;
 }
 
-.email-toast-message {
-  background-color: #dbe7f4;
-  border: 1px solid #abc1dc;
-  border-radius: 8px;
-  width: 100%;
-  padding: 10px 14px;
-  box-sizing: border-box;
-  display: flex;
-  justify-content: flex-start;
-  margin-bottom: 20px;
-}
-
-.email-left-content {
-  display: flex;
+/* Amount badge */
+.conf-amount-badge {
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  width: 100%;
-}
-
-.email-toast-icon {
-  font-size: 16px;
-  color: #0060a3;
-  flex-shrink: 0;
-}
-
-.email-toast-text {
-  font-size: 13px;
-  font-weight: 500;
-  color: #0060a3;
-  line-height: 1.4;
-  white-space: normal;
-}
-
-.booking-details-box {
-  background-color: #ffffff;
-  border: 1px solid #f2f2f2;
-  border-radius: 12px;
-  width: 100%;
-  padding: 18px 16px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.details-section-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #111111;
-  margin: 0 0 4px 0;
-}
-
-.detail-item-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.detail-meta-icon {
-  font-size: 20px;
-  color: #0060a3;
-  flex-shrink: 0;
-}
-
-.detail-text-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.detail-field-label {
-  font-size: 11px;
-  font-weight: 500;
-  color: #888888;
-}
-
-.detail-field-value {
+  gap: 4px;
+  background: #e1f5ee;
+  color: #0f6e56;
   font-size: 13px;
   font-weight: 600;
-  color: #222222;
+  padding: 3px 10px;
+  border-radius: 999px;
 }
 
-.passcode-container-card {
-  background: linear-gradient(135deg, #fff3ee 0%, #edf1f5 100%);
-  border: 1.5px solid #ff7643;
+/* Passcode block */
+.conf-passcode-block {
+  margin-top: 1.5rem;
+  background: #f7f8f6;
+  border: 1px solid #e8e8e8;
   border-radius: 14px;
-  width: 100%;
-  padding: 22px 16px 20px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 24px;
+  padding: 1.25rem;
 }
 
-.passcode-header-row {
+.conf-passcode-header {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
-.passcode-shield-icon {
-  font-size: 16px;
-  color: #ff7643;
+.conf-passcode-header svg {
+  font-size: 18px;
+  color: #0f6e56;
 }
 
-.passcode-main-heading {
-  font-size: 15px;
-  font-weight: 700;
-  color: #222222;
-  margin: 0;
+.conf-passcode-header span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
 }
 
-.passcode-sub-caption {
+.conf-passcode-caption {
   font-size: 12px;
-  color: #666666;
-  margin: 0 0 18px 0;
-  text-align: center;
-  line-height: 1.4;
+  color: #999;
+  margin: 0 0 14px;
 }
 
-.passcode-display-block {
-  background-color: #ffffff;
-  border-radius: 10px;
-  padding: 12px 20px;
+.conf-passcode-digits {
   display: flex;
-  gap: 12px;
+  gap: 6px;
   justify-content: center;
-  align-items: center;
-  width: 100%;
-  max-width: 260px;
-  box-sizing: border-box;
-  margin-bottom: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
 }
 
-/* Container Wrapper */
-.confirmation-page-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background-color: #f8f9fa;
-  padding: 20px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-/* Card Core Design */
-.confirmation-card {
+.conf-passcode-digit {
+  width: 40px;
+  height: 46px;
+  border-radius: 8px;
   background: #ffffff;
-  border-radius: 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  width: 100%;
-  max-width: 500px;
-  padding: 40px 32px;
-  text-align: center;
-  box-sizing: border-box;
+  border: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  font-weight: 600;
+  color: #0f6e56;
+  font-family: 'Courier New', Courier, monospace;
+  letter-spacing: 0;
 }
 
-/* States: Loading, Pending, Failed */
-.loading-container, .failed-state, .pending-state {
-  padding: 20px 0;
+.conf-download-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1.5px solid #0f6e56;
+  background: transparent;
+  color: #0f6e56;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.conf-download-btn:hover {
+  background: #e1f5ee;
+}
+
+.conf-download-btn svg {
+  font-size: 15px;
+}
+
+/* Back to home button */
+.conf-home-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 12px;
+  padding: 11px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background: transparent;
+  color: #444;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.conf-home-btn:hover {
+  background: #f5f5f5;
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+.loading-container {
+  padding: 4rem 2rem;
+  text-align: center;
 }
 
 .spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #ff6b35;
+  width: 44px;
+  height: 44px;
+  border: 3px solid #e0e0e0;
+  border-top-color: #0f6e56;
   border-radius: 50%;
-  margin: 0 auto 20px auto;
-  animation: spin 1s linear infinite;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 1.25rem;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  to { transform: rotate(360deg); }
 }
 
-.failed-icon, .pending-icon {
-  font-size: 3.5rem;
-  margin-bottom: 16px;
-}
-
-/* Success Elements */
-.success-badge-container {
-  margin-bottom: 24px;
-}
-
-.success-checkmark-img {
-  width: 80px;
-  height: 80px;
-  object-fit: contain;
-}
-
-.confirmation-title {
-  font-size: 1.8rem;
-  color: #1a1a1a;
-  margin: 0 0 8px 0;
-  font-weight: 700;
-}
-
-.confirmation-subtitle {
-  color: #6c757d;
-  font-size: 1rem;
-  margin: 0 0 24px 0;
-}
-
-/* Email Notification Alert Box */
-.email-toast-message {
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 12px;
-  padding: 14px 16px;
-  margin-bottom: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.email-left-content {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.email-toast-icon {
-  color: #16a34a;
-  font-size: 1.3rem;
-  flex-shrink: 0;
-}
-
-.email-toast-text {
-  color: #15803d;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-/* Booking Details Container */
-.booking-details-box {
-  background: #fdfdfd;
-  border: 1px solid #eaeaea;
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 24px;
-  text-align: left;
-}
-
-.details-section-title {
-  font-size: 1rem;
-  color: #1a1a1a;
-  margin: 0 0 16px 0;
+.loading-container h2 {
+  font-size: 18px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  color: #1a1a1a;
+  margin: 0 0 8px;
 }
 
-.detail-item-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 0;
-  border-bottom: 1px dashed #eaeaea;
+.loading-container p {
+  font-size: 14px;
+  color: #888;
+  margin: 0;
 }
 
-.detail-item-row:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.detail-meta-icon {
-  color: #8c8c8c;
-  font-size: 1.2rem;
-  width: 20px;
+/* ============================================
+   FAILED STATE
+   ============================================ */
+.failed-state {
+  padding: 3.5rem 2rem;
   text-align: center;
 }
 
-.detail-text-cell {
-  display: flex;
-  flex-direction: column;
+.failed-icon {
+  font-size: 48px;
+  margin-bottom: 1rem;
 }
 
-.detail-field-label {
-  font-size: 0.8rem;
-  color: #8c8c8c;
-  margin-bottom: 2px;
-}
-
-.detail-field-value {
-  font-size: 0.95rem;
-  color: #2d2d2d;
-  font-weight: 500;
-}
-
-/* Passcode Display Box */
-.passcode-container-card {
-  background: #f8fafc;
-  border: 2px dashed #e2e8f0;
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 32px;
-}
-
-.passcode-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-
-.passcode-shield-icon {
-  color: #ff6b35;
-  font-size: 1.1rem;
-}
-
-.passcode-main-heading {
-  font-size: 1rem;
-  color: #334155;
-  margin: 0;
+.failed-state h2 {
+  font-size: 18px;
   font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 8px;
 }
 
-.passcode-sub-caption {
-  font-size: 0.85rem;
-  color: #64748b;
-  margin: 0 0 16px 0;
+.failed-state p {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 1.5rem;
 }
 
-.passcode-display-block {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+/* ============================================
+   PENDING STATE
+   ============================================ */
+.pending-state {
+  padding: 3.5rem 2rem;
+  text-align: center;
 }
 
-.passcode-digit {
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  color: #0f172a;
-  font-weight: 700;
-  font-size: 1.4rem;
-  width: 42px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+.pending-icon {
+  font-size: 48px;
+  margin-bottom: 1rem;
 }
 
-/* Button & Action Rules */
+.pending-state h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 8px;
+}
+
+.pending-state p {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 4px;
+}
+
+/* ============================================
+   SHARED BUTTONS (failed/pending states)
+   ============================================ */
 .homepage-redirect-btn {
-  width: 100%;
-  background: #ff6b35;
-  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 24px;
+  border-radius: 8px;
   border: none;
-  padding: 14px 24px;
-  font-size: 1rem;
+  background: #0f6e56;
+  color: #ffffff;
+  font-size: 14px;
   font-weight: 600;
-  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.15s ease;
+  width: 100%;
+  max-width: 280px;
 }
 
 .homepage-redirect-btn:hover {
-  background: #e55a2b;
-  transform: translateY(-1px);
+  background: #0a5441;
 }
 
 .homepage-redirect-btn.secondary {
-  transition: all 0.2s ease;
+  background: #f0f0f0;
+  color: #333;
 }
 
 .homepage-redirect-btn.secondary:hover {
-  background: #e4e4e4 !important;
+  background: #e5e5e5;
 }
 
-.download-passcode-action-btn {
-  background: transparent;
-  border: 1px solid #cbd5e1;
-  color: #475569;
-  padding: 8px 16px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  border-radius: 8px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.2s ease;
-}
-
-.download-passcode-action-btn:hover {
-  background: #ffffff;
-  border-color: #94a3b8;
-  color: #1e293b;
-}
-
-.download-action-icon {
-  font-size: 0.95rem;
-}
-
-/* Responsive adjustments */
-@media (max-width: 480px) {
-  .confirmation-card {
-    padding: 30px 20px;
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 520px) {
+  .confirmation-page-wrapper {
+    padding: 1rem 0.75rem 3rem;
+    align-items: flex-start;
   }
-  .passcode-digit {
+
+  .confirmation-card {
+    border-radius: 16px;
+  }
+
+  .conf-body {
+    padding: 1.25rem;
+  }
+
+  .conf-passcode-digit {
     width: 36px;
     height: 42px;
-    font-size: 1.2rem;
-  }
-}
-
-.passcode-digit {
-  font-size: 24px;
-  font-weight: 700;
-  color: #111111;
-  letter-spacing: 1px;
-}
-
-.download-passcode-action-btn {
-  background-color: transparent;
-  border: 1px solid #a0a0a0;
-  border-radius: 24px;
-  width: 100%;
-  padding: 8px 20px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #333333;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-sizing: border-box;
-}
-
-.download-action-icon {
-  font-size: 14px;
-}
-
-.navigation-footer-action {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-
-.homepage-redirect-btn {
-  background-color: #ff6633;
-  color: #ffffff;
-  border: none;
-  border-radius: 24px;
-  width: 100%;
-  padding: 14px 24px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  box-sizing: border-box;
-}
-
-/* Tablet and up */
-@media (min-width: 541px) {
-  .confirmation-page-wrapper {
-    align-items: center;
-    padding: 40px 20px;
-  }
-
-  .confirmation-card {
-    padding: 50px 40px;
-  }
-
-  .confirmation-title {
-    font-size: 40px;
-    line-height: 55px;
-  }
-
-  .confirmation-subtitle {
-    font-size: 20px;
-  }
-
-  .success-checkmark-img {
-    width: 80px;
-    height: 80px;
-  }
-
-  .email-toast-text {
-    font-size: 14px;
-    white-space: nowrap;
-  }
-
-  .booking-details-box {
-    padding: 24px;
-    gap: 24px;
-  }
-
-  .passcode-container-card {
-    padding: 28px 24px;
-  }
-
-  .passcode-display-block {
-    padding: 14px 30px;
-    gap: 16px;
-    max-width: none;
-  }
-
-  .passcode-digit {
-    font-size: 26px;
-  }
-
-  .download-passcode-action-btn {
-    max-width: 380px;
-  }
-
-  .homepage-redirect-btn {
-    max-width: 320px;
+    font-size: 17px;
   }
 }
