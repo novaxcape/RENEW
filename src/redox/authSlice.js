@@ -1,18 +1,25 @@
 // redux/authSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
+// ========== PERSISTENCE HELPERS ==========
+// Safely grab tokens and IDs from localStorage on application boot
+const storedToken = localStorage.getItem("userToken") || localStorage.getItem("token");
+const storedClientId = localStorage.getItem("clientId");
+const hasVendorToken = !!localStorage.getItem("vendorToken");
+
 const authSlice = createSlice({
   name: "auth",
   initialState: {
-    // Client State
-    loggedInUser: null,
-    userToken: null,
+    // Client State - Re-hydrated dynamically from localStorage on reload
+    loggedInUser: storedClientId ? { id: storedClientId, _id: storedClientId } : null,
+    userToken: storedToken || null,
     loading: false,
     error: null,
-    isAuthenticated: false,
+    isAuthenticated: !!storedToken,
+    
     // Vendor State
     vendorDetails: null,
-    isVendor: false,
+    isVendor: hasVendorToken,
   },
   reducers: {
     // ========== CLIENT AUTH REDUCERS ==========

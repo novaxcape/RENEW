@@ -163,24 +163,17 @@ const Profile = () => {
     
     const profileData = new FormData();
     
-    // FIXED: Formulating userName matching your Swagger specifications
-    // If nickname is empty, combine First and Last names as fallback
+    // 1. Generate clean userName string from fields
     const computedUserName = formData.nickname.trim() || `${formData.firstName} ${formData.lastName}`.trim();
     profileData.append('userName', computedUserName);
     
-    // FIXED: Appending binary file to key 'profilePicture' instead of 'avatar'
+    // 2. Append binary file directly to strict key matching API schema
     if (avatarFile) {
       profileData.append('profilePicture', avatarFile);
     }
 
-    // Include other details if backend parameters accept them flexibly
-    profileData.append('phoneNumber', formData.phoneNumber);
-    profileData.append('gender', formData.gender);
-    profileData.append('city', formData.city);
-    profileData.append('state', formData.state);
-    if (formData.email) {
-      profileData.append('email', formData.email);
-    }
+    // Note: Other input form values remain visible locally in UI, 
+    // but are not appended to stay compliant with your strict API validation
     
     try {
       if (isVendor) {
@@ -332,7 +325,7 @@ const Profile = () => {
                   value={formData.phoneNumber}
                   onChange={handleChange}
                   placeholder="Input phone number" 
-                  required
+                  disabled
                 />
               </div>
             </div>
@@ -344,6 +337,7 @@ const Profile = () => {
                   id="gender" 
                   value={formData.gender}
                   onChange={handleChange}
+                  disabled
                 >
                   <option value="" disabled>Select Option</option>
                   <option value="male">Male</option>
@@ -376,6 +370,7 @@ const Profile = () => {
                   value={formData.city}
                   onChange={handleChange}
                   placeholder="Enter your city" 
+                  disabled
                 />
               </div>
             </div>
@@ -389,6 +384,7 @@ const Profile = () => {
                   value={formData.state}
                   onChange={handleChange}
                   placeholder="Enter your state" 
+                  disabled
                 />
               </div>
             </div>

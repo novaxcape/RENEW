@@ -119,7 +119,6 @@ const ProductDetails = () => {
     ? centre.facilitiesAndAmenities 
     : ["Nature trails", "Picnic Areas", "WildLife Viewing"];
 
-  // FIXED: Normalized extraction for the image array indices
   const rawImages = Array.isArray(centre.images)
     ? centre.images.map(img => (img && typeof img === "object" ? img.secureUrl : img))
     : Array.isArray(centre.imagesPublicUrl)
@@ -128,7 +127,6 @@ const ProductDetails = () => {
     ? [centre.imagesPublicUrl]
     : [];
 
-  // FIXED: Ensured indexes 0, 1, and 2 always fall back to strings if missing from API array length
   const images = [
     rawImages[0] || "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
     rawImages[1] || "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
@@ -305,10 +303,13 @@ const ProductDetails = () => {
               </div>
             </div>
 
+            {/* FIXED: Replaced your placeholder mock-map div with your custom layout map image asset */}
             <div className="map-block">
-              <div className="mock-map">
-                <div className="map-pin"></div>
-              </div>
+              <img 
+                src="https://i.postimg.cc/N0F86Np4/map.jpg" 
+                alt="Location Map" 
+                style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "12px" }}
+              />
             </div>
           </section>
 
