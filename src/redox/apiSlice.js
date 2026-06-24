@@ -1,4 +1,5 @@
-// apiSlice.js
+// apiSlice.js - FULLY EDITED VERSION
+
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
@@ -624,7 +625,6 @@ export const verifyPasscode = createThunk(
         console.error("❌ Error response:", error.response.data);
         console.error("❌ Error status:", error.response.status);
         
-        // Handle specific error cases
         if (error.response.status === 404) {
           return rejectWithValue("Invalid passcode");
         } else if (error.response.status === 400) {
@@ -635,7 +635,6 @@ export const verifyPasscode = createThunk(
           return rejectWithValue("Unauthorized. Please login again.");
         }
         
-        // Return the error message from the response if available
         const errorMessage = error.response.data?.message || getErrorMessage(error);
         return rejectWithValue(errorMessage);
       }
@@ -645,13 +644,13 @@ export const verifyPasscode = createThunk(
   },
 );
 
-// ========== PAYMENT API THUNKS ==========
-export const initializePayment = createThunk(
+// ========== PAYMENT API THUNKS - FULLY CORRECTED VERSION ==========
+export const initializePayment = createAsyncThunk(
   "api/payment/initialize",
   async ({ bookingId, paymentData }, { getState, rejectWithValue }) => {
     try {
       console.log(`💳 Initializing payment for booking ${bookingId}...`);
-      console.log(`💳 Payment data:`, paymentData);
+      console.log(`💳 Payment data:`, JSON.stringify(paymentData, null, 2));
 
       const response = await axios.post(
         `${API_BASE_URL}/payment/make-payment/${bookingId}`,
@@ -659,41 +658,84 @@ export const initializePayment = createThunk(
         authConfig(getState()),
       );
 
-      console.log(`✅ Payment initialized:`, response.data);
+      console.log(`✅ Payment initialized - Response Data:`, response.data);
+      
       return response.data;
     } catch (error) {
       console.error("❌ Initialize payment error:", error);
-
-      console.log("STATUS:", error.response?.status);
-      console.log("RESPONSE DATA:", error.response?.data);
-      console.log("RESPONSE:", error.response);
-
-      return rejectWithValue(
-        error.response?.data || error.response?.data?.message || error.message,
-      );
+      
+      const errorMessage = 
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.response?.data ||
+        error.message ||
+        "Payment initialization failed";
+      
+      return rejectWithValue(errorMessage);
     }
-  },
+  }
 );
 
-export const verifyPayment = createThunk(
+// FULLY CORRECTED: verifyPayment thunk
+export const verifyPayment = createAsyncThunk(
   "api/payment/verify",
   async ({ reference, bookingId }, { getState, rejectWithValue }) => {
     try {
       console.log(`🔍 Verifying payment with reference: ${reference}`);
+      console.log(`🔍 Booking ID: ${bookingId}`);
 
+      // CORRECTED: The API expects the reference as a query parameter
+      // The URL should be: /payment/verify-payment?reference=REFERENCE
+      const token = getToken(getState());
+      
       const response = await axios.get(
         `${API_BASE_URL}/payment/verify-payment`,
         {
-          params: { reference },
-          ...authConfig(getState()),
-        },
+          params: { 
+            reference: reference 
+          },
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        }
       );
 
-      console.log(`✅ Payment verification:`, response.data);
-      return response.data;
+      console.log(`✅ Payment verification response:`, response.data);
+      
+      // Return the full response data with the correct structure
+      return {
+        success: true,
+        data: response.data,
+        message: response.data?.message || "Payment verified successfully"
+      };
     } catch (error) {
       console.error(`❌ Verify payment error:`, error);
-      return rejectWithValue(getErrorMessage(error));
+      console.error(`❌ Error response:`, error.response?.data);
+      console.error(`❌ Error status:`, error.response?.status);
+      console.error(`❌ Error config:`, error.config);
+      
+      // Handle specific error cases
+      if (error.response?.status === 404) {
+        return rejectWithValue("Payment reference not found");
+      }
+      
+      if (error.response?.status === 400) {
+        return rejectWithValue("Invalid payment reference");
+      }
+      
+      if (error.response?.status === 401) {
+        return rejectWithValue("Unauthorized. Please login again.");
+      }
+      
+      // Return the error message from the response if available
+      const errorMessage = 
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.response?.data ||
+        error.message ||
+        "Payment verification failed";
+      
+      return rejectWithValue(errorMessage);
     }
   },
 );
@@ -846,6 +888,12 @@ const apiSlice = createSlice({
       state.vendorSuccessMessage = null;
     },
     resetApiState: () => initialState,
+    clearPaymentData: (state) => {
+      state.paymentData = null;
+      state.paymentReference = null;
+      state.paymentVerified = false;
+      state.paymentError = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -1230,7 +1278,7 @@ const apiSlice = createSlice({
       .addCase(createBooking.fulfilled, (state, action) => {
         state.bookingLoading = false;
         state.booking =
-          action.payload?.booking || action.payload?.booking || action.payload;
+          action.payload?.data || action.payload?.booking || action.payload;
         state.userBookings = [state.booking, ...state.userBookings];
         state.successMessage = "Booking created successfully";
         console.log("✅ Booking created in Redux:", state.booking);
@@ -1325,41 +1373,53 @@ const apiSlice = createSlice({
         state.bookingError = action.payload;
       })
 
-      // ========== PAYMENTS REDUCERS ==========
+      // ========== PAYMENTS REDUCERS - UPDATED ==========
       .addCase(initializePayment.pending, (state) => {
         state.paymentLoading = true;
         state.paymentError = null;
+        state.paymentData = null;
+        state.paymentReference = null;
       })
       .addCase(initializePayment.fulfilled, (state, action) => {
         state.paymentLoading = false;
         state.paymentData = action.payload?.data || action.payload;
         state.paymentReference =
-          action.payload?.data?.reference || action.payload?.reference;
+          action.payload?.data?.reference ||
+          action.payload?.reference ||
+          action.payload?.data?.data?.reference ||
+          null;
         state.successMessage = "Payment initialized successfully";
-        console.log("✅ Payment initialized:", state.paymentData);
+        console.log("✅ Payment initialized in Redux:", {
+          paymentData: state.paymentData,
+          paymentReference: state.paymentReference
+        });
       })
       .addCase(initializePayment.rejected, (state, action) => {
         state.paymentLoading = false;
         state.paymentError = action.payload;
-        console.error("❌ Payment initialization failed:", action.payload);
+        state.paymentData = null;
+        state.paymentReference = null;
+        console.error("❌ Payment initialization failed in Redux:", action.payload);
       })
 
+      // UPDATED: verifyPayment reducers
       .addCase(verifyPayment.pending, (state) => {
         state.paymentLoading = true;
         state.paymentError = null;
+        state.paymentVerified = false;
       })
       .addCase(verifyPayment.fulfilled, (state, action) => {
         state.paymentLoading = false;
         state.paymentVerified = true;
         state.paymentData = action.payload?.data || action.payload;
-        state.successMessage = "Payment verified successfully";
-        console.log("✅ Payment verified:", state.paymentData);
+        state.successMessage = action.payload?.message || "Payment verified successfully";
+        console.log("✅ Payment verified in Redux:", state.paymentData);
       })
       .addCase(verifyPayment.rejected, (state, action) => {
         state.paymentLoading = false;
         state.paymentError = action.payload;
         state.paymentVerified = false;
-        console.error("❌ Payment verification failed:", action.payload);
+        console.error("❌ Payment verification failed in Redux:", action.payload);
       })
 
       .addCase(getPaymentStatus.pending, (state) => {
@@ -1461,6 +1521,7 @@ export const {
   clearApiError,
   clearApiSuccess,
   resetApiState,
+  clearPaymentData,
 } = apiSlice.actions;
 
 // ========== SELECTORS ==========

@@ -199,6 +199,286 @@
   margin-bottom: 18px;
 }
 
+/* Container Wrapper */
+.confirmation-page-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Card Core Design */
+.confirmation-card {
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 500px;
+  padding: 40px 32px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* States: Loading, Pending, Failed */
+.loading-container, .failed-state, .pending-state {
+  padding: 20px 0;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #ff6b35;
+  border-radius: 50%;
+  margin: 0 auto 20px auto;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.failed-icon, .pending-icon {
+  font-size: 3.5rem;
+  margin-bottom: 16px;
+}
+
+/* Success Elements */
+.success-badge-container {
+  margin-bottom: 24px;
+}
+
+.success-checkmark-img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.confirmation-title {
+  font-size: 1.8rem;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+  font-weight: 700;
+}
+
+.confirmation-subtitle {
+  color: #6c757d;
+  font-size: 1rem;
+  margin: 0 0 24px 0;
+}
+
+/* Email Notification Alert Box */
+.email-toast-message {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.email-left-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.email-toast-icon {
+  color: #16a34a;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.email-toast-text {
+  color: #15803d;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Booking Details Container */
+.booking-details-box {
+  background: #fdfdfd;
+  border: 1px solid #eaeaea;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.details-section-title {
+  font-size: 1rem;
+  color: #1a1a1a;
+  margin: 0 0 16px 0;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-item-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px dashed #eaeaea;
+}
+
+.detail-item-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.detail-meta-icon {
+  color: #8c8c8c;
+  font-size: 1.2rem;
+  width: 20px;
+  text-align: center;
+}
+
+.detail-text-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-field-label {
+  font-size: 0.8rem;
+  color: #8c8c8c;
+  margin-bottom: 2px;
+}
+
+.detail-field-value {
+  font-size: 0.95rem;
+  color: #2d2d2d;
+  font-weight: 500;
+}
+
+/* Passcode Display Box */
+.passcode-container-card {
+  background: #f8fafc;
+  border: 2px dashed #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.passcode-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.passcode-shield-icon {
+  color: #ff6b35;
+  font-size: 1.1rem;
+}
+
+.passcode-main-heading {
+  font-size: 1rem;
+  color: #334155;
+  margin: 0;
+  font-weight: 600;
+}
+
+.passcode-sub-caption {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0 0 16px 0;
+}
+
+.passcode-display-block {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.passcode-digit {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 1.4rem;
+  width: 42px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+/* Button & Action Rules */
+.homepage-redirect-btn {
+  width: 100%;
+  background: #ff6b35;
+  color: white;
+  border: none;
+  padding: 14px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.homepage-redirect-btn:hover {
+  background: #e55a2b;
+  transform: translateY(-1px);
+}
+
+.homepage-redirect-btn.secondary {
+  transition: all 0.2s ease;
+}
+
+.homepage-redirect-btn.secondary:hover {
+  background: #e4e4e4 !important;
+}
+
+.download-passcode-action-btn {
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.download-passcode-action-btn:hover {
+  background: #ffffff;
+  border-color: #94a3b8;
+  color: #1e293b;
+}
+
+.download-action-icon {
+  font-size: 0.95rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .confirmation-card {
+    padding: 30px 20px;
+  }
+  .passcode-digit {
+    width: 36px;
+    height: 42px;
+    font-size: 1.2rem;
+  }
+}
+
 .passcode-digit {
   font-size: 24px;
   font-weight: 700;

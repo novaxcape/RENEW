@@ -281,7 +281,7 @@ export default function BookingSummaryPage() {
     (t) => (quantities[t.id] || 0) > 0
   );
 
-  // ✅ Handle payment
+  // ✅ Handle payment - FIXED VERSION
   const handleContinueToPayment = async () => {
     console.log("🚀 Starting payment process...");
     
@@ -419,6 +419,12 @@ export default function BookingSummaryPage() {
           })
         ).unwrap();
 
+        console.log("PAYMENT RESPONSE:", paymentResponse);
+        console.log("PAYMENT RESPONSE STRUCTURE:", JSON.stringify(paymentResponse, null, 2));
+
+        // 🔧 FIXED: Better redirect URL extraction with multiple fallback paths
+        const redirectUrl = paymentResponse.data.data.checkout_url
+        // Save booking state regardless of redirect
         const bookingState = {
           bookingId: bookingId,
           amount: total,
@@ -443,18 +449,9 @@ export default function BookingSummaryPage() {
 
         localStorage.setItem("pendingBookingState", JSON.stringify(bookingState));
 
-        const redirectUrl = 
-          paymentResponse?.data?.redirect_url ||
-          paymentResponse?.data?.url ||
-          paymentResponse?.data?.paymentUrl ||
-          paymentResponse?.redirect_url ||
-          paymentResponse?.url ||
-          paymentResponse?.paymentUrl ||
-          paymentResponse?.link;
-
-        console.log("✅ Found redirect URL:", redirectUrl);
-
+        // Check if we have a valid redirect URL
         if (redirectUrl && redirectUrl.startsWith('http')) {
+          console.log("🔄 Redirecting to:", redirectUrl);
           await Swal.fire({
             icon: "info",
             title: "Redirecting to Payment",
@@ -466,43 +463,69 @@ export default function BookingSummaryPage() {
           
           window.location.href = redirectUrl;
         } else {
-          console.error("❌ No valid redirect URL found");
+          console.warn("⚠️ No valid redirect URL found, falling back to checkout page");
+          console.log("Full payment response for debugging:", JSON.stringify(paymentResponse, null, 2));
           
-          await Swal.fire({
+          // Show a better fallback message with option to navigate
+          const result = await Swal.fire({
             icon: "success",
             title: "Booking Created Successfully!",
             html: `
               <p>Your booking has been created with ID: <strong>${bookingId}</strong></p>
               <p>Total Amount: <strong>${formatNaira(total)}</strong></p>
+              <p style="margin-top: 15px; color: #666; font-size: 14px;">
+                Please complete your payment by clicking the button below.
+              </p>
               <p style="margin-top: 15px;">
                 <button onclick="window.location.href='/payment-checkout/${bookingId}'" 
-                        style="background: #ff6b35; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px;">
+                        style="background: #ff6b35; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600;">
                   Complete Payment
                 </button>
               </p>
             `,
             confirmButtonColor: "#ff6b35",
             confirmButtonText: "View My Bookings",
-          }).then(() => {
-            navigate("/my-bookings");
           });
+          
+          if (result.isConfirmed) {
+            navigate("/my-bookings");
+          }
         }
       } catch (paymentError) {
         console.error("❌ Payment initialization failed:", paymentError);
         
-        await Swal.fire({
+        // Log the full error for debugging
+        console.log("Payment error details:", {
+          error: paymentError,
+          message: paymentError?.message,
+          response: paymentError?.response,
+          data: paymentError?.data,
+        });
+        
+        // Show error with retry option
+        const result = await Swal.fire({
           icon: "warning",
           title: "Booking Created but Payment Failed",
           html: `
             <p>Your booking was created successfully with ID: <strong>${bookingId}</strong></p>
             <p>Total Amount: <strong>${formatNaira(total)}</strong></p>
-            <p style="margin-top: 15px;">Please try to complete your payment later or contact support.</p>
+            <p style="margin-top: 15px; color: #666; font-size: 14px;">
+              ${paymentError?.message || "Please try to complete your payment later or contact support."}
+            </p>
+            <p style="margin-top: 15px;">
+              <button onclick="window.location.href='/payment-checkout/${bookingId}'" 
+                      style="background: #ff6b35; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600;">
+                Retry Payment
+              </button>
+            </p>
           `,
           confirmButtonColor: "#ff6b35",
           confirmButtonText: "Go to My Bookings",
-        }).then(() => {
-          navigate("/my-bookings");
         });
+        
+        if (result.isConfirmed) {
+          navigate("/my-bookings");
+        }
       }
     } catch (error) {
       console.error("❌ Error:", error);
