@@ -1,41 +1,36 @@
 import React from "react";
-import { Routes, Route, Navigate, Outlet } from "react-router-dom";
-import ScrollToTop from "./components/ScrollToTop"
+import { Routes, Route, Navigate } from "react-router-dom";
+import ScrollToTop from "./components/ScrollToTop";
 
 // Import your header and layout tool
 import Header from "./components/Header";
 import PaymentHeader from "./components/PaymentHeader";
 
-
 // Import your route guard pages
 import PrivateRoute from "./Pages/PrivateRoute";
 import PublicRoute from "./Pages/PublicRoute";
 import RootLayout from "./Outlet/RootLayout";
+
 // ========== CLIENT PAGES ==========
-// Public Pages (Client Auth)
 import SignUp from "./Pages/SignUp";
 import Login from "./Pages/Login";
 import ForgotPassword from "./Pages/ForgotPassword";
 import VerifyOtp from "./Pages/VerifyOtp";
 import ResetPassword from "./Pages/ResetPassword";
 
-// Public Accessible Pages
 import LandingPage from "./Pages/LandingPage";
 import About from "./Pages/Aboutpage";
 import ForCentrePage from "./Pages/ForCentrePage";
-// import Centres from "./Pages/ForCentrePage";
 import Support from "./Pages/Supportpage";
 import Discover from "./Pages/Discoverpage";
 import ProductDetails from "./Pages/ProductDetails";
 
-// Protected Pages (Client - require login)
 import WishList from "./Pages/WishList";
 import PaymentOptionPage from "./Pages/PaymentOptionPage";
 import MyBookingsPage from "./Pages/MyBookingsPage";
 import PaymentConfirmationPage from "./Pages/PaymentConfirmationPage";
 import DashboardLayout from "./components/DashboardLayout";
-import Dashboard from "./Pages/Dashboard";
-import RevenueTrendPage from "./Pages/RevenueTrendPage";
+import Dashboard  from "./Pages/Dashboard";
 import SettingsPage from "./Pages/SettingPage";
 import ProfileSettingPage from "./Pages/ProfileSettingPage";
 import AddCentre from "./Pages/Addcentre";
@@ -46,18 +41,14 @@ import PackagePage from "./Pages/PackagePage";
 import ReviewPage from "./Pages/ReviewPage";
 import VerifyPage from "./Pages/VerifyPage.jsx";
 
-
-// Selection Pages
 import SignupScreen from "./Pages/SignUpScreen";
 import SignInScreen from "./Pages/SignInScreen";
 
-// ✅ Payment Pages - Import from components folder
 import PaymentCheckout from "./components/PaymentCheckout";
 import BookingSummaryPage from "./Pages/BookingSummaryPage";
 import BookingConfirmation from "./components/BookingConfirmation";
 
 // ========== VENDOR PAGES ==========
-// Vendor Auth Pages (Public - no login required)
 import SignUpVendor from "./Pages/SignUpVendor";
 import VendorVerifyOtp from "./Pages/VendorVerifyOtp";
 import VendorLogin from "./Pages/VendorLogin";
@@ -67,31 +58,26 @@ import VendorChangePassword from "./Pages/VendorChangePassword";
 import DashboardPackageActive from "./Pages/DashboardPackageActive";
 import DashboardPackageInactive from "./Pages/DashboardPackageInactive";
 
-// Shared layout configuration to render Fixed Header automatically
-
-
 const App = () => {
   return (
     <>
+      {/* ✅ Globally active listener: Catches all route changes below */}
       <ScrollToTop />
-      <Routes>
       
-        {/* The RootLayout houses the conditional header switcher */}
+      <Routes>
+        {/* ========== PUBLIC CLIENT ROUTES ========== */}
         <Route path="/" element={<RootLayout />}>
-          {/* All pages inside here will get injected into the <Outlet /> */}
           <Route index element={<LandingPage />} />
           <Route path="discover" element={<Discover />} />
           <Route path="centres" element={<ForCentrePage />} />
           <Route path="about" element={<About />} />
           <Route path="support" element={<Support />} />
-           <Route path="review" element={<ReviewPage/>} />
-          {/* ✅ ADDED: Product Detail Page Route */}
+          <Route path="review" element={<ReviewPage />} />
           <Route path="centre/:id" element={<ProductDetails />} />
-          {/* Add all other route tracks below */}
-          <Route path="/my-bookings" element={<MyBookingsPage/>} />
+          <Route path="my-bookings" element={<MyBookingsPage />} />
         </Route>
         
-        {/* Client Protected Pages (Require login but keep the main header) */}
+        {/* ========== CLIENT PROTECTED ROUTES ========== */}
         <Route
           path="/wishlist"
           element={
@@ -100,10 +86,6 @@ const App = () => {
             </PrivateRoute>
           }
         />
-
-     
-        
-        {/* ✅ PAYMENT CHECKOUT ROUTE - Using touristId and packageId */}
         <Route
           path="/payment-checkout/:touristId/:packageId"
           element={
@@ -112,7 +94,6 @@ const App = () => {
             </PrivateRoute>
           }
         />
-
         <Route
           path="/payment"
           element={
@@ -121,22 +102,11 @@ const App = () => {
             </PrivateRoute>
           }
         />
-        
-        {/* ✅ BOOKING CONFIRMATION ROUTE - From components */}
         <Route
           path="/booking-confirmation/:bookingId"
           element={
             <PrivateRoute>
               <BookingConfirmation />
-            </PrivateRoute>
-          }
-        />
-        
-        <Route
-          path="/my-bookings"
-          element={
-            <PrivateRoute>
-              <MyBookingsPage />
             </PrivateRoute>
           }
         />
@@ -148,7 +118,16 @@ const App = () => {
             </PrivateRoute>
           }
         />
-          
+        <Route
+          path="/booking-summary/:touristId/:packageId"
+          element={
+            <PrivateRoute>
+              <BookingSummaryPage />
+            </PrivateRoute>
+          }
+        />
+
+        {/* ========== CLIENT/SHARED STANDALONE SETTINGS ========== */}
         <Route
           path="/settings"
           element={
@@ -166,6 +145,7 @@ const App = () => {
           }
         />
 
+        {/* ========== CLIENT AUTH PORTALS ========== */}
         <Route
           path="/signupscreen"
           element={
@@ -174,9 +154,6 @@ const App = () => {
             </PublicRoute>
           }
         />
-
-     
-
         <Route
           path="/signinscreen"
           element={
@@ -185,7 +162,6 @@ const App = () => {
             </PublicRoute>
           }
         />
-
         <Route
           path="/signup"
           element={
@@ -227,8 +203,7 @@ const App = () => {
           }
         />
 
-        {/* Vendor Auth */}
-        {/* ========== VENDOR AUTH ROUTES (Public) ========== */}
+        {/* ========== VENDOR PUBLIC AUTH ========== */}
         <Route
           path="/signupvendor"
           element={
@@ -269,7 +244,6 @@ const App = () => {
             </PublicRoute>
           }
         />
-
         <Route
           path="DashboardPackageActive"
           element={
@@ -278,7 +252,6 @@ const App = () => {
             </PublicRoute>
           }
         />
-
         <Route
           path="DashboardPackageInactive"
           element={
@@ -288,90 +261,33 @@ const App = () => {
           }
         />
 
-      <Route
-        path="/wishlist"
-        element={
-          <PrivateRoute>
-            <WishList />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/my-bookings"
-        element={
-          <PrivateRoute>
-            <MyBookingsPage />
-          </PrivateRoute>
-        }
-      />
-      
-      <Route
-        path="/payment-confirmation"
-        element={
-          <PrivateRoute>
-            <PaymentConfirmationPage />
-          </PrivateRoute>
-        }
-      />
-
-        {/* ✅ BOOKING SUMMARY ROUTE */}
+        {/* ========== VENDOR DASHBOARD ROUTES (Nested Outlets) ========== */}
         <Route
-          path="/booking-summary/:touristId/:packageId"
+          path="/vendor/dashboard"
           element={
-            <PrivateRoute>
-              <BookingSummaryPage />
+            <PrivateRoute role="vendor">
+              <DashboardLayout />
             </PrivateRoute>
           }
-        />
-
-       
-      {/* ========== VENDOR DASHBOARD ROUTES (Protected) ========== */}
-      <Route
-        path="/vendor/dashboard"
-        element={
-          <PrivateRoute role="vendor">
-            <DashboardLayout />
-          </PrivateRoute>
-        }
-      >
-        <Route index element={<Dashboard />} />
-        <Route path="bookings" element={<DashboardBookingPage />} />
-        <Route path="verify" element={<VerifyPage />} />
-        <Route path="wallet" element={<WalletPage />} />
-        <Route path="package" element={<PackagePage />} />
-        <Route path="settings" element={<SettingsPage />} />
-        <Route path="support" element={<Support />} />
-      </Route>
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="bookings" element={<DashboardBookingPage />} />
+          <Route path="verify" element={<VerifyPage />} />
+          <Route path="wallet" element={<WalletPage />} />
+          <Route path="package" element={<PackagePage />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="support" element={<Support />} />
+        </Route>
 
         <Route
           path="/dashboard"
           element={<Navigate to="/vendor/dashboard" replace />}
         />
-
-        {/* ========== VENDOR PROTECTED ROUTES (Require login) ========== */}
         <Route
           path="/vendor/change-password"
           element={
             <PrivateRoute role="vendor">
               <VendorChangePassword />
-            </PrivateRoute>
-          }
-        />
-
-        {/* ========== STANDALONE PROTECTED PAGES ========== */}
-        <Route
-          path="/settings"
-          element={
-            <PrivateRoute>
-              <SettingsPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/profile-settings"
-          element={
-            <PrivateRoute>
-              <ProfileSettingPage />
             </PrivateRoute>
           }
         />
@@ -392,19 +308,11 @@ const App = () => {
           }
         />
 
-        {/* ========== FALLBACK for 404 ========== */}
+        {/* ========== FALLBACK 404 ========== */}
         <Route
           path="*"
           element={
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "100vh",
-                fontSize: "24px",
-              }}
-            >
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", fontSize: "24px" }}>
               404 - Page Not Found
             </div>
           }
