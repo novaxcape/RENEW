@@ -17,7 +17,7 @@ const WalletPage = () => {
 
        <div className="bottom-section">
         <PerformanceInsight />
-        <CapacityGoals />
+        
       </div>
     </>
   )

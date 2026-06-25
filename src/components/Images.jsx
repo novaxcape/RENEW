@@ -7,7 +7,9 @@ import {
   handleImagePaste,
 } from "../utils/imageUpload";
 
-const Images = ({ uploadedImages, onImagesChange }) => {
+const MINIMUM_IMAGES = 3;
+
+const Images = ({ uploadedImages, onImagesChange, onValidationChange }) => {
   const [localImages, setLocalImages] = useState(uploadedImages || {});
   const [errors, setErrors] = useState({});
   const fileInputsRef = useRef({});
@@ -16,6 +18,12 @@ const Images = ({ uploadedImages, onImagesChange }) => {
     setLocalImages((prev) => {
       const next = typeof updater === "function" ? updater(prev) : updater;
       onImagesChange(next);
+
+      const uploadedCount = Object.keys(next).length;
+      if (onValidationChange) {
+        onValidationChange(uploadedCount >= MINIMUM_IMAGES);
+      }
+
       return next;
     });
   };
@@ -41,7 +49,6 @@ const Images = ({ uploadedImages, onImagesChange }) => {
   const handlePaste = (event, boxId) => {
     try {
       const imageData = handleImagePaste(event);
-
       if (imageData) {
         setImage(boxId, imageData);
       } else {
@@ -58,7 +65,6 @@ const Images = ({ uploadedImages, onImagesChange }) => {
     event.stopPropagation();
     try {
       const imageData = handleImageDrop(event);
-
       if (imageData) {
         setImage(boxId, imageData);
       } else {
@@ -73,7 +79,6 @@ const Images = ({ uploadedImages, onImagesChange }) => {
   const handleFileSelect = (event, boxId) => {
     try {
       const imageData = handleImageFileInput(event);
-
       if (imageData) {
         setImage(boxId, imageData);
       }
@@ -109,8 +114,18 @@ const Images = ({ uploadedImages, onImagesChange }) => {
     }
   };
 
+  const imageCount = Object.keys(localImages).length;
+  const remaining = MINIMUM_IMAGES - imageCount;
+
   return (
     <div className="step-content">
+      {imageCount < MINIMUM_IMAGES && (
+        <p>
+          {remaining} more image{remaining > 1 ? "s" : ""} required (
+          {imageCount}/{MINIMUM_IMAGES})
+        </p>
+      )}
+
       {[1, 2, 3, 4, 5].map((i) => {
         const imageData = localImages[i];
 

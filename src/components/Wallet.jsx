@@ -161,7 +161,7 @@ const Wallet = () => {
             </div>
             <div className="wallet-stat-card__value-row">
               <span className="wallet-stat-card__value">
-                {card.isNaira && <span className="wallet-stat-card__naira">₦</span>}
+                
                 {card.value}
               </span>
               <span className="wallet-stat-card__badge">{card.badge}</span>

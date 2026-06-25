@@ -1,5 +1,5 @@
-// Pages/AddCentre.jsx - COMPLETE FIXED VERSION
-import { useState } from 'react';
+// Pages/AddCentre.jsx
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -14,7 +14,7 @@ import Pricing from '../components/Pricing';
 import Images from '../components/Images';
 import Hours from '../components/Hours';
 import Review from '../components/Review';
-import { createPackage, registerTouristCenter } from '../redox/apiSlice';
+import { createKyc, createPackage, registerTouristCenter } from '../redox/apiSlice';
 
 const defaultOpeningHours = {
   monday: { isOpen: false, openTime: '10 AM', closeTime: '4 PM' },
@@ -26,7 +26,6 @@ const defaultOpeningHours = {
   sunday: { isOpen: false, openTime: '10 AM', closeTime: '4 PM' },
 };
 
-// ✅ ENHANCED getEntityId function
 const getEntityId = (value, depth = 0) => {
   if (!value || depth > 5) return null;
 
@@ -37,7 +36,7 @@ const getEntityId = (value, depth = 0) => {
   if (typeof value === 'object') {
     const paths = [
       'data.touristId',
-      'data.id', 
+      'data.id',
       'data._id',
       'data.data.id',
       'data.data._id',
@@ -70,7 +69,7 @@ const getEntityId = (value, depth = 0) => {
       const parts = path.split('.');
       let current = value;
       let found = true;
-      
+
       for (const part of parts) {
         if (current && typeof current === 'object' && part in current) {
           current = current[part];
@@ -79,7 +78,7 @@ const getEntityId = (value, depth = 0) => {
           break;
         }
       }
-      
+
       if (found && current && typeof current === 'string' && current.length > 0) {
         console.log(`✅ Found ID at path "${path}":`, current);
         return current;
@@ -100,12 +99,12 @@ const getEntityId = (value, depth = 0) => {
 
     for (const key of Object.keys(value)) {
       const val = value[key];
-      if (typeof val === 'string' && val.length > 0 && 
-          (key.toLowerCase().includes('id') || 
-           key.toLowerCase().includes('tourist') ||
-           key.toLowerCase().includes('vendor') ||
-           key.toLowerCase().includes('user') ||
-           key.toLowerCase().includes('centre'))) {
+      if (typeof val === 'string' && val.length > 0 &&
+        (key.toLowerCase().includes('id') ||
+          key.toLowerCase().includes('tourist') ||
+          key.toLowerCase().includes('vendor') ||
+          key.toLowerCase().includes('user') ||
+          key.toLowerCase().includes('centre'))) {
         console.log(`✅ Found ID at key "${key}":`, val);
         return val;
       }
@@ -121,6 +120,11 @@ const getEntityId = (value, depth = 0) => {
 };
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MINIMUM_IMAGES = 3;
+const hasPendingKyc = () => Boolean(localStorage.getItem('pendingCentreKyc'));
+const hasSubmittedKyc = () =>
+  localStorage.getItem('kycSubmitted') === 'true' ||
+  localStorage.getItem('vendorHasCentre') === 'true';
 
 const AddCentre = () => {
   const dispatch = useDispatch();
@@ -152,6 +156,15 @@ const AddCentre = () => {
   });
   const [openingHours, setOpeningHours] = useState(defaultOpeningHours);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!hasPendingKyc() && !hasSubmittedKyc()) {
+      navigate('/kyc', {
+        replace: true,
+        state: { next: '/add-centre' },
+      });
+    }
+  }, [navigate]);
 
   const handleCentreChange = (event) => {
     const { name, value } = event.target;
@@ -189,9 +202,8 @@ const AddCentre = () => {
     }));
   };
 
-  // Validate current step
   const validateCurrentStep = () => {
-    switch(currentStep) {
+    switch (currentStep) {
       case 1:
         if (!centreData.centreName) {
           Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please enter centre name.', confirmButtonColor: '#ff6b35' });
@@ -218,95 +230,105 @@ const AddCentre = () => {
           return false;
         }
         return true;
-        
+
       case 2:
         if (selectedFacilities.length === 0) {
           Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please select at least one facility.', confirmButtonColor: '#ff6b35' });
           return false;
         }
         return true;
-        
-      case 3:
+
+      case 3: {
         if (!pricingData.dailySlotCapacity) {
-          Swal.fire({ 
-            icon: 'error', 
-            title: 'Missing Information', 
-            text: 'Please enter daily slot capacity.', 
-            confirmButtonColor: '#ff6b35' 
+          Swal.fire({
+            icon: 'error',
+            title: 'Missing Information',
+            text: 'Please enter daily slot capacity.',
+            confirmButtonColor: '#ff6b35'
           });
           return false;
         }
-        
-        const validPackages = packagesList.filter(pkg => 
-          pkg.packageName?.trim() && 
-          pkg.packageType?.trim() && 
-          pkg.amount && 
+
+        const validPackages = packagesList.filter(pkg =>
+          pkg.packageName?.trim() &&
+          pkg.packageType?.trim() &&
+          pkg.amount &&
           Number(pkg.amount) > 0 &&
-          pkg.numberOfPeople && 
+          pkg.numberOfPeople &&
           Number(pkg.numberOfPeople) > 0
         );
-        
+
         if (validPackages.length === 0) {
-          Swal.fire({ 
-            icon: 'error', 
-            title: 'Missing Package Information', 
+          Swal.fire({
+            icon: 'error',
+            title: 'Missing Package Information',
             text: 'Please add at least one valid package with name, type, amount, and number of people.',
-            confirmButtonColor: '#ff6b35' 
+            confirmButtonColor: '#ff6b35'
           });
           return false;
         }
-        
+
         if (!documents.termsAndCondition || !documents.privacyPolicy) {
-          Swal.fire({ 
-            icon: 'error', 
-            title: 'Missing Documents', 
-            text: 'Please upload terms and privacy policy documents.', 
-            confirmButtonColor: '#ff6b35' 
+          Swal.fire({
+            icon: 'error',
+            title: 'Missing Documents',
+            text: 'Please upload terms and privacy policy documents.',
+            confirmButtonColor: '#ff6b35'
           });
           return false;
         }
         return true;
-        
-      case 4:
+      }
+
+      case 4: {
         const imageFiles = Object.values(uploadedImages).filter((image) => image?.file);
-        if (imageFiles.length < 1) {
-          Swal.fire({ icon: 'error', title: 'Missing Images', text: 'Please upload at least 1 centre image.', confirmButtonColor: '#ff6b35' });
+        if (imageFiles.length < MINIMUM_IMAGES) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Missing Images',
+            text: `Please upload at least ${MINIMUM_IMAGES} centre images. You have ${imageFiles.length} so far.`,
+            confirmButtonColor: '#ff6b35'
+          });
           return false;
         }
         const oversized = imageFiles.filter(file => file.size > MAX_FILE_SIZE);
         if (oversized.length > 0) {
-          Swal.fire({ 
-            icon: 'error', 
-            title: 'File Too Large', 
-            text: 'One or more images exceed the 10MB limit. Please compress your images and try again.', 
-            confirmButtonColor: '#ff6b35' 
+          Swal.fire({
+            icon: 'error',
+            title: 'File Too Large',
+            text: 'One or more images exceed the 10MB limit. Please compress your images and try again.',
+            confirmButtonColor: '#ff6b35'
           });
           return false;
         }
         return true;
-        
+      }
+
       case 5:
         return true;
-        
+
       default:
         return true;
     }
   };
 
-  // Validate all centre data
   const validateCentre = () => {
     const imageFiles = Object.values(uploadedImages).filter((image) => image?.file);
-    const validPackages = packagesList.filter(pkg => 
-      pkg.packageName?.trim() && 
-      pkg.packageType?.trim() && 
-      pkg.amount && 
+    const validPackages = packagesList.filter(pkg =>
+      pkg.packageName?.trim() &&
+      pkg.packageType?.trim() &&
+      pkg.amount &&
       Number(pkg.amount) > 0 &&
-      pkg.numberOfPeople && 
+      pkg.numberOfPeople &&
       Number(pkg.numberOfPeople) > 0
     );
 
-    if (!centreData.centreName || !centreData.description || !centreData.city || 
-        !centreData.state || !centreData.streetAddress || !centreData.location) {
+    if (!hasPendingKyc() && !hasSubmittedKyc()) {
+      return 'Please complete KYC verification before adding a centre.';
+    }
+
+    if (!centreData.centreName || !centreData.description || !centreData.city ||
+      !centreData.state || !centreData.streetAddress || !centreData.location) {
       return 'Please complete the basic information fields.';
     }
 
@@ -322,8 +344,8 @@ const AddCentre = () => {
       return 'Please add at least one valid package with name, type, amount, and number of people.';
     }
 
-    if (imageFiles.length < 1) {
-      return 'Please upload at least 1 centre image.';
+    if (imageFiles.length < MINIMUM_IMAGES) {
+      return `Please upload at least ${MINIMUM_IMAGES} centre images.`;
     }
 
     const oversized = imageFiles.filter(file => file.size > MAX_FILE_SIZE);
@@ -342,14 +364,44 @@ const AddCentre = () => {
     return '';
   };
 
-  // Create packages for centre
+  const submitKycData = async (touristId) => {
+    const savedKyc = localStorage.getItem('pendingCentreKyc');
+    if (!savedKyc && hasSubmittedKyc()) {
+      return null;
+    }
+
+    if (!savedKyc) {
+      throw new Error('KYC details were not found. Please complete KYC first.');
+    }
+
+    const parsedKyc = JSON.parse(savedKyc);
+    const payload = {
+      ...parsedKyc,
+      yearEstablished: Number(parsedKyc.yearEstablished),
+      phoneNumber: String(parsedKyc.phoneNumber),
+      centrePhoneNumber: String(parsedKyc.phoneNumber),
+      directorPhoneNumber: String(parsedKyc.directorPhoneNumber),
+      accountNumber: String(parsedKyc.accountNumber),
+      bankCode: parsedKyc.bankCode || '',
+      centreName: centreData.centreName,
+      city: centreData.city,
+      streetAddress: centreData.streetAddress,
+    };
+
+    const response = await dispatch(createKyc({ touristId, kycData: payload })).unwrap();
+    localStorage.removeItem('pendingCentreKyc');
+    localStorage.removeItem('kycDraftCompleted');
+    localStorage.setItem('kycSubmitted', 'true');
+    return response;
+  };
+
   const createPackagesForCentre = async (touristId) => {
-    const validPackages = packagesList.filter(pkg => 
-      pkg.packageName?.trim() && 
-      pkg.packageType?.trim() && 
-      pkg.amount && 
+    const validPackages = packagesList.filter(pkg =>
+      pkg.packageName?.trim() &&
+      pkg.packageType?.trim() &&
+      pkg.amount &&
       Number(pkg.amount) > 0 &&
-      pkg.numberOfPeople && 
+      pkg.numberOfPeople &&
       Number(pkg.numberOfPeople) > 0
     );
 
@@ -358,7 +410,7 @@ const AddCentre = () => {
     }
 
     const results = [];
-    
+
     for (const packageData of validPackages) {
       try {
         const payload = {
@@ -367,12 +419,12 @@ const AddCentre = () => {
           amount: Number(packageData.amount),
           numberOfPeople: String(Number(packageData.numberOfPeople)),
         };
-        
-        const result = await dispatch(createPackage({ 
-          touristId: touristId.trim(), 
-          packageData: payload 
+
+        const result = await dispatch(createPackage({
+          touristId: touristId.trim(),
+          packageData: payload
         })).unwrap();
-        
+
         results.push({ success: true, package: payload.packageName, data: result });
       } catch (error) {
         console.error(`Failed to create package "${packageData.packageName}":`, error);
@@ -380,7 +432,7 @@ const AddCentre = () => {
         if (typeof error === 'string') errorMessage = error;
         else if (error?.message) errorMessage = error.message;
         else if (error?.data?.message) errorMessage = error.data.message;
-        
+
         results.push({ success: false, package: packageData.packageName, error: errorMessage });
       }
     }
@@ -388,31 +440,22 @@ const AddCentre = () => {
     return results;
   };
 
-  // Navigate to KYC with proper state
   const navigateToKyc = (touristId, centreName) => {
     console.log("🚀 Navigating to KYC with:", { touristId, centreName });
-    
-    // Store in localStorage as backup
+
     if (touristId) {
       localStorage.setItem('latestTouristId', touristId);
       localStorage.setItem('centreName', centreName);
     }
-    
-    // Navigate with state
-    navigate('/kyc', { 
-      state: { 
-        touristId: touristId, 
-        centreName: centreName,
-        fromAddCentre: true 
-      },
-      replace: true 
-    });
+
+    localStorage.setItem('kycSubmitted', 'true');
+    localStorage.setItem('vendorHasCentre', 'true');
+    navigate('/vendor/dashboard', { replace: true });
   };
 
-  // Create packages and finish with proper navigation
-  const createPackagesAndFinish = async (touristId, centreName) => {
+  const createPackagesAndFinish = async (touristId, centreName, kycWasSubmitted) => {
     console.log("📦 Creating packages for touristId:", touristId);
-    
+
     if (!touristId) {
       console.error("Invalid touristId");
       Swal.fire({
@@ -426,12 +469,14 @@ const AddCentre = () => {
 
     try {
       const packageResults = await createPackagesForCentre(touristId);
-      
+
       const successful = packageResults.filter(r => r.success);
       const failed = packageResults.filter(r => !r.success);
 
-      // Show success message
       let message = '✅ Your tourism centre has been registered!\n\n';
+      message = kycWasSubmitted
+        ? 'Your tourism centre has been registered and KYC has been submitted.\n\n'
+        : 'Your tourism centre has been registered using your existing KYC verification.\n\n';
       if (successful.length > 0) {
         message += `${successful.length} package(s) created successfully.\n\n`;
       }
@@ -440,35 +485,42 @@ const AddCentre = () => {
       }
       message += '📋 Next: Complete KYC verification to activate your centre.';
 
-      // Show success alert and then navigate
+      message = message.replace(
+        /Next: Complete KYC verification to activate your centre\./,
+        kycWasSubmitted
+          ? 'KYC verification has been submitted for review.'
+          : 'You can manage this centre from your dashboard.'
+      );
+
       await Swal.fire({
         icon: successful.length > 0 ? 'success' : 'warning',
         title: successful.length > 0 ? 'Centre & Packages Created!' : 'Centre Created with Issues',
         text: message,
         confirmButtonColor: '#ff6b35',
-        confirmButtonText: 'Continue to KYC'
+        confirmButtonText: 'Go to Dashboard'
       });
 
-      // Navigate to KYC after alert is dismissed
+      localStorage.setItem('vendorHasPackages', successful.length > 0 ? 'true' : 'false');
       navigateToKyc(touristId, centreName);
-      
+
     } catch (error) {
       console.error("Error in package creation:", error);
-      
-      // Even if packages fail, still allow going to KYC
+
       await Swal.fire({
         icon: 'warning',
         title: 'Centre Created',
-        text: 'Your centre was created but we had issues with packages. You can add them later from your dashboard.\n\nProceed to KYC verification.',
+        text: kycWasSubmitted
+          ? 'Your centre and KYC were submitted, but we had issues with packages. You can add them later from your dashboard.'
+          : 'Your centre was created, but we had issues with packages. You can add them later from your dashboard.',
         confirmButtonColor: '#ff6b35',
-        confirmButtonText: 'Continue to KYC'
+        confirmButtonText: 'Go to Dashboard'
       });
 
+      localStorage.setItem('vendorHasPackages', 'false');
       navigateToKyc(touristId, centreName);
     }
   };
 
-  // Submit centre data
   const submitCentreData = async (vendorId) => {
     const imageFiles = Object.values(uploadedImages)
       .map((image) => image?.file)
@@ -496,7 +548,7 @@ const AddCentre = () => {
     formData.append('dailySlotCapacity', String(Number(pricingData.dailySlotCapacity) || 0));
     formData.append('installmentPayment', String(pricingData.installmentPayment || false));
     formData.append('openingHours', hoursString);
-    
+
     imageFiles.forEach((file) => {
       formData.append('images', file);
     });
@@ -506,7 +558,7 @@ const AddCentre = () => {
     } else {
       throw new Error('Terms and Condition document is required');
     }
-    
+
     if (documents.privacyPolicy) {
       formData.append('privacyPolicy', documents.privacyPolicy);
     } else {
@@ -517,38 +569,37 @@ const AddCentre = () => {
       const response = await dispatch(
         registerTouristCenter({ vendorId, centreData: formData })
       ).unwrap();
-      
+
       console.log("📦 Registration response:", JSON.stringify(response, null, 2));
-      
+
       let touristId = getEntityId(response);
-      
+
       if (!touristId && response?.data) {
         touristId = getEntityId(response.data);
       }
-      
+
       if (!touristId && response?.result) {
         touristId = getEntityId(response.result);
       }
-      
+
       if (!touristId && typeof response === 'string') {
         touristId = response;
       }
-      
+
       console.log("🎯 Extracted touristId:", touristId);
-      
+
       if (!touristId) {
         throw new Error('Could not extract centre ID from server response');
       }
 
       return touristId;
-      
+
     } catch (error) {
       console.error("Centre submission error:", error);
       throw error;
     }
   };
 
-  // Main submit handler
   const handleSubmit = async () => {
     const validationError = validateCentre();
     if (validationError) {
@@ -566,15 +617,15 @@ const AddCentre = () => {
 
     console.log("📄 vendorDetails:", vendorDetails);
     console.log("📄 loggedInUser:", loggedInUser);
-    
+
     let vendorId = getEntityId(vendorDetails) || getEntityId(loggedInUser);
-    
+
     if (!vendorId) {
-      vendorId = localStorage.getItem('vendorId') || 
-                 localStorage.getItem('touristId') ||
-                 localStorage.getItem('userId');
+      vendorId = localStorage.getItem('vendorId') ||
+        localStorage.getItem('touristId') ||
+        localStorage.getItem('userId');
     }
-    
+
     if (!vendorId) {
       Swal.fire({
         icon: 'error',
@@ -589,7 +640,9 @@ const AddCentre = () => {
 
     Swal.fire({
       title: 'Creating Centre...',
-      text: 'Please wait while we set up your tourism centre',
+      text: hasPendingKyc()
+        ? 'Please wait while we set up your tourism centre and submit KYC.'
+        : 'Please wait while we set up your tourism centre.',
       allowOutsideClick: false,
       didOpen: () => {
         Swal.showLoading();
@@ -598,27 +651,28 @@ const AddCentre = () => {
 
     try {
       const touristId = await submitCentreData(vendorId);
-      
+
       if (touristId) {
-        // Close the loading Swal
+        const kycWasSubmitted = hasPendingKyc();
+        if (kycWasSubmitted) {
+          await submitKycData(touristId);
+        }
         Swal.close();
-        
-        // Create packages and navigate to KYC
-        await createPackagesAndFinish(touristId, centreData.centreName);
+        await createPackagesAndFinish(touristId, centreData.centreName, kycWasSubmitted);
       } else {
         throw new Error('Failed to get centre ID');
       }
-      
+
     } catch (error) {
       console.error('Centre submission error:', error);
-      
+
       let errorMessage = 'Unable to submit centre. Please try again.';
       if (typeof error === 'string') {
         errorMessage = error;
       } else if (error?.message) {
         errorMessage = error.message;
       }
-      
+
       Swal.fire({
         icon: 'error',
         title: 'Submission Failed',
@@ -651,7 +705,7 @@ const AddCentre = () => {
   };
 
   const renderStepContent = () => {
-    switch(currentStep) {
+    switch (currentStep) {
       case 1:
         return <BasicInfo formData={centreData} onChange={handleCentreChange} />;
       case 2:
@@ -663,8 +717,8 @@ const AddCentre = () => {
         );
       case 3:
         return (
-          <Pricing 
-            formData={pricingData} 
+          <Pricing
+            formData={pricingData}
             onChange={handlePricingChange}
             onPackagesChange={handlePackagesChange}
             onDocumentsChange={setDocuments}
@@ -712,12 +766,12 @@ const AddCentre = () => {
   return (
     <div className="app-container">
       <Navbar />
-      
+
       <div className="main-content">
         {currentStep > 1 && (
-          <button 
-            className="btn-back" 
-            onClick={handleBack} 
+          <button
+            className="btn-back"
+            onClick={handleBack}
             disabled={isSubmitting || loading}
             style={{
               fontSize: "12px",
@@ -739,7 +793,7 @@ const AddCentre = () => {
             ← Back
           </button>
         )}
-        
+
         <h1>Add New Tourism Centre</h1>
         <p className="subtitle">
           Fill in the details to list your tourism centre on NovaEscape
@@ -752,22 +806,27 @@ const AddCentre = () => {
             <h2 className="card-title">{getStepTitle()}</h2>
             {currentStep === 2 && (
               <p className="card-subtitle">
+                Add the basic details customers will see for your centre
+              </p>
+            )}
+            {currentStep === 3 && (
+              <p className="card-subtitle">
                 Select all the facilities and amenities available at your centre
               </p>
             )}
-            {currentStep === 4 && (
+            {currentStep === 5 && (
               <p className="card-subtitle">
-                Upload high-quality images of your tourism centre (minimum 1 image required)
+                Upload high-quality images of your tourism centre (minimum {MINIMUM_IMAGES} images required)
               </p>
             )}
           </div>
 
           {renderStepContent()}
-          
+
           <div className="form-actions">
-            <button 
-              className="btn-next" 
-              onClick={handleNext} 
+            <button
+              className="btn-next"
+              onClick={handleNext}
               disabled={isSubmitting || loading}
               style={{ opacity: (isSubmitting || loading) ? 0.7 : 1 }}
             >
@@ -782,5 +841,4 @@ const AddCentre = () => {
   );
 };
 
-// ✅ SINGLE EXPORT - Only one default export
 export default AddCentre;

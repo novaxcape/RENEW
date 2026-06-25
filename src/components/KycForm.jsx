@@ -52,6 +52,7 @@ const KycForm = () => {
     localStorage.getItem("latestTouristId") ||
     getEntityId(location.state?.centreData) ||
     null;
+  const isPreCentreKyc = !touristId;
 
   useEffect(() => {
     if (location.state?.centreName) {
@@ -116,10 +117,6 @@ const KycForm = () => {
       return "Please enter a valid year established (between 1800 and current year)";
     }
 
-    if (!touristId) {
-      return "Tourist centre ID not found. Please submit your centre first.";
-    }
-
     return "";
   };
 
@@ -166,6 +163,23 @@ const KycForm = () => {
     console.log("Tourist ID:", touristId);
     console.log("Has phoneNumber:", kycData.hasOwnProperty("phoneNumber"));
     console.log("Has centrePhoneNumber:", kycData.hasOwnProperty("centrePhoneNumber"));
+
+    if (isPreCentreKyc) {
+      localStorage.setItem("pendingCentreKyc", JSON.stringify(kycData));
+      localStorage.setItem("kycDraftCompleted", "true");
+
+      Swal.fire({
+        icon: "success",
+        title: "KYC Details Saved",
+        text: "Now add your tourism centre details to complete registration.",
+        confirmButtonColor: "#ff6b35",
+        timer: 1800,
+        timerProgressBar: true,
+      }).then(() => {
+        navigate("/add-centre", { replace: true, state: { kycCompleted: true } });
+      });
+      return;
+    }
 
     try {
    const response = await dispatch(
@@ -522,7 +536,11 @@ Swal.fire({
                 disabled={kycLoading}
                 style={{ opacity: kycLoading ? 0.7 : 1 }}
               >
-                {kycLoading ? "Submitting..." : "Submit for Verification"}
+                {kycLoading
+                  ? "Submitting..."
+                  : isPreCentreKyc
+                    ? "Continue to Add Centre"
+                    : "Submit for Verification"}
                 <FiCheckCircle className="btn-success-check-icon" />
               </button>
             </div>
