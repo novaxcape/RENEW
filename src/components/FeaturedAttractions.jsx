@@ -1,4 +1,6 @@
-import React, { useEffect } from "react";
+// File: src/components/FeaturedAttractions.jsx
+
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import "../components/css/FeaturedAttractions.css";
@@ -150,28 +152,67 @@ const FeaturedAttractions = () => {
     (state) => state.api
   );
 
+  // State to store combined centres from all states
+  const [allCentres, setAllCentres] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     STATES_TO_FETCH.forEach((state) => {
       dispatch(getTouristCentersByState(state));
     });
   }, [dispatch]);
 
-  // Use API data if available, otherwise fall back to static
-  const apiCentres = touristCentres.slice(0, 9);
-  const usingFallback = !touristCentresLoading && apiCentres.length === 0;
-  const displayCentres = usingFallback ? FALLBACK_ATTRACTIONS : apiCentres;
+  // Combine all centres from different states when they load
+  useEffect(() => {
+    if (!touristCentresLoading) {
+      let finalCentres = [];
+      
+      if (touristCentres.length > 0) {
+        // Get unique centres by ID to avoid duplicates
+        const uniqueCentres = [];
+        const seenIds = new Set();
+        
+        touristCentres.forEach(centre => {
+          const id = centre.id || centre._id;
+          if (id && !seenIds.has(id)) {
+            seenIds.add(id);
+            uniqueCentres.push(centre);
+          }
+        });
+        
+        // Take up to 9 centres from API
+        const apiCentres = uniqueCentres.slice(0, 9);
+        
+        // If we have less than 9, pad with fallback data
+        if (apiCentres.length < 9) {
+          const needed = 9 - apiCentres.length;
+          const fallbackToUse = FALLBACK_ATTRACTIONS.slice(0, needed);
+          finalCentres = [...apiCentres, ...fallbackToUse];
+        } else {
+          finalCentres = apiCentres;
+        }
+      } else {
+        // No API data, use all fallback
+        finalCentres = FALLBACK_ATTRACTIONS;
+      }
+      
+      setAllCentres(finalCentres);
+      setIsLoading(false);
+    }
+  }, [touristCentres, touristCentresLoading]);
 
   const handleCardClick = (centre, meta) => {
-    navigate(`/centre/${centre.id}`, {
+    const centreId = centre.id || centre._id;
+    navigate(`/centre/${centreId}`, {
       state: {
         centre: {
-          id: centre.id,
-          centreName: centre.centreName,
+          id: centreId,
+          centreName: centre.centreName || centre.name,
           city: centre.city || centre.state,
           state: centre.state || centre.city,
           description:
             centre.description ||
-            `${centre.centreName} is a popular tourist attraction in ${centre.city || centre.state}.`,
+            `${centre.centreName || centre.name} is a popular tourist attraction in ${centre.city || centre.state}.`,
           images: centre.imagesPublicUrl ||
             centre.images?.map((img) => img.secureUrl) ||
             [centre.image],
@@ -180,7 +221,7 @@ const FeaturedAttractions = () => {
           reviews: meta.reviews,
           packages: [
             {
-              id: centre.id,
+              id: centreId,
               packageName: "Adult Ticket",
               packageType: "Adult",
               amount: centre.price || meta.price,
@@ -192,17 +233,16 @@ const FeaturedAttractions = () => {
     });
   };
 
-  return (
-    <section className="attractions">
-      <div className="featured-section-header">
-        <h2 className="featured-section-title">Featured Attractions</h2>
-      </div>
-      <p className="featured-section-subtitle">
-        Discover the most popular tourism centres across Nigeria
-      </p>
-
-      {/* Loading skeleton */}
-      {touristCentresLoading && apiCentres.length === 0 && (
+  // Show loading skeleton
+  if (isLoading || touristCentresLoading) {
+    return (
+      <section className="attractions">
+        <div className="featured-section-header">
+          <h2 className="featured-section-title">Featured Attractions</h2>
+        </div>
+        <p className="featured-section-subtitle">
+          Discover the most popular tourism centres across Nigeria
+        </p>
         <div className="attractions_grid">
           {Array.from({ length: 9 }).map((_, i) => (
             <div className="attraction_card attraction_card--skeleton" key={i}>
@@ -216,76 +256,110 @@ const FeaturedAttractions = () => {
             </div>
           ))}
         </div>
-      )}
+      </section>
+    );
+  }
 
-      {/* Cards — API or fallback */}
-      {!touristCentresLoading && (
-        <div className="attractions_grid">
-          {displayCentres.map((centre, index) => {
-            const isFallback = centre.id?.startsWith("static-") || !!centre.image;
-            const meta = isFallback
-              ? { rating: centre.rating, reviews: centre.reviews, openingHours: centre.openingHours, price: centre.price }
-              : STATIC_META[index % STATIC_META.length];
+  return (
+    <section className="attractions">
+      <div className="featured-section-header">
+        <h2 className="featured-section-title">Featured Attractions</h2>
+      </div>
+      <p className="featured-section-subtitle">
+        Discover the most popular tourism centres across Nigeria
+      </p>
 
-            const imageUrl =
-              centre.image ||
-              centre.imagesPublicUrl?.[0] ||
-              centre.images?.[0]?.secureUrl ||
-              "/novaxcape/placeholder.png";
+      {/* Cards — API + Fallback (always shows 9) */}
+      <div className="attractions_grid">
+        {allCentres.map((centre, index) => {
+          // Determine if this is a fallback centre
+          const isFallback = centre.id?.startsWith("static-") || 
+                            (typeof centre.id === 'string' && !isNaN(centre.id)) ||
+                            !!centre.image;
+          
+          // Get meta data
+          let meta;
+          if (isFallback) {
+            meta = {
+              rating: centre.rating || 4.0,
+              reviews: centre.reviews || 0,
+              openingHours: centre.openingHours || "8:30 AM - 5:00 PM",
+              price: centre.price || 1500
+            };
+          } else {
+            // Use static meta cycled by index for API data
+            const staticData = STATIC_META[index % STATIC_META.length];
+            meta = {
+              rating: centre.rating || centre.averageRating || staticData.rating,
+              reviews: centre.reviews || centre.reviewCount || staticData.reviews,
+              openingHours: centre.openingHours || staticData.openingHours,
+              price: centre.price || centre.amount || staticData.price
+            };
+          }
 
-            return (
-              <div
-                className="attraction_card"
-                key={centre.id || index}
-                onClick={() => handleCardClick(centre, meta)}
-                style={{ cursor: "pointer" }}
-              >
-                <img
-                  src={imageUrl}
-                  alt={centre.centreName}
-                  onError={(e) => { e.target.src = "/novaxcape/placeholder.png"; }}
-                />
+          // Get image URL
+          const imageUrl =
+            centre.image ||
+            centre.imagesPublicUrl?.[0] ||
+            centre.images?.[0]?.secureUrl ||
+            "/novaxcape/placeholder.png";
 
-                <div className="card_content">
-                  <h3>{centre.centreName}</h3>
-                  <h4>{centre.city || centre.state}</h4>
+          // Get centre name and location
+          const centreName = centre.centreName || centre.name || "Attraction";
+          const location = centre.city || centre.state || "Location";
 
-                  <div className="card_details">
-                    <div className="rating">
-                      {renderStars(meta.rating)}
-                      <span>{meta.rating}</span>
-                      <small>({meta.reviews} reviews)</small>
-                    </div>
+          return (
+            <div
+              className="attraction_card"
+              key={centre.id || centre._id || index}
+              onClick={() => handleCardClick(centre, meta)}
+              style={{ cursor: "pointer" }}
+            >
+              <img
+                src={imageUrl}
+                alt={centreName}
+                onError={(e) => { e.target.src = "/novaxcape/placeholder.png"; }}
+              />
 
-                    <div className="time">
-                      <FaRegClock />
-                      <span>{centre.openingHours || meta.openingHours}</span>
-                    </div>
+              <div className="card_content">
+                <h3>{centreName}</h3>
+                <h4>{location}</h4>
+
+                <div className="card_details">
+                  <div className="rating">
+                    {renderStars(meta.rating)}
+                    <span>{typeof meta.rating === 'number' ? meta.rating.toFixed(1) : meta.rating}</span>
+                    <small>({meta.reviews || 0})</small>
                   </div>
 
-                  <div className="bottom_section">
-                    <div>
-                      <p>From</p>
-                      <h2>{formatPrice(centre.price || meta.price)}</h2>
-                    </div>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCardClick(centre, meta);
-                      }}
-                    >
-                      Book Now
-                    </button>
+                  <div className="time">
+                    <FaRegClock />
+                    <span>{meta.openingHours}</span>
                   </div>
                 </div>
+
+                {/* <div className="bottom_section"> */}
+                  {/* <div>
+                    <p>From</p>
+                    <h2>{formatPrice(meta.price)}</h2>
+                  </div> */}
+
+                  {/* <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCardClick(centre, meta);
+                    }}
+                  >
+                    Book Now
+                  </button> */}
+                {/* </div> */}
               </div>
-            );
-          })}
-        </div>
-      )}
+            </div>
+          );
+        })}
+      </div>
     </section>
   );
 };
-
+ 
 export default FeaturedAttractions;

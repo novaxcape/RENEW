@@ -1,12 +1,15 @@
+// File: src/components/Hero.jsx
+
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import "../components/css/Hero.css";
 import { FaCalendarAlt } from "react-icons/fa";
 import {
   selectPackages,
   selectTouristCentres,
   selectVendorCentres,
-} from "../redox/apiSlice"; // double-check this path/spelling matches your actual folder
+} from "../redox/apiSlice";
 
 const ROTATING_TEXTS = [
   "Stunning Places",
@@ -102,6 +105,7 @@ const CalendarPicker = ({ onSelect, selectedDate }) => {
 };
 
 const Hero = () => {
+  const navigate = useNavigate();
   const [textIndex, setTextIndex] = useState(0);
   const [fade, setFade] = useState(true);
   const [locationOpen, setLocationOpen] = useState(false);
@@ -164,19 +168,32 @@ const Hero = () => {
       ? date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
       : null;
 
+  // ✅ Updated search handler - navigates to Discover page with location
   const handleSearch = () => {
-    console.log("Search triggered:", { selectedLocation, selectedDate });
-    // TODO: wire up to your actual search action / navigation
+    console.log("🔍 Search triggered:", { selectedLocation, selectedDate });
+    
+    // If location is selected, navigate to discover with the location filter
+    if (selectedLocation) {
+      navigate(`/discover?location=${encodeURIComponent(selectedLocation)}`, {
+        state: { 
+          searchLocation: selectedLocation,
+          searchDate: selectedDate 
+        }
+      });
+    } else {
+      // If no location selected, just go to discover page
+      navigate('/discover');
+    }
   };
 
   const selectLocation = (loc) => {
-    console.log("Location clicked:", loc);
+    console.log("📍 Location selected:", loc);
     setSelectedLocation(loc);
     setLocationOpen(false);
   };
 
   const selectDate = (date) => {
-    console.log("Date clicked:", date);
+    console.log("📅 Date selected:", date);
     setSelectedDate(date);
     setCalOpen(false);
   };
