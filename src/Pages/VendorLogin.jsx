@@ -13,7 +13,7 @@ import {
   clearError,
 } from "../redox/authSlice";
 import { getVendorTouristCenters, getKycStatus } from "../redox/apiSlice";
-import "../Styles/SignUpVendor.css";
+import "../Styles/VendorLogin.css";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "https://novaxcape.onrender.com/api/v1";
@@ -152,7 +152,7 @@ const VendorLogin = () => {
   };
 
   return (
-    <div className="login-wrapper">
+    <div className="vendor-login-wrapper">
       <div className="login-container">
         <div className="login-panel">
           <img src="/novaxcape/img.png" alt="Vendor Login" />
