@@ -506,3 +506,143 @@
   color: #666;
   margin-bottom: 20px;
 }
+
+/* ===== Booking Details Popup Modal ===== */
+
+.booking-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  box-sizing: border-box;
+  animation: modalFadeIn 0.2s ease;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.booking-modal-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  animation: modalSlideUp 0.22s ease;
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+@keyframes modalSlideUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.booking-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 26px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.booking-modal-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+.booking-modal-close-btn {
+  background-color: #f3f4f6;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #4b5563;
+  font-size: 16px;
+  transition: background-color 0.2s ease;
+}
+
+.booking-modal-close-btn:hover {
+  background-color: #e5e7eb;
+}
+
+.booking-modal-body {
+  padding: 22px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.booking-modal-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.booking-modal-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #888888;
+}
+
+.booking-modal-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111111;
+  text-align: right;
+}
+
+.booking-modal-footer {
+  padding: 18px 26px 24px 26px;
+}
+
+.booking-modal-close-action-btn {
+  width: 100%;
+  background-color: #ff6633;
+  color: #ffffff;
+  border: none;
+  border-radius: 24px;
+  padding: 13px 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(255, 102, 51, 0.25);
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.booking-modal-close-action-btn:hover {
+  background-color: #e65524;
+}
+
+.booking-modal-close-action-btn:active {
+  transform: scale(0.98);
+}
+
+@media (max-width: 480px) {
+  .booking-modal-card {
+    max-width: 100%;
+  }
+
+  .booking-modal-header,
+  .booking-modal-body,
+  .booking-modal-footer {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
