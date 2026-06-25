@@ -297,7 +297,7 @@ const Login = () => {
 
             <div className="form-group">
               <label>Password</label>
-              <div className="password-input">
+              <div className="login-password-input">
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"

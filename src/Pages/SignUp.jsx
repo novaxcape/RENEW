@@ -56,6 +56,9 @@ const SignUp = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoadingState] = useState(false);
 
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [termsError, setTermsError] = useState("");
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -144,6 +147,13 @@ const SignUp = () => {
     }
   };
 
+  const handleTermsChange = (e) => {
+    setAgreeTerms(e.target.checked);
+    if (e.target.checked) {
+      setTermsError("");
+    }
+  };
+
   // ✅ Handle navigation to Login with booking data
   const handleSignInClick = () => {
     // Get the current pending booking
@@ -177,8 +187,20 @@ const SignUp = () => {
       });
       return;
     }
+
+    if (!agreeTerms) {
+      setTermsError("You must agree to the Terms & Conditions and Privacy Policy.");
+      Swal.fire({
+        icon: "warning",
+        title: "Terms Required",
+        text: "Please agree to the Terms & Conditions and Privacy Policy to continue.",
+        confirmButtonColor: "#ff6b35",
+      });
+      return;
+    }
     
     setErrors({});
+    setTermsError("");
     setLoadingState(true);
     dispatch(setLoading(true));
     dispatch(clearError());
@@ -361,11 +383,17 @@ const SignUp = () => {
             </div>
 
             <div className="terms">
-              <input type="checkbox" id="terms" />
+              <input
+                type="checkbox"
+                id="terms"
+                checked={agreeTerms}
+                onChange={handleTermsChange}
+              />
               <label htmlFor="terms">
-                I agree to the <a href="#!"> Terms & Conditions </a> and <a href="#!"> Privacy Policy</a>
+                I agree to the <a href="#!">Terms & Conditions</a> and <a href="#!">Privacy Policy</a>
               </label>
             </div>
+            {termsError && <span className="termsError">{termsError}</span>}
 
             <button type="submit" className="signupBtn" disabled={loading || reduxLoading}>
               {loading || reduxLoading ? "Creating Account..." : "Sign Up"}

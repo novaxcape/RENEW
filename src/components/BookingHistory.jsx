@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import "./css/BookingHistory.css";
-import { FiSearch, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiSearch, FiChevronLeft, FiChevronRight, FiX } from "react-icons/fi";
 import { getAllClientBookings, clearApiError } from "../redox/apiSlice";
 
 const BookingHistory = () => {
@@ -11,6 +11,7 @@ const BookingHistory = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [filterStatus, setFilterStatus] = useState("all");
+  const [selectedBooking, setSelectedBooking] = useState(null); // NEW: booking shown in popup
   const itemsPerPage = 5;
 
   const { clientBookings, bookingLoading, bookingError } = useSelector(
@@ -30,7 +31,7 @@ const BookingHistory = () => {
   // Map API data to display format
   const mapBookingsToDisplay = (bookings) => {
     if (!bookings || bookings.length === 0) return [];
-    
+
     return bookings.map((booking) => ({
       id: booking.id,
       ticketId: booking.bookingNumber || booking.ticketId,
@@ -39,7 +40,7 @@ const BookingHistory = () => {
       date: booking.visitDate || booking.date,
       amount: booking.package?.amount || booking.amount,
       status: booking.status,
-      rawData: booking
+      rawData: booking,
     }));
   };
 
@@ -94,10 +95,13 @@ const BookingHistory = () => {
     return `₦${amount.toLocaleString()}`;
   };
 
+  // CHANGED: instead of navigating, open the popup with this booking's details
   const handleViewDetails = (booking) => {
-    navigate(`/booking/${booking.id}`, {
-      state: { booking: booking.rawData || booking },
-    });
+    setSelectedBooking(booking);
+  };
+
+  const handleClosePopup = () => {
+    setSelectedBooking(null);
   };
 
   const handleBackToHome = () => {
@@ -331,6 +335,75 @@ const BookingHistory = () => {
             </div>
           </div>
         </>
+      )}
+
+      {/* NEW: Booking details popup modal */}
+      {selectedBooking && (
+        <div className="booking-modal-overlay" onClick={handleClosePopup}>
+          <div
+            className="booking-modal-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="booking-modal-header">
+              <h2 className="booking-modal-title">Booking Details</h2>
+              <button className="booking-modal-close-btn" onClick={handleClosePopup}>
+                <FiX />
+              </button>
+            </div>
+
+            <div className="booking-modal-body">
+              <div className="booking-modal-row">
+                <span className="booking-modal-label">Ticket ID</span>
+                <span className="booking-modal-value">
+                  {selectedBooking.ticketId || `NOV-${selectedBooking.id?.slice(-5)}`}
+                </span>
+              </div>
+
+              <div className="booking-modal-row">
+                <span className="booking-modal-label">Package</span>
+                <span className="booking-modal-value">
+                  {selectedBooking.packageName || "Package"}
+                </span>
+              </div>
+
+              <div className="booking-modal-row">
+                <span className="booking-modal-label">Centre</span>
+                <span className="booking-modal-value">
+                  {selectedBooking.centreName || "Centre"}
+                </span>
+              </div>
+
+              <div className="booking-modal-row">
+                <span className="booking-modal-label">Date</span>
+                <span className="booking-modal-value">
+                  {formatDate(selectedBooking.date)}
+                </span>
+              </div>
+
+              <div className="booking-modal-row">
+                <span className="booking-modal-label">Total Amount</span>
+                <span className="booking-modal-value">
+                  {formatAmount(selectedBooking.amount)}
+                </span>
+              </div>
+
+              <div className="booking-modal-row">
+                <span className="booking-modal-label">Status</span>
+                <span
+                  className={`status-badge ${getStatusBadge(selectedBooking.status).class}`}
+                >
+                  {getStatusBadge(selectedBooking.status).text}
+                </span>
+              </div>
+            </div>
+
+            <div className="booking-modal-footer">
+              <button className="booking-modal-close-action-btn" onClick={handleClosePopup}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
