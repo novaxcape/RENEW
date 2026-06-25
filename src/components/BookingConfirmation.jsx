@@ -2,11 +2,11 @@ import React, { useEffect, useState, useRef, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Swal from "sweetalert2";
-import "./css/BookingConfirmation.css";
 import { HiOutlineMail } from "react-icons/hi";
 import { FiMapPin, FiCalendar, FiShield, FiDownload } from "react-icons/fi";
 import { RiIdCardLine } from "react-icons/ri";
 import { verifyPayment, getBookingById, clearPaymentData } from "../redox/apiSlice";
+import "./css/BookingConfirmation.css";
 
 const BookingConfirmation = () => {
   const { bookingId } = useParams();
@@ -14,6 +14,7 @@ const BookingConfirmation = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  // Component State
   const [bookingDetails, setBookingDetails] = useState({
     location: '',
     visitDate: '',
@@ -26,9 +27,11 @@ const BookingConfirmation = () => {
   const [verificationStatus, setVerificationStatus] = useState('verifying');
   const [errorMessage, setErrorMessage] = useState('');
 
+  // Redux & Router State
   const locationBookingData = useMemo(() => location.state || {}, [location.state]);
   const { paymentData, booking: reduxBooking } = useSelector((state) => state.api);
 
+  // Refs for tracking values inside useEffect without triggering re-renders
   const paymentDataRef = useRef(paymentData);
   const reduxBookingRef = useRef(reduxBooking);
   const verificationAttempted = useRef(false);
@@ -36,96 +39,85 @@ const BookingConfirmation = () => {
   useEffect(() => { paymentDataRef.current = paymentData; }, [paymentData]);
   useEffect(() => { reduxBookingRef.current = reduxBooking; }, [reduxBooking]);
 
+  // Utility: Format Date
   const formatDate = (dateString) => {
     if (!dateString) return 'Date TBD';
     try {
       const date = new Date(dateString);
-      return (
-        date.toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-        }) +
-        ' at ' +
-        date.toLocaleTimeString('en-US', {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true,
-        })
-      );
-    } catch (e) {
+      if (isNaN(date.getTime())) return dateString; // Fallback if invalid date
+      
+      return `${date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })} at ${date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      })}`;
+    } catch {
       return dateString;
     }
   };
 
-  const updateBookingDetails = (data) => {
-    if (!data) return;
-    const centreData = data.data || data;
+  // Utility: Update Booking State matching the new API Schema
+  const updateBookingDetails = (payload) => {
+    if (!payload) return;
+    
+    // The payload might be the root response (with location, otp, visitDate) 
+    // and a nested 'data' object (with amount, reference, status).
+    const nestedData = payload.data || {};
+    const rootData = payload.data?.data ? payload.data : payload; // Handle double nesting if axios unwrap differs
+
     setBookingDetails((prev) => ({
       ...prev,
-      location: centreData.centreName || centreData.tourist?.centreName || centreData.location || prev.location,
-      visitDate: centreData.visitDate || centreData.date || centreData.bookingDate || prev.visitDate,
-      bookingId: centreData.bookingNumber || centreData.id || centreData.bookingId || prev.bookingId,
-      passcode: centreData.passcode || centreData.bookingPasscode || prev.passcode,
-      amount: centreData.amount || centreData.totalAmount || centreData.price || centreData.paidAmount || prev.amount,
-      status: centreData.status || centreData.paymentStatus || prev.status,
-      reference: centreData.reference || centreData.paymentReference || prev.reference,
+      // Pulling from the exact schema provided
+      location: rootData.location || nestedData.location || prev.location,
+      visitDate: rootData.visitDate || nestedData.visitDate || prev.visitDate,
+      bookingId: rootData.bookingId || nestedData.bookingId || prev.bookingId,
+      passcode: rootData.otp || rootData.passcode || nestedData.passcode || prev.passcode,
+      
+      // Payment details are nested inside 'data'
+      amount: nestedData.amount || rootData.amount || prev.amount,
+      status: nestedData.status || rootData.status || prev.status,
+      reference: nestedData.reference || rootData.reference || prev.reference,
     }));
   };
 
   useEffect(() => {
     if (verificationAttempted.current) return;
-
     let isMounted = true;
 
     const verifyAndFetchBooking = async () => {
       verificationAttempted.current = true;
 
       const urlParams = new URLSearchParams(location.search);
-      const referenceFromUrl = urlParams.get('reference') || urlParams.get('trxref');
-      const referenceFromState = locationBookingData.reference;
-      const currentPaymentData = paymentDataRef.current;
-      const referenceFromRedux =
-        currentPaymentData?.reference ||
-        currentPaymentData?.data?.reference ||
-        currentPaymentData?.data?.data?.reference;
-
-      const reference = referenceFromUrl || referenceFromState || referenceFromRedux;
+      const reference = 
+        urlParams.get('reference') || 
+        urlParams.get('trxref') || 
+        locationBookingData.reference || 
+        paymentDataRef.current?.reference ||
+        paymentDataRef.current?.data?.reference;
 
       if (reference) {
         try {
+          // Unwrap returns the JSON object: { message, data: {...}, otp, visitDate, etc. }
           const result = await dispatch(verifyPayment({ reference, bookingId })).unwrap();
 
           if (isMounted) {
-            const responseData = result?.data || result;
-
-            const paymentStatus =
-              responseData?.data?.status ||
-              responseData?.status ||
-              'pending';
-
-            const isSuccess =
-              paymentStatus === 'success' ||
-              responseData?.data?.transaction?.status === 'success' ||
-              responseData?.message?.toLowerCase().includes('success') ||
-              result?.message?.toLowerCase().includes('success');
+            // Check for success based on the new schema structure
+            const paymentStatus = result?.data?.status || result?.status;
+            const isSuccess = 
+              paymentStatus === 'success' || 
+              result?.message === 'Payment verified successfully';
 
             if (isSuccess) {
               setVerificationStatus('success');
-
-              const bookingData = responseData?.data || responseData || {};
-
-              const otp =
-                result?.otp ||
-                responseData?.otp ||
-                bookingData.passcode ||
-                bookingData.bookingPasscode ||
-                'N/A';
-
+              
+              // Pass the entire result object so updateBookingDetails can map it correctly
               updateBookingDetails({
-                ...bookingData,
-                status: 'confirmed',
-                passcode: otp,
+                ...result,
+                status: 'confirmed' // Force confirm on success
               });
 
               Swal.fire({
@@ -138,44 +130,30 @@ const BookingConfirmation = () => {
               });
             } else {
               setVerificationStatus('failed');
-              setErrorMessage(
-                result?.message ||
-                responseData?.message ||
-                'Payment verification failed.'
-              );
+              setErrorMessage(result?.message || 'Payment verification failed.');
             }
           }
         } catch (error) {
           if (isMounted) {
             setVerificationStatus('failed');
-            setErrorMessage(
-              typeof error === 'string' ? error : error?.message || 'Could not verify payment.'
-            );
+            setErrorMessage(typeof error === 'string' ? error : error?.message || 'Could not verify payment.');
           }
         }
       } else {
+        // Fallback checks if no payment reference is found
         try {
-          const currentReduxBooking = reduxBookingRef.current;
-          const existingBooking = locationBookingData.booking || currentReduxBooking;
+          const existingBooking = locationBookingData.booking || reduxBookingRef.current;
+          const isExistingConfirmed = existingBooking && ['confirmed', 'completed'].includes(existingBooking.status) || existingBooking?.paymentStatus === 'success';
 
-          if (
-            existingBooking &&
-            (existingBooking.status === 'confirmed' ||
-              existingBooking.status === 'completed' ||
-              existingBooking.paymentStatus === 'success')
-          ) {
+          if (isExistingConfirmed) {
             setVerificationStatus('success');
             updateBookingDetails(existingBooking);
           } else if (bookingId) {
             const result = await dispatch(getBookingById(bookingId)).unwrap();
             const fetchedBooking = result?.data || result?.booking || result;
+            const isFetchedConfirmed = fetchedBooking && ['confirmed', 'completed'].includes(fetchedBooking.status) || fetchedBooking?.paymentStatus === 'success';
 
-            if (
-              fetchedBooking &&
-              (fetchedBooking.status === 'confirmed' ||
-                fetchedBooking.status === 'completed' ||
-                fetchedBooking.paymentStatus === 'success')
-            ) {
+            if (isFetchedConfirmed) {
               setVerificationStatus('success');
               updateBookingDetails(fetchedBooking);
             } else {
@@ -199,9 +177,11 @@ const BookingConfirmation = () => {
     return () => { isMounted = false; };
   }, [dispatch, bookingId, locationBookingData, location.search]);
 
+  // Handlers
   const handleDownloadPasscode = () => {
     const passcode = bookingDetails.passcode || 'N/A';
     const passcodeText = `Booking Confirmation\n\nBooking ID: ${bookingDetails.bookingId}\nPasscode: ${passcode}\nLocation: ${bookingDetails.location}\nVisit Date: ${formatDate(bookingDetails.visitDate)}\nAmount Paid: ₦${Number(bookingDetails.amount).toLocaleString()}`;
+    
     const blob = new Blob([passcodeText], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -249,7 +229,7 @@ const BookingConfirmation = () => {
     });
   };
 
-  // Loading State
+  // UI Renders based on verification status
   if (verificationStatus === 'verifying') {
     return (
       <div className="confirmation-page-wrapper">
@@ -264,7 +244,6 @@ const BookingConfirmation = () => {
     );
   }
 
-  // Failed State
   if (verificationStatus === 'failed') {
     return (
       <div className="confirmation-page-wrapper">
@@ -272,17 +251,11 @@ const BookingConfirmation = () => {
           <div className="failed-state">
             <div className="failed-icon">❌</div>
             <h2 className="confirmation-title">Verification Failed</h2>
-            <p className="confirmation-subtitle">
-              {errorMessage || "We couldn't verify your payment."}
-            </p>
+            <p className="confirmation-subtitle">{errorMessage || "We couldn't verify your payment."}</p>
             <button className="homepage-redirect-btn" onClick={handleRetryPayment}>
               Retry Payment
             </button>
-            <button
-              className="homepage-redirect-btn"
-              onClick={handleBackToHome}
-              style={{ marginTop: '12px', background: '#e2e8f0', color: '#334155' }}
-            >
+            <button className="homepage-redirect-btn" onClick={handleBackToHome} style={{ marginTop: '12px', background: '#e2e8f0', color: '#334155' }}>
               Back to Home
             </button>
           </div>
@@ -291,7 +264,6 @@ const BookingConfirmation = () => {
     );
   }
 
-  // Pending State
   if (verificationStatus === 'pending') {
     return (
       <div className="confirmation-page-wrapper">
@@ -308,11 +280,7 @@ const BookingConfirmation = () => {
             <button className="homepage-redirect-btn" onClick={handleRetryPayment}>
               Complete Payment
             </button>
-            <button
-              className="homepage-redirect-btn"
-              onClick={handleBackToHome}
-              style={{ marginTop: '12px', background: '#e2e8f0', color: '#334155' }}
-            >
+            <button className="homepage-redirect-btn" onClick={handleBackToHome} style={{ marginTop: '12px', background: '#e2e8f0', color: '#334155' }}>
               Back to Home
             </button>
           </div>
@@ -321,36 +289,25 @@ const BookingConfirmation = () => {
     );
   }
 
-  // Success State
   const displayPasscode = bookingDetails.passcode || '••••••';
 
   return (
     <div className="confirmation-page-wrapper">
       <div className="confirmation-card">
-
-        {/* ── Check image ── */}
         <div className="success-badge-container">
-          <img
-            src="/novaxcape/check.png"
-            alt="Booking Confirmed"
-            className="success-checkmark-img"
-          />
+          <img src="/novaxcape/check.png" alt="Booking Confirmed" className="success-checkmark-img" />
         </div>
 
         <h1 className="confirmation-title">Booking Confirmed!</h1>
         <p className="confirmation-subtitle">Your booking has been successfully confirmed.</p>
 
-        {/* ── Email bar ── */}
         <div className="email-toast-message">
           <div className="email-left-content">
             <HiOutlineMail className="email-toast-icon" />
-            <span className="email-toast-text">
-              Your digital ticket has been sent to your email.
-            </span>
+            <span className="email-toast-text">Your digital ticket has been sent to your email.</span>
           </div>
         </div>
 
-        {/* ── Booking details ── */}
         <div className="booking-details-box">
           <h3 className="details-section-title">Booking Details</h3>
 
@@ -383,30 +340,20 @@ const BookingConfirmation = () => {
               <span className="detail-meta-icon">₦</span>
               <div className="detail-text-cell">
                 <span className="detail-field-label">Amount Paid</span>
-                <span className="detail-field-value">
-                  ₦{Number(bookingDetails.amount).toLocaleString()}
-                </span>
+                <span className="detail-field-value">₦{Number(bookingDetails.amount).toLocaleString()}</span>
               </div>
             </div>
           )}
         </div>
 
-        {/* ── Passcode ── */}
         <div className="passcode-container-card">
           <div className="passcode-header-row">
             <FiShield className="passcode-shield-icon" />
             <h4 className="passcode-main-heading">Gate Verification Passcode</h4>
           </div>
-          <p className="passcode-sub-caption">
-            Tap to copy · show this code at the gate for entry
-          </p>
+          <p className="passcode-sub-caption">Tap to copy · show this code at the gate for entry</p>
 
-          <div
-            className="passcode-display-block"
-            onClick={handleCopyPasscode}
-            style={{ cursor: 'pointer' }}
-            title="Tap to copy"
-          >
+          <div className="passcode-display-block" onClick={handleCopyPasscode} style={{ cursor: 'pointer' }} title="Tap to copy">
             {displayPasscode.split('').map((digit, index) => (
               <span key={index} className="passcode-digit">{digit}</span>
             ))}
@@ -418,13 +365,11 @@ const BookingConfirmation = () => {
           </button>
         </div>
 
-        {/* ── Footer ── */}
         <div className="navigation-footer-action">
           <button className="homepage-redirect-btn" onClick={handleBackToHome}>
             Back to Homepage
           </button>
         </div>
-
       </div>
     </div>
   );

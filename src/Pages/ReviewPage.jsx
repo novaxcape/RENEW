@@ -1,15 +1,20 @@
-import React from 'react'
-import Reviews from '../components/Reviews'
-import Footer from '../components/Footer'
-const ReviewPage = () => {
-  return (
-   
-      <div >
-       <Reviews/>
-       <Footer/>
-      </div>
-    
-  )
-}
+// File: src/pages/ReviewPage.jsx
 
-export default ReviewPage
+import React from 'react';
+import { useParams } from 'react-router-dom';
+import Reviews from '../components/Reviews';
+import Footer from '../components/Footer';
+
+const ReviewPage = () => {
+  const { touristCentreId } = useParams(); // Get ID from URL params
+  
+  return (
+    <div>
+      {/* Pass touristCentreId as a prop to Reviews component */}
+      <Reviews touristCentreId={touristCentreId} />
+      <Footer />
+    </div>
+  );
+};
+
+export default ReviewPage;
