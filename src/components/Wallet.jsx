@@ -1,119 +1,204 @@
-import React from "react";
+// Wallet.jsx
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchWalletStart,
+  fetchWalletSuccess,
+  fetchWalletFail,
+  clearWalletError,
+  selectWallet,
+  selectWalletLoading,
+  selectWalletError,
+  selectWalletBalance,
+  selectWalletTotalEarnings,
+} from "../redox/dashboardSlice";
+import { logout } from "../redox/authSlice";
 import "./css/Wallet.css";
 
-const statsCards = [
-  
-  {
-    label: "Total Earnings",
-    icon: "/novaxcape/dollar.png",
-    value: "950,000",
-    badge: "↑ 2.0%",
-    badgeType: "orange",
-    
-    isNaira: true,
-  },
-  {
-    label: "Available balance",
-    icon: "/novaxcape/dollar.png",
-    value: "150,500",
-    badge: "↑ 2.0%",
-    badgeType: "orange",
-   
-    isNaira: true,
-  },
-  {
-    label: "Withdrawn",
-    icon: "/novaxcape/dollar.png",
-    value: "800,000",
-    badge: "↑ 2.0%",
-    badgeType: "orange",
-    
-    isNaira: true,
-  },
-];
-
-const transactions = [
-  {
-    id: 1,
-    title: "Withdrawal to Lekki Conservation Centre",
-    date: "May 20,2026 -14:05 PM",
-    amount: "200,000",
-    status: "Successful",
-  },
-  {
-    id: 2,
-    title: "Withdrawal to Lekki Conservation Centre",
-    date: "May 22,2026 -13:00 PM",
-    amount: "200,000",
-    status: "Successful",
-  },
-  {
-    id: 3,
-    title: "Withdrawal to Lekki Conservation Centre",
-    date: "May 30,2026 -18:00 PM",
-    amount: "200,000",
-    status: "Successful",
-  },
-  {
-    id: 4,
-    title: "Withdrawal to Lekki Conservation Centre",
-    date: "June 04,2026 -14:05 PM",
-    amount: "200,000",
-    status: "Successful",
-  },
-];
+const API_URL = 'https://novaxcape.onrender.com/api/v1';
 
 const Wallet = () => {
-  return (
-    <div className="wallet-page">
-      <div className="wallet-stats-withdraw-row">
-        <div className="wallet-stats-grid">
-          {statsCards.map((card, index) => (
-            <div className="wallet-stat-card" key={index}>
-              <div className="wallet-stat-card__header">
-                <span className="wallet-stat-card__label">{card.label}</span>
-                <img src={card.icon} alt={card.label} className="wallet-stat-card__icon" />
-              </div>
-              <div className="wallet-stat-card__value-row">
-                <span className="wallet-stat-card__value">
-                  {card.isNaira && <span className="wallet-stat-card__naira">₦</span>}
-                  {card.value}
-                </span>
-                <span className={`wallet-stat-card__badge wallet-stat-card__badge--${card.badgeType}`}>
-                  {card.badge}
-                </span>
-              </div>
-              <p className="wallet-stat-card__yesterday">{card.yesterday}</p>
-            </div>
-          ))}
-        </div>
+  const dispatch = useDispatch();
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+  
+  // Get wallet data from Redux
+  const wallet = useSelector(selectWallet);
+  const loading = useSelector(selectWalletLoading);
+  const error = useSelector(selectWalletError);
+  const balance = useSelector(selectWalletBalance);
+  const totalEarnings = useSelector(selectWalletTotalEarnings);
+  
+  const { userToken, isAuthenticated } = useSelector((state) => state.auth);
 
-        <div className="wallet-withdraw-row">
-          <button className="wallet-withdraw-btn">Withdraw</button>
+  // Fetch wallet data
+  const fetchWalletData = async () => {
+    try {
+      if (!isAuthenticated || !userToken) {
+        dispatch(fetchWalletFail('Please login to view wallet'));
+        return;
+      }
+
+      dispatch(fetchWalletStart());
+
+      const response = await fetch(`${API_URL}/wallet`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${userToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          dispatch(logout());
+          dispatch(fetchWalletFail('Session expired. Please login again.'));
+          return;
+        }
+        const errorData = await response.json();
+        dispatch(fetchWalletFail(errorData.message || 'Failed to fetch wallet data'));
+        return;
+      }
+
+      const data = await response.json();
+      // The API returns: { message, data: { id, touristId, balance, totalEarnings, ... } }
+      dispatch(fetchWalletSuccess(data.data));
+
+    } catch (error) {
+      console.error('Wallet fetch error:', error);
+      dispatch(fetchWalletFail(error.message || 'Network error. Please check your connection.'));
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchWalletData();
+    }
+    return () => {
+      dispatch(clearWalletError());
+    };
+  }, [dispatch, isAuthenticated]);
+
+  // Handle withdraw
+  const handleWithdraw = () => {
+    if (!withdrawAmount || parseFloat(withdrawAmount) <= 0) {
+      alert('Please enter a valid amount');
+      return;
+    }
+    if (parseFloat(withdrawAmount) > balance) {
+      alert('Insufficient balance');
+      return;
+    }
+    // TODO: Implement withdraw logic
+    console.log('Withdrawing:', withdrawAmount);
+  };
+
+  // Format currency
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  // Stats cards data from API
+  const statsCards = [
+    {
+      label: "Total Earnings",
+      icon: "/novaxcape/dollar.png",
+      value: formatCurrency(totalEarnings),
+      badge: "↑ 2.0%",
+      isNaira: true,
+    },
+    {
+      label: "Available balance",
+      icon: "/novaxcape/dollar.png",
+      value: formatCurrency(balance),
+      badge: "↑ 2.0%",
+      isNaira: true,
+    },
+    {
+      label: "Withdrawn",
+      icon: "/novaxcape/dollar.png",
+      value: formatCurrency(totalEarnings - balance),
+      badge: "↑ 2.0%",
+      isNaira: true,
+    },
+  ];
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="wallet-page">
+        <div className="wallet-loading">
+          <p>Loading wallet...</p>
         </div>
       </div>
+    );
+  }
 
-      <div className="wallet-transactions">
-        {transactions.map((tx) => (
-          <div className="wallet-tx-card" key={tx.id}>
-            <div className="wallet-tx-card__left">
-              <div className="wallet-tx-card__icon-wrap">
-                <span className="wallet-tx-card__dollar-icon">$</span>
-              </div>
-              <div className="wallet-tx-card__info">
-                <p className="wallet-tx-card__title">{tx.title}</p>
-                <p className="wallet-tx-card__date">{tx.date}</p>
-              </div>
+  // Show error state
+  if (error) {
+    return (
+      <div className="wallet-page">
+        <div className="wallet-error">
+          <p style={{ color: 'red' }}>Error: {error}</p>
+          <button onClick={fetchWalletData}>Retry</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="wallet-page">
+      <div className="wallet-stats-grid">
+        {statsCards.map((card, index) => (
+          <div className="wallet-stat-card" key={index}>
+            <div className="wallet-stat-card__header">
+              <span className="wallet-stat-card__label">{card.label}</span>
+              <img src={card.icon} alt={card.label} className="wallet-stat-card__icon" />
             </div>
-            <div className="wallet-tx-card__right">
-              <p className="wallet-tx-card__amount">₦ {tx.amount}</p>
-              <span className="wallet-tx-card__status">{tx.status}</span>
+            <div className="wallet-stat-card__value-row">
+              <span className="wallet-stat-card__value">
+                {card.isNaira && <span className="wallet-stat-card__naira">₦</span>}
+                {card.value}
+              </span>
+              <span className="wallet-stat-card__badge">{card.badge}</span>
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="wallet-withdraw-row">
+        <div className="wallet-withdraw-input">
+          <input
+            type="number"
+            placeholder="Enter amount to withdraw"
+            value={withdrawAmount}
+            onChange={(e) => setWithdrawAmount(e.target.value)}
+            className="wallet-withdraw-field"
+          />
+          <button 
+            className="wallet-withdraw-btn"
+            onClick={handleWithdraw}
+            disabled={!withdrawAmount || parseFloat(withdrawAmount) <= 0}
+          >
+            Withdraw
+          </button>
+        </div>
+      </div>
+
+      <div className="wallet-transactions-panel">
+        <div className="wallet-transactions">
+          {/* You can fetch and display transactions here */}
+          <p style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
+            No transactions yet
+          </p>
+        </div>
       </div>
     </div>
   );
 };
 
-export default Wallet;
+export default Wallet;      

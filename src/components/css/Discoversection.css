@@ -1,393 +1,278 @@
-.attractions {
+/* ==========================================
+   DISCOVER SECTION
+========================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.discover-section {
   width: 100%;
-  padding: 40px;
+  max-width: 1320px;
+  margin: 30px auto 60px;
+  padding: 0 24px;
 }
 
-/* Base Category Container styles (Desktop remains a single line) */
-.category_container {
-  display: flex;
-  justify-content: flex-start; 
-  flex-wrap: nowrap;          
-  overflow-x: auto;           
-  white-space: nowrap;        
-  gap: 45px;
-  margin-bottom: 50px;
-  padding-bottom: 8px;
-  scrollbar-width: none;      
-}
+/* ==========================================
+   CATEGORY PILLS
+========================================== */
 
-.category_container::-webkit-scrollbar {
-  display: none;
-}
-
-/* Unified size and shape for all desktop category buttons */
-.category_btn {
-  border: none;
-  background: #979797; 
-  color: #271A13; 
-  border-radius: 50px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  
-  /* Shape Fixes for Desktop */
-  width: 170px; 
-  height: 46px; 
+.category-container {
+  width: 100%;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0 10px; 
-  
-  /* Text handling for longer words */
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.category-btn {
+  border: none;
+  outline: none;
+  background: #A6A6A6;
+  color: #2f2f2f;
+  height: 54px;
+  padding: 0 30px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .3s ease;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis; 
 }
 
-/* Active Category Button State */
-.category_btn.active {
-  background: #ff6b35; 
-  color: white; 
+.category-btn.active {
+  background: #ff6b35;
+  color: #fff;
 }
 
-.attractions_grid {
+.category-btn:hover {
+  background: #ff6b35;
+  color: #fff;
+}
+
+/* ==========================================
+   SEARCH RESULTS HEADER - CENTERED
+========================================== */
+
+.search-results-header {
+  text-align: center;
+  margin: 0 auto 24px auto;
+  padding: 0 20px;
+}
+
+.search-results-header h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #271A13;
+  margin: 0 0 4px 0;
+}
+
+.search-results-header p {
+  color: #888888;
+  font-size: 15px;
+  margin: 0;
+}
+
+/* ==========================================
+   GRID
+========================================== */
+
+.places-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 35px;
+  gap: 18px;
 }
 
-.attraction_card {
-  background: white;
-  border-radius: 18px;
-  height: 400px;
+/* ==========================================
+   CARD
+========================================== */
+
+.place-card {
+  background: #fff;
+  border-radius: 12px;
   overflow: hidden;
-  border: 1px solid #dcdcdc;
-  transition: 0.3s;
+  box-shadow: 0 3px 12px rgba(0,0,0,.08);
+  transition: .25s;
 }
 
-.attraction_card:hover {
-  transform: translateY(-5px);
+.place-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px rgba(0,0,0,.12);
 }
 
-.attraction_card img {
+/* ==========================================
+   IMAGE
+========================================== */
+
+.place-image-wrapper {
+  position: relative;
   width: 100%;
-  height: 190px;
+  height: 170px;
+  overflow: hidden;
+}
+
+.place-image {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+  display: block;
 }
 
-.card_content {
-  padding: 16px;
-}
+/* ==========================================
+   TRENDING BADGE
+========================================== */
 
-.card_content h3 {
-  font-size: 18px;
+.trending-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #ff6b35;
+  color: #ffffff;
+  border-radius: 50px;
+  padding: 4px 12px;
+  font-size: 11px;
   font-weight: 600;
-  margin-bottom: 8px;
+  font-family: "Manrope", sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1;
 }
 
-.card_content h4 {
-  font-size: 18px;
-  margin-bottom: 14px;
+.badge-icon {
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* ==========================================
+   CONTENT
+========================================== */
+
+.place-body {
+  padding: 12px;
+}
+
+.place-body h3 {
+  font-size: 13px;
   font-weight: 600;
+  color: #222;
+  margin-bottom: 4px;
 }
 
-.card_details {
+.location {
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+/* ==========================================
+   INFO
+========================================== */
+
+.details-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 
 .rating {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 
 .rating svg {
   color: #ffb400;
+  font-size: 11px;
 }
 
 .rating span {
-  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .rating small {
-  color: #999;
+  font-size: 10px;
+  color: #888;
 }
 
 .time {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: #555;
+  gap: 4px;
+  color: #777;
+  font-size: 10px;
 }
 
-.bottom_section {
-  border-top: 1px solid #ececec;
-  padding-top: 20px;
+.time svg {
+  font-size: 10px;
+}
+
+/* ==========================================
+   PRICE
+========================================== */
+
+.price-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.bottom_section p {
-  color: #666;
-  margin-bottom: 5px;
+.price-row small {
+  color: #888;
+  font-size: 10px;
 }
 
-.bottom_section h2 {
-  font-size: 18px;
+.price-row h4 {
+  margin-top: 2px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #222;
+}
+
+/* ==========================================
+   BUTTON
+========================================== */
+
+.book-btn {
+  border: none;
+  background: #ff7a45;
+  color: #fff;
+  border-radius: 16px;
+  padding: 7px 18px;
+  font-size: 11px;
   font-weight: 600;
-}
-
-.bottom_section button {
-  background: #ff6b35;
-  color: white;
-  border: none;
-  border-radius: 50px;
-  padding: 12px 25px;
-  font-size: 15px;
   cursor: pointer;
+  transition: .25s;
 }
 
-/* =========================================================
-   UPDATED MOBILE RESPONSIVENESS - EXACTLY 2 LINES
-========================================================= */
-
-@media (max-width: 768px) {
-  .attractions {
-    padding: 30px 20px;
-  }
-
-  /* 
-    FIXED: Category buttons limited to exactly 2 lines 
-    The first 6 categories will show (3 per row × 2 rows)
-    Any additional categories will be hidden
-  */
-  .category_container {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);     /* Exactly 3 columns */
-    grid-template-rows: repeat(2, auto);       /* Exactly 2 rows */
-    gap: 12px 10px;
-    margin-bottom: 35px;
-    overflow: hidden;                          /* Hide any extra items */
-    max-height: 120px;                         /* Cap height to prevent overflow */
-    padding-bottom: 0;
-  }
-
-  /* Each category button fills its grid cell */
-  .category_btn {
-    width: 100%;
-    height: 44px;                              /* Fixed height for consistency */
-    font-size: 13px;
-    padding: 0 8px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    border-radius: 50px;
-    min-width: 0;                              /* Allow shrinking */
-  }
-
-  /* Make buttons smaller on very small screens */
-  @media (max-width: 480px) {
-    .category_btn {
-      height: 38px;
-      font-size: 11px;
-      padding: 0 6px;
-      border-radius: 30px;
-    }
-    
-    .category_container {
-      gap: 8px 6px;
-      max-height: 95px;
-    }
-  }
-
-  /* 
-    NOTE: To show only 2 lines (6 buttons), ensure your categories array 
-    only has 6 items. Currently it has 7: 
-    ["All", "Park & Recreation", "Art Gallery", "Beach", 
-     "Nature & Wildlife", "Adventure", "Museum"]
-    
-    If you want to keep all 7, change grid to 4 columns for first row and 
-    3 columns for second row, or hide the 7th on mobile.
-  */
-
-  /* Alternative: If you want to show exactly 2 lines with 7 items 
-     (4 on first row, 3 on second row), use this instead:
-  */
-  /*
-  .category_container {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(2, auto);
-    gap: 10px;
-    margin-bottom: 35px;
-    overflow: hidden;
-    max-height: 120px;
-  }
-  
-  .category_btn:last-child {
-    grid-column: span 1;
-  }
-  */
-
-  /* Attractions list display styling */
-  .attractions_grid {
-    display: flex;
-    overflow-x: auto;
-    gap: 20px;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-    padding-bottom: 10px;
-  }
-
-  .attractions_grid::-webkit-scrollbar {
-    display: none;
-  }
-
-  .attraction_card {
-    flex: 0 0 90%;
-    height: auto;
-    scroll-snap-align: start;
-  }
-
-  .card_details {
-    display: flex;
-    flex-direction: row !important; 
-    justify-content: space-between !important; 
-    align-items: center;
-    width: 100%;
-    gap: 10px; 
-    margin-bottom: 18px;
-  }
-
-  .rating, .time {
-    font-size: 14px;
-    white-space: nowrap; 
-  }
-
-  /* Form Responsive adjustments from the search system */
-  .search-input-wrapper {
-    flex-direction: column;
-    border-radius: 12px;
-  }
-  
-  .search-input {
-    border-radius: 12px;
-  }
-  
-  .search-submit-btn {
-    border-radius: 12px;
-  }
+.book-btn:hover {
+  background: #ef6530;
 }
 
-/* Small Screens Optimization */
-@media (max-width: 480px) {
-  .attractions {
-    padding: 24px 14px;
-  }
-
-  .attraction_card {
-    flex: 0 0 92%;
-  }
-
-  .rating, .time {
-    font-size: 13px;
-  }
-}
-
-/* =========================================================
-   SEARCH, LOADER, AND ERROR INTERFACE COMPONENT STYLES
-========================================================= */
-
-.search-bar-container {
-  max-width: 600px;
-  margin: 0 auto 2rem;
-  padding: 0 1rem;
-}
-
-.search-input-wrapper {
-  display: flex;
-  gap: 0.5rem;
-  background: white;
-  border-radius: 50px;
-  padding: 0.25rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.search-input {
-  flex: 1;
-  padding: 0.875rem 1.5rem;
-  border: none;
-  border-radius: 50px;
-  font-size: 1rem;
-  outline: none;
-}
-
-.search-input:focus {
-  outline: none;
-}
-
-.search-submit-btn {
-  padding: 0.875rem 2rem;
-  background: #ff6b35;
-  color: white;
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.3s ease;
-}
-
-.search-submit-btn:hover {
-  background: #e55a2b;
-}
-
-.search-submit-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.error-container {
-  text-align: center;
-  padding: 2rem;
-  background: #fee;
-  border-radius: 12px;
-  margin: 1rem auto;
-  max-width: 500px;
-}
-
-.error-text {
-  color: #d32f2f;
-  margin-bottom: 1rem;
-}
-
-.try-again-btn,
-.browse-all-btn {
-  padding: 0.5rem 1.5rem;
-  background: #ff6b35;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
+/* ==========================================
+   LOADING STATE
+========================================== */
 
 .loading-container {
-  text-align: center;
-  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
 }
 
 .spinner {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   border: 4px solid #f3f3f3;
   border-top: 4px solid #ff6b35;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
+  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
@@ -395,33 +280,204 @@
   100% { transform: rotate(360deg); }
 }
 
+.loading-container p {
+  color: #888888;
+  font-size: 15px;
+}
+
+/* ==========================================
+   ERROR STATE
+========================================== */
+
+.error-container {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.error-text {
+  color: #dc3545;
+  font-size: 15px;
+  margin-bottom: 16px;
+}
+
+.try-again-btn {
+  padding: 10px 32px;
+  background: #ff6b35;
+  color: #ffffff;
+  border: none;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+
+.try-again-btn:hover {
+  background: #e55a2b;
+}
+
+/* ==========================================
+   NO RESULTS STATE
+========================================== */
+
 .no-results-container {
   text-align: center;
-  padding: 3rem;
-  background: #f9f9f9;
-  border-radius: 12px;
-  margin: 1rem auto;
+  padding: 60px 20px;
 }
 
 .no-results-text {
-  color: #666;
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
+  color: #888888;
+  font-size: 15px;
+  margin-bottom: 16px;
 }
 
-.search-results-header {
-  text-align: center;
-  margin: 1rem 0 2rem;
-  padding: 1rem;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  border-radius: 12px;
+.browse-all-btn {
+  padding: 10px 32px;
+  background: transparent;
+  color: #ff6b35;
+  border: 2px solid #ff6b35;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.browse-all-btn:hover {
+  background: #ff6b35;
+  color: #ffffff;
+}
+
+/* ==========================================
+   TABLET
+========================================== */
+
+@media (max-width:1024px){
+
+.discover-section{
+padding:0 20px;
+}
+
+.category-container{
+justify-content:flex-start;
+gap:14px;
+overflow-x:auto;
+scrollbar-width:none;
+}
+
+.category-container::-webkit-scrollbar{
+display:none;
+}
+
+.category-btn{
+height:48px;
+padding:0 22px;
+font-size:13px;
+}
+
+.places-grid{
+grid-template-columns:repeat(2,1fr);
+}
+
+.place-image-wrapper,
+.place-image{
+height:180px;
 }
 
 .search-results-header h2 {
-  color: #1a1a2e;
-  margin-bottom: 0.5rem;
+  font-size: 20px;
 }
 
-.rating svg {
-  color: #ffc107;
+.search-results-header p {
+  font-size: 14px;
+}
+
+}
+
+/* ==========================================
+   MOBILE
+========================================== */
+
+@media (max-width:768px){
+
+.discover-section{
+padding:0 16px;
+}
+
+.category-container{
+justify-content:flex-start;
+gap:12px;
+overflow-x:auto;
+margin-bottom:20px;
+}
+
+.category-container::-webkit-scrollbar{
+display:none;
+}
+
+.category-btn{
+height:44px;
+padding:0 18px;
+font-size:12px;
+}
+
+.places-grid{
+grid-template-columns:1fr;
+gap:16px;
+}
+
+.place-image-wrapper,
+.place-image{
+height:210px;
+}
+
+.details-row{
+flex-direction:column;
+align-items:flex-start;
+gap:8px;
+}
+
+.place-body{
+padding:14px;
+}
+
+.book-btn{
+padding:8px 16px;
+}
+
+.search-results-header h2 {
+  font-size: 18px;
+}
+
+.search-results-header p {
+  font-size: 14px;
+}
+
+}
+
+/* ==========================================
+   SMALL MOBILE
+========================================== */
+
+@media (max-width:480px){
+
+.place-image-wrapper,
+.place-image{
+height:190px;
+}
+
+.category-btn{
+height:40px;
+padding:0 16px;
+font-size:11px;
+}
+
+.search-results-header h2 {
+  font-size: 16px;
+}
+
+.search-results-header p {
+  font-size: 13px;
+}
+
 }

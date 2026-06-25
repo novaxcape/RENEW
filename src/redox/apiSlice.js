@@ -1,3 +1,5 @@
+// apiSlice.js - FULLY EDITED VERSION
+
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
@@ -115,12 +117,39 @@ export const getGoogleCallback = createThunk(
 // Vendor Profile Management
 export const updateVendorProfile = createThunk(
   "api/vendor/updateProfile",
-  (payload, { getState }) =>
-    axios.put(
-      `${API_BASE_URL}/vendor/update-profile`,
-      toFormData(payload),
-      authConfig(getState()),
-    ),
+  async (payload, { getState, rejectWithValue }) => {
+    try {
+      console.log("📤 Updating vendor profile...");
+
+      const response = await axios.put(
+        `${API_BASE_URL}/vendor/profile`,
+        toFormData(payload),
+        authConfig(getState()),
+      );
+
+      console.log("✅ Vendor profile updated:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Update vendor profile error:", error);
+
+      if (error.response?.status === 404) {
+        try {
+          console.log("🔄 Trying fallback endpoint: /vendor/update");
+          const response = await axios.put(
+            `${API_BASE_URL}/vendor/update`,
+            toFormData(payload),
+            authConfig(getState()),
+          );
+          return response.data;
+        } catch (fallbackError) {
+          console.error("❌ Fallback also failed:", fallbackError);
+          return rejectWithValue(getErrorMessage(fallbackError));
+        }
+      }
+
+      return rejectWithValue(getErrorMessage(error));
+    }
+  },
 );
 
 export const getVendorDetails = createThunk(
@@ -142,15 +171,38 @@ export const resetVendorPassword = createThunk(
 
 export const changeVendorPassword = createThunk(
   "api/vendor/changePassword",
-  (payload, { getState }) =>
-    axios.post(
-      `${API_BASE_URL}/vendor/change-password`,
-      payload,
-      authConfig(getState()),
-    ),
+  async (payload, { getState, rejectWithValue }) => {
+    try {
+      console.log("🔑 Changing vendor password...");
+
+      const response = await axios.post(
+        `${API_BASE_URL}/vendor/change-password`,
+        payload,
+        authConfig(getState()),
+      );
+
+      console.log("✅ Password changed successfully:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Change password error:", error);
+
+      if (error.response) {
+        console.error("❌ Error response:", error.response.data);
+        console.error("❌ Error status:", error.response.status);
+
+        if (error.response.status === 400) {
+          return rejectWithValue("Old password is invalid");
+        } else if (error.response.status === 404) {
+          return rejectWithValue("Vendor not found");
+        }
+      }
+
+      return rejectWithValue(getErrorMessage(error));
+    }
+  },
 );
 
-// ========== PACKAGE API THUNKS - CORRECTED ==========
+// ========== PACKAGE API THUNKS ==========
 export const createPackage = createThunk(
   "api/package/create",
   async ({ touristId, packageData }, { getState, rejectWithValue }) => {
@@ -172,45 +224,29 @@ export const createPackage = createThunk(
     }
   },
 );
+
 export const getAllPackages = createThunk(
-"api/package/getAll",
-async (touristId, { getState, rejectWithValue }) => {
-try {
-console.log(
-"📦 Fetching packages for touristId:",
-touristId
-);
+  "api/package/getAll",
+  async (touristId, { getState, rejectWithValue }) => {
+    try {
+      console.log("📦 Fetching packages for touristId:", touristId);
 
+      const response = await axios.get(
+        `${API_BASE_URL}/package/all/${touristId}`,
+        authConfig(getState()),
+      );
 
-  const response = await axios.get(
-    `${API_BASE_URL}/package/all/${touristId}`,
-    authConfig(getState())
-  );
-
-  console.log(
-    "✅ Packages fetched:",
-    response.data
-  );
-
-  return response.data;
-} catch (error) {
-  console.error(
-    "❌ Get all packages error:",
-    error
-  );
-
-  console.error(
-    "❌ Request URL:",
-    `${API_BASE_URL}/package/all/${touristId}`
-  );
-
-  return rejectWithValue(
-    getErrorMessage(error)
-  );
-}
-
-
-}
+      console.log("✅ Packages fetched:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Get all packages error:", error);
+      console.error(
+        "❌ Request URL:",
+        `${API_BASE_URL}/package/all/${touristId}`,
+      );
+      return rejectWithValue(getErrorMessage(error));
+    }
+  },
 );
 
 export const getPackageById = createThunk(
@@ -436,7 +472,7 @@ export const getKycStatus = createThunk(
     axios.get(`${API_BASE_URL}/kyc/${touristId}`, authConfig(getState())),
 );
 
-// ========== PAYMENT PLAN API THUNKS - CORRECTED ==========
+// ========== PAYMENT PLAN API THUNKS ==========
 export const createPaymentPlan = createThunk(
   "api/paymentPlan/create",
   async ({ packageId, planData }, { getState, rejectWithValue }) => {
@@ -465,7 +501,6 @@ export const getPaymentPlans = createThunk(
     try {
       console.log(`📋 Fetching payment plans for package ${packageId}...`);
 
-      // ✅ FIXED: Changed from /package/${packageId} to /get-all/${packageId}
       const response = await axios.get(
         `${API_BASE_URL}/plan/get-all/${packageId}`,
         authConfig(getState()),
@@ -480,7 +515,7 @@ export const getPaymentPlans = createThunk(
   },
 );
 
-// ========== BOOKING API THUNKS - IMPROVED ==========
+// ========== BOOKING API THUNKS ==========
 export const createBooking = createAsyncThunk(
   "api/booking/create",
   async (
@@ -493,78 +528,13 @@ export const createBooking = createAsyncThunk(
 
       console.log("📦 Creating booking with:");
       console.log("📦 Tourist ID:", touristId);
-      console.log("📦 Package ID:", packageId );
+      console.log("📦 Package ID:", packageId);
       console.log("📦 Booking Data:", bookingData);
       console.log("📦 Token:", token ? "Present" : "Missing");
 
-      // Use clientId from bookingData if provided
-      let clientId = bookingData?.clientId;
-
-      // If not in bookingData, try to get from Redux
-      if (!clientId) {
-        clientId =
-          state.auth?.loggedInUser?.id ||
-          state.auth?.loggedInUser?._id ||
-          state.auth?.loggedInUser?.clientId ||
-          state.auth?.loggedInUser?.userId;
-      }
-
-      // Try localStorage
-      if (!clientId) {
-        clientId = localStorage.getItem("clientId");
-      }
-
-      // Try decoding from token
-      if (!clientId && token) {
-        try {
-          const base64Url = token.split(".")[1];
-          const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-          const jsonPayload = decodeURIComponent(
-            atob(base64)
-              .split("")
-              .map(function (c) {
-                return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
-              })
-              .join(""),
-          );
-          const decoded = JSON.parse(jsonPayload);
-          clientId =
-            decoded.id ||
-            decoded.sub ||
-            decoded.userId ||
-            decoded.clientId ||
-            decoded._id;
-          console.log("📦 Client ID from token:", clientId);
-          if (clientId) {
-            localStorage.setItem("clientId", clientId);
-          }
-        } catch (e) {
-          console.error("Error decoding token:", e);
-        }
-      }
-
-      // Format visit date
-      let visitDate = bookingData.visitDate || bookingData.date;
-      if (visitDate && visitDate.includes("-")) {
-        const parts = visitDate.split("-");
-        visitDate = `${parts[1]}/${parts[2]}/${parts[0]}`;
-      }
-
-      console.log("📦 Final Client ID:", clientId);
-      console.log("📦 Formatted Visit Date:", visitDate);
-
-      // Prepare payload
       const payload = {
-        visitDate: visitDate,
+        visitDate: bookingData.visitDate,
       };
-
-      // Only add clientId if we have one
-      if (clientId) {
-        payload.clientId = clientId;
-        console.log("📦 Adding clientId to payload:", clientId);
-      } else {
-        console.warn("⚠️ No clientId available - API may reject this request");
-      }
 
       console.log("📦 Final payload:", JSON.stringify(payload, null, 2));
 
@@ -579,24 +549,16 @@ export const createBooking = createAsyncThunk(
         },
       );
 
-      console.log("✅ Booking API Response Status:", response.status);
-      console.log("✅ Booking API Response Data:", response.data);
-
-      return response;
+      console.log("✅ Booking API Response:", response.data);
+      return response.data;
     } catch (error) {
       console.error("❌ Booking creation error:", error);
 
       if (error.response) {
-        console.error("❌ Error response data:", error.response.data);
-        console.error("❌ Error response status:", error.response.status);
-
-        // If client not found, return specific error
-        if (
-          error.response.status === 404 &&
-          error.response.data?.message === "Client not found"
-        ) {
-          return rejectWithValue("Client not found");
-        }
+        console.error("❌ Error response:", error.response.data);
+        return rejectWithValue(
+          error.response.data?.message || "Failed to create booking",
+        );
       }
 
       return rejectWithValue(getErrorMessage(error));
@@ -620,7 +582,7 @@ export const getVendorBookings = createThunk(
   "api/booking/getVendorBookings",
   ({ touristId, packageId }, { getState }) =>
     axios.get(
-      `${API_BASE_URL}/booking/get-all/${touristId}/${packageId}`,
+      `${API_BASE_URL}/booking/get-all/${touristId}`,
       authConfig(getState()),
     ),
 );
@@ -641,13 +603,54 @@ export const cancelBooking = createThunk(
     ),
 );
 
-// ========== PAYMENT API THUNKS - VERIFIED ==========
-export const initializePayment = createThunk(
+// ========== PASSCODE VERIFICATION ==========
+export const verifyPasscode = createThunk(
+  "api/booking/verifyPasscode",
+  async ({ passcode }, { getState, rejectWithValue }) => {
+    try {
+      console.log(`🔑 Verifying passcode: ${passcode}`);
+      
+      const response = await axios.post(
+        `${API_BASE_URL}/tourist/verify-client-passcode`,
+        { passcode },
+        authConfig(getState()),
+      );
+      
+      console.log("✅ Passcode verification response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Passcode verification error:", error);
+      
+      if (error.response) {
+        console.error("❌ Error response:", error.response.data);
+        console.error("❌ Error status:", error.response.status);
+        
+        if (error.response.status === 404) {
+          return rejectWithValue("Invalid passcode");
+        } else if (error.response.status === 400) {
+          return rejectWithValue("Passcode is required");
+        } else if (error.response.status === 403) {
+          return rejectWithValue("Vendor access required");
+        } else if (error.response.status === 401) {
+          return rejectWithValue("Unauthorized. Please login again.");
+        }
+        
+        const errorMessage = error.response.data?.message || getErrorMessage(error);
+        return rejectWithValue(errorMessage);
+      }
+      
+      return rejectWithValue(getErrorMessage(error));
+    }
+  },
+);
+
+// ========== PAYMENT API THUNKS - FULLY CORRECTED VERSION ==========
+export const initializePayment = createAsyncThunk(
   "api/payment/initialize",
   async ({ bookingId, paymentData }, { getState, rejectWithValue }) => {
     try {
       console.log(`💳 Initializing payment for booking ${bookingId}...`);
-      console.log(`💳 Payment data:`, paymentData);
+      console.log(`💳 Payment data:`, JSON.stringify(paymentData, null, 2));
 
       const response = await axios.post(
         `${API_BASE_URL}/payment/make-payment/${bookingId}`,
@@ -655,45 +658,84 @@ export const initializePayment = createThunk(
         authConfig(getState()),
       );
 
-      console.log(`✅ Payment initialized:`, response.data);
+      console.log(`✅ Payment initialized - Response Data:`, response.data);
+      
       return response.data;
-    } 
-catch (error) {
-  console.error("❌ Initialize payment error:", error);
-
-  console.log("STATUS:", error.response?.status);
-  console.log("RESPONSE DATA:", error.response?.data);
-  console.log("RESPONSE:", error.response);
-
-  return rejectWithValue(
-    error.response?.data ||
-    error.response?.data?.message ||
-    error.message
-  );
-}
+    } catch (error) {
+      console.error("❌ Initialize payment error:", error);
+      
+      const errorMessage = 
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.response?.data ||
+        error.message ||
+        "Payment initialization failed";
+      
+      return rejectWithValue(errorMessage);
     }
-
+  }
 );
 
-export const verifyPayment = createThunk(
+// FULLY CORRECTED: verifyPayment thunk
+export const verifyPayment = createAsyncThunk(
   "api/payment/verify",
   async ({ reference, bookingId }, { getState, rejectWithValue }) => {
     try {
       console.log(`🔍 Verifying payment with reference: ${reference}`);
+      console.log(`🔍 Booking ID: ${bookingId}`);
 
+      // CORRECTED: The API expects the reference as a query parameter
+      // The URL should be: /payment/verify-payment?reference=REFERENCE
+      const token = getToken(getState());
+      
       const response = await axios.get(
         `${API_BASE_URL}/payment/verify-payment`,
         {
-          params: { reference },
-          ...authConfig(getState()),
-        },
+          params: { 
+            reference: reference 
+          },
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        }
       );
 
-      console.log(`✅ Payment verification:`, response.data);
-      return response.data;
+      console.log(`✅ Payment verification response:`, response.data);
+      
+      // Return the full response data with the correct structure
+      return {
+        success: true,
+        data: response.data,
+        message: response.data?.message || "Payment verified successfully"
+      };
     } catch (error) {
       console.error(`❌ Verify payment error:`, error);
-      return rejectWithValue(getErrorMessage(error));
+      console.error(`❌ Error response:`, error.response?.data);
+      console.error(`❌ Error status:`, error.response?.status);
+      console.error(`❌ Error config:`, error.config);
+      
+      // Handle specific error cases
+      if (error.response?.status === 404) {
+        return rejectWithValue("Payment reference not found");
+      }
+      
+      if (error.response?.status === 400) {
+        return rejectWithValue("Invalid payment reference");
+      }
+      
+      if (error.response?.status === 401) {
+        return rejectWithValue("Unauthorized. Please login again.");
+      }
+      
+      // Return the error message from the response if available
+      const errorMessage = 
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.response?.data ||
+        error.message ||
+        "Payment verification failed";
+      
+      return rejectWithValue(errorMessage);
     }
   },
 );
@@ -846,6 +888,12 @@ const apiSlice = createSlice({
       state.vendorSuccessMessage = null;
     },
     resetApiState: () => initialState,
+    clearPaymentData: (state) => {
+      state.paymentData = null;
+      state.paymentReference = null;
+      state.paymentVerified = false;
+      state.paymentError = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -1230,7 +1278,7 @@ const apiSlice = createSlice({
       .addCase(createBooking.fulfilled, (state, action) => {
         state.bookingLoading = false;
         state.booking =
-          action.payload?.booking || action.payload?.booking || action.payload;
+          action.payload?.data || action.payload?.booking || action.payload;
         state.userBookings = [state.booking, ...state.userBookings];
         state.successMessage = "Booking created successfully";
         console.log("✅ Booking created in Redux:", state.booking);
@@ -1325,41 +1373,53 @@ const apiSlice = createSlice({
         state.bookingError = action.payload;
       })
 
-      // ========== PAYMENTS REDUCERS ==========
+      // ========== PAYMENTS REDUCERS - UPDATED ==========
       .addCase(initializePayment.pending, (state) => {
         state.paymentLoading = true;
         state.paymentError = null;
+        state.paymentData = null;
+        state.paymentReference = null;
       })
       .addCase(initializePayment.fulfilled, (state, action) => {
         state.paymentLoading = false;
         state.paymentData = action.payload?.data || action.payload;
         state.paymentReference =
-          action.payload?.data?.reference || action.payload?.reference;
+          action.payload?.data?.reference ||
+          action.payload?.reference ||
+          action.payload?.data?.data?.reference ||
+          null;
         state.successMessage = "Payment initialized successfully";
-        console.log("✅ Payment initialized:", state.paymentData);
+        console.log("✅ Payment initialized in Redux:", {
+          paymentData: state.paymentData,
+          paymentReference: state.paymentReference
+        });
       })
       .addCase(initializePayment.rejected, (state, action) => {
         state.paymentLoading = false;
         state.paymentError = action.payload;
-        console.error("❌ Payment initialization failed:", action.payload);
+        state.paymentData = null;
+        state.paymentReference = null;
+        console.error("❌ Payment initialization failed in Redux:", action.payload);
       })
 
+      // UPDATED: verifyPayment reducers
       .addCase(verifyPayment.pending, (state) => {
         state.paymentLoading = true;
         state.paymentError = null;
+        state.paymentVerified = false;
       })
       .addCase(verifyPayment.fulfilled, (state, action) => {
         state.paymentLoading = false;
         state.paymentVerified = true;
         state.paymentData = action.payload?.data || action.payload;
-        state.successMessage = "Payment verified successfully";
-        console.log("✅ Payment verified:", state.paymentData);
+        state.successMessage = action.payload?.message || "Payment verified successfully";
+        console.log("✅ Payment verified in Redux:", state.paymentData);
       })
       .addCase(verifyPayment.rejected, (state, action) => {
         state.paymentLoading = false;
         state.paymentError = action.payload;
         state.paymentVerified = false;
-        console.error("❌ Payment verification failed:", action.payload);
+        console.error("❌ Payment verification failed in Redux:", action.payload);
       })
 
       .addCase(getPaymentStatus.pending, (state) => {
@@ -1461,6 +1521,7 @@ export const {
   clearApiError,
   clearApiSuccess,
   resetApiState,
+  clearPaymentData,
 } = apiSlice.actions;
 
 // ========== SELECTORS ==========

@@ -24,3 +24,9 @@
   --border-color: #e2e8f0;
   --sidebar-width: 260px;
 }
+
+
+.vendor-dashboard-content-container, 
+.dashboard-main-scrolling-div {
+  scroll-behavior: smooth;
+}

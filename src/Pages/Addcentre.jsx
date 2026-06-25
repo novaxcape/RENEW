@@ -1,3 +1,4 @@
+// Pages/AddCentre.jsx - COMPLETE FIXED VERSION
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -25,7 +26,7 @@ const defaultOpeningHours = {
   sunday: { isOpen: false, openTime: '10 AM', closeTime: '4 PM' },
 };
 
-// ✅ ENHANCED getEntityId function - handles all response formats
+// ✅ ENHANCED getEntityId function
 const getEntityId = (value, depth = 0) => {
   if (!value || depth > 5) return null;
 
@@ -150,6 +151,7 @@ const AddCentre = () => {
     privacyPolicy: null,
   });
   const [openingHours, setOpeningHours] = useState(defaultOpeningHours);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCentreChange = (event) => {
     const { name, value } = event.target;
@@ -187,7 +189,7 @@ const AddCentre = () => {
     }));
   };
 
-  // ✅ FIXED: Validate current step with proper package validation
+  // Validate current step
   const validateCurrentStep = () => {
     switch(currentStep) {
       case 1:
@@ -235,7 +237,6 @@ const AddCentre = () => {
           return false;
         }
         
-        // ✅ Filter valid packages
         const validPackages = packagesList.filter(pkg => 
           pkg.packageName?.trim() && 
           pkg.packageType?.trim() && 
@@ -245,14 +246,11 @@ const AddCentre = () => {
           Number(pkg.numberOfPeople) > 0
         );
         
-        console.log("📦 Valid packages in validation:", validPackages);
-        console.log("📦 All packages:", packagesList);
-        
         if (validPackages.length === 0) {
           Swal.fire({ 
             icon: 'error', 
             title: 'Missing Package Information', 
-            text: 'Please add at least one valid package with name, type, amount, and number of people.\n\nMake sure all fields are filled correctly.',
+            text: 'Please add at least one valid package with name, type, amount, and number of people.',
             confirmButtonColor: '#ff6b35' 
           });
           return false;
@@ -295,11 +293,9 @@ const AddCentre = () => {
     }
   };
 
-  // ✅ FIXED: validateCentre with proper package validation
+  // Validate all centre data
   const validateCentre = () => {
     const imageFiles = Object.values(uploadedImages).filter((image) => image?.file);
-    
-    // ✅ Filter valid packages
     const validPackages = packagesList.filter(pkg => 
       pkg.packageName?.trim() && 
       pkg.packageType?.trim() && 
@@ -309,14 +305,8 @@ const AddCentre = () => {
       Number(pkg.numberOfPeople) > 0
     );
 
-    if (
-      !centreData.centreName ||
-      !centreData.description ||
-      !centreData.city ||
-      !centreData.state ||
-      !centreData.streetAddress ||
-      !centreData.location
-    ) {
+    if (!centreData.centreName || !centreData.description || !centreData.city || 
+        !centreData.state || !centreData.streetAddress || !centreData.location) {
       return 'Please complete the basic information fields.';
     }
 
@@ -352,7 +342,7 @@ const AddCentre = () => {
     return '';
   };
 
-  // ✅ FIXED: createPackagesForCentre with better error handling
+  // Create packages for centre
   const createPackagesForCentre = async (touristId) => {
     const validPackages = packagesList.filter(pkg => 
       pkg.packageName?.trim() && 
@@ -364,15 +354,10 @@ const AddCentre = () => {
     );
 
     if (validPackages.length === 0) {
-      console.warn('No valid packages to create');
-      throw new Error('Please add at least one valid package with name, type, amount, and number of people.');
+      throw new Error('No valid packages to create');
     }
 
-    console.log(`📦 Attempting to create ${validPackages.length} packages for tourist:`, touristId);
-    console.log('📦 Package data:', JSON.stringify(validPackages, null, 2));
-    
     const results = [];
-    let allFailed = true;
     
     for (const packageData of validPackages) {
       try {
@@ -383,178 +368,111 @@ const AddCentre = () => {
           numberOfPeople: String(Number(packageData.numberOfPeople)),
         };
         
-        console.log(`📤 Creating package "${payload.packageName}" for touristId:`, touristId);
-        console.log(`📤 Payload:`, payload);
-        
         const result = await dispatch(createPackage({ 
           touristId: touristId.trim(), 
           packageData: payload 
         })).unwrap();
         
-        console.log(`✅ Package "${payload.packageName}" created:`, result);
-        
-        results.push({ 
-          success: true, 
-          package: payload.packageName, 
-          data: result 
-        });
-        
-        allFailed = false;
-        
+        results.push({ success: true, package: payload.packageName, data: result });
       } catch (error) {
-        console.error(`❌ Failed to create package "${packageData.packageName}":`, error);
-        
+        console.error(`Failed to create package "${packageData.packageName}":`, error);
         let errorMessage = 'Unknown error';
-        if (typeof error === 'string') {
-          errorMessage = error;
-        } else if (error?.message) {
-          errorMessage = error.message;
-        } else if (error?.error) {
-          errorMessage = error.error;
-        } else if (error?.data?.message) {
-          errorMessage = error.data.message;
-        }
+        if (typeof error === 'string') errorMessage = error;
+        else if (error?.message) errorMessage = error.message;
+        else if (error?.data?.message) errorMessage = error.data.message;
         
-        if (errorMessage.toLowerCase().includes('duplicate') || errorMessage.toLowerCase().includes('already exists')) {
-          errorMessage = 'This package name already exists for this centre. Please use a different name.';
-        } else if (errorMessage.toLowerCase().includes('not found') || errorMessage.toLowerCase().includes('invalid tourist')) {
-          errorMessage = `Invalid tourist centre ID: ${touristId}. Please make sure the centre was created successfully.`;
-        }
-        
-        results.push({ 
-          success: false, 
-          package: packageData.packageName, 
-          error: errorMessage 
-        });
+        results.push({ success: false, package: packageData.packageName, error: errorMessage });
       }
-    }
-
-    const successfulPackages = results.filter(r => r.success);
-    const failedPackages = results.filter(r => !r.success);
-    
-    console.log(`📊 Package creation summary:`);
-    console.log(`  ✅ Successful: ${successfulPackages.length}`);
-    console.log(`  ❌ Failed: ${failedPackages.length}`);
-    
-    if (failedPackages.length > 0) {
-      console.log('❌ Failed packages:');
-      failedPackages.forEach(p => {
-        console.log(`  - ${p.package}: ${p.error}`);
-      });
-    }
-
-    if (allFailed && validPackages.length > 0) {
-      const errorMessages = failedPackages.map(p => `${p.package}: ${p.error}`).join('\n');
-      throw new Error(`Failed to create any packages:\n${errorMessages}`);
     }
 
     return results;
   };
 
-  // ✅ FIXED: createPackagesAndFinish with proper error display
-  const createPackagesAndFinish = async (touristId) => {
-    console.log("📦 Creating packages for touristId:", touristId);
-    console.log("📦 touristId type:", typeof touristId);
+  // Navigate to KYC with proper state
+  const navigateToKyc = (touristId, centreName) => {
+    console.log("🚀 Navigating to KYC with:", { touristId, centreName });
     
-    if (!touristId || typeof touristId !== 'string' || touristId.trim().length === 0) {
-      console.error("❌ Invalid touristId:", touristId);
+    // Store in localStorage as backup
+    if (touristId) {
+      localStorage.setItem('latestTouristId', touristId);
+      localStorage.setItem('centreName', centreName);
+    }
+    
+    // Navigate with state
+    navigate('/kyc', { 
+      state: { 
+        touristId: touristId, 
+        centreName: centreName,
+        fromAddCentre: true 
+      },
+      replace: true 
+    });
+  };
+
+  // Create packages and finish with proper navigation
+  const createPackagesAndFinish = async (touristId, centreName) => {
+    console.log("📦 Creating packages for touristId:", touristId);
+    
+    if (!touristId) {
+      console.error("Invalid touristId");
       Swal.fire({
         icon: 'error',
-        title: 'Invalid Centre ID',
-        text: 'The centre was created but we received an invalid ID. Please try again.',
+        title: 'Error',
+        text: 'Invalid centre ID. Please try again.',
         confirmButtonColor: '#ff6b35',
       });
       return;
     }
-    
-    const cleanTouristId = touristId.trim();
-    console.log("✅ Using clean touristId:", cleanTouristId);
-    
-    Swal.fire({
-      title: 'Creating Packages...',
-      text: 'Setting up ticket packages for your centre',
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      }
-    });
 
     try {
-      const packageResults = await createPackagesForCentre(cleanTouristId);
+      const packageResults = await createPackagesForCentre(touristId);
       
-      const successfulPackages = packageResults.filter(r => r.success);
-      const failedPackages = packageResults.filter(r => !r.success);
+      const successful = packageResults.filter(r => r.success);
+      const failed = packageResults.filter(r => !r.success);
 
-      localStorage.setItem('latestTouristId', cleanTouristId);
-      localStorage.setItem('lastAddedCentre', JSON.stringify({
-        centreName: centreData.centreName,
-        centreId: cleanTouristId,
-        packagesCreated: successfulPackages.length,
-        packagesFailed: failedPackages.length
-      }));
-      
-      let message = '🏢 Your tourism centre has been registered!\n\n';
-      
-      if (successfulPackages.length > 0) {
-        message += `✅ ${successfulPackages.length} package(s) created successfully:\n`;
-        successfulPackages.forEach(p => {
-          message += `   • ${p.package}\n`;
-        });
+      // Show success message
+      let message = '✅ Your tourism centre has been registered!\n\n';
+      if (successful.length > 0) {
+        message += `${successful.length} package(s) created successfully.\n\n`;
       }
-      
-      if (failedPackages.length > 0) {
-        message += `\n❌ ${failedPackages.length} package(s) failed:\n`;
-        failedPackages.forEach(p => {
-          message += `   • ${p.package}: ${p.error || 'Unknown error'}\n`;
-        });
-        message += `\n⚠️ You can add these packages later from your dashboard.`;
-      } else {
-        message += `\n✅ All packages created successfully! Tourists can now book tickets.`;
+      if (failed.length > 0) {
+        message += `⚠️ ${failed.length} package(s) failed. You can add them later from your dashboard.\n\n`;
       }
-      
-      message += `\n\n📋 Next: Complete KYC verification to activate your centre.`;
+      message += '📋 Next: Complete KYC verification to activate your centre.';
 
-      Swal.fire({
-        icon: successfulPackages.length > 0 ? 'success' : 'error',
-        title: successfulPackages.length > 0 ? 'Centre & Packages Created!' : 'Centre Created but Packages Failed',
+      // Show success alert and then navigate
+      await Swal.fire({
+        icon: successful.length > 0 ? 'success' : 'warning',
+        title: successful.length > 0 ? 'Centre & Packages Created!' : 'Centre Created with Issues',
         text: message,
         confirmButtonColor: '#ff6b35',
         confirmButtonText: 'Continue to KYC'
-      }).then(() => {
-        navigate('/kyc', { state: { touristId: cleanTouristId, centreName: centreData.centreName } });
       });
+
+      // Navigate to KYC after alert is dismissed
+      navigateToKyc(touristId, centreName);
       
     } catch (error) {
-      console.error("❌ Critical error in package creation:", error);
+      console.error("Error in package creation:", error);
       
-      Swal.fire({
-        icon: 'error',
-        title: 'Package Creation Failed',
-        text: error.message || 'Failed to create packages. You can add them later from your dashboard.',
+      // Even if packages fail, still allow going to KYC
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Centre Created',
+        text: 'Your centre was created but we had issues with packages. You can add them later from your dashboard.\n\nProceed to KYC verification.',
         confirmButtonColor: '#ff6b35',
         confirmButtonText: 'Continue to KYC'
-      }).then(() => {
-        navigate('/kyc', { state: { touristId: cleanTouristId, centreName: centreData.centreName } });
       });
+
+      navigateToKyc(touristId, centreName);
     }
   };
 
-  // ✅ FIXED: submitCentreData with ALL required fields
+  // Submit centre data
   const submitCentreData = async (vendorId) => {
     const imageFiles = Object.values(uploadedImages)
       .map((image) => image?.file)
       .filter(Boolean);
-
-    const oversized = imageFiles.filter(file => file.size > MAX_FILE_SIZE);
-    if (oversized.length > 0) {
-      Swal.fire({
-        icon: 'error',
-        title: 'File Too Large',
-        text: 'One or more images exceed the 10MB limit. Please compress your images and try again.',
-        confirmButtonColor: '#ff6b35',
-      });
-      return;
-    }
 
     const facilitiesString = selectedFacilities.join(', ');
     const hoursString = Object.entries(openingHours)
@@ -568,7 +486,6 @@ const AddCentre = () => {
       .join(' | ');
 
     const formData = new FormData();
-    
     formData.append('centreName', centreData.centreName || '');
     formData.append('description', centreData.description || '');
     formData.append('city', centreData.city || '');
@@ -587,61 +504,29 @@ const AddCentre = () => {
     if (documents.termsAndCondition) {
       formData.append('termsAndCondition', documents.termsAndCondition);
     } else {
-      console.error("❌ termsAndCondition document is missing!");
-      Swal.fire({
-        icon: 'error',
-        title: 'Missing Document',
-        text: 'Please upload the Terms and Condition document.',
-        confirmButtonColor: '#ff6b35',
-      });
-      return;
+      throw new Error('Terms and Condition document is required');
     }
     
     if (documents.privacyPolicy) {
       formData.append('privacyPolicy', documents.privacyPolicy);
     } else {
-      console.error("❌ privacyPolicy document is missing!");
-      Swal.fire({
-        icon: 'error',
-        title: 'Missing Document',
-        text: 'Please upload the Privacy Policy document.',
-        confirmButtonColor: '#ff6b35',
-      });
-      return;
-    }
-
-    console.log("📄 Submitting FormData with fields:");
-    for (let pair of formData.entries()) {
-      if (pair[1] instanceof File) {
-        console.log(`${pair[0]}: ${pair[1].name} (${pair[1].size} bytes)`);
-      } else {
-        console.log(`${pair[0]}: ${pair[1]}`);
-      }
+      throw new Error('Privacy Policy document is required');
     }
 
     try {
-      console.log("📤 Submitting centre registration for vendor:", vendorId);
-      
       const response = await dispatch(
         registerTouristCenter({ vendorId, centreData: formData })
       ).unwrap();
       
-      console.log("📦 FULL REGISTRATION RESPONSE:", JSON.stringify(response, null, 2));
+      console.log("📦 Registration response:", JSON.stringify(response, null, 2));
       
       let touristId = getEntityId(response);
       
       if (!touristId && response?.data) {
-        console.log("🔍 Checking response.data:", response.data);
         touristId = getEntityId(response.data);
       }
       
-      if (!touristId && response?.success && response?.data) {
-        console.log("🔍 Checking response.success.data:", response.success.data);
-        touristId = getEntityId(response.success.data);
-      }
-      
       if (!touristId && response?.result) {
-        console.log("🔍 Checking response.result:", response.result);
         touristId = getEntityId(response.result);
       }
       
@@ -652,29 +537,18 @@ const AddCentre = () => {
       console.log("🎯 Extracted touristId:", touristId);
       
       if (!touristId) {
-        console.error("❌ Could not extract touristId from response:", response);
-        localStorage.setItem('debug_centre_response', JSON.stringify(response));
-        
-        Swal.fire({
-          icon: 'error',
-          title: 'Server Response Issue',
-          text: 'Could not extract centre ID from server response. Please check console for details.',
-          confirmButtonColor: '#ff6b35',
-        });
-        
-        throw new Error('Could not extract tourist centre ID from server response');
+        throw new Error('Could not extract centre ID from server response');
       }
 
-      console.log("✅ Using touristId for packages:", touristId);
-      await createPackagesAndFinish(touristId);
+      return touristId;
       
     } catch (error) {
-      console.error("❌ Centre submission error:", error);
+      console.error("Centre submission error:", error);
       throw error;
     }
   };
 
-  // ✅ UPDATED handleSubmit with better vendor ID extraction
+  // Main submit handler
   const handleSubmit = async () => {
     const validationError = validateCentre();
     if (validationError) {
@@ -687,24 +561,18 @@ const AddCentre = () => {
       return;
     }
 
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     console.log("📄 vendorDetails:", vendorDetails);
     console.log("📄 loggedInUser:", loggedInUser);
     
     let vendorId = getEntityId(vendorDetails) || getEntityId(loggedInUser);
     
-    console.log("📄 Extracted vendorId:", vendorId);
-    
     if (!vendorId) {
-      const storedVendorId = localStorage.getItem('vendorId') || 
-                             localStorage.getItem('touristId') ||
-                             localStorage.getItem('userId');
-      
-      console.log("📄 vendorId from localStorage:", storedVendorId);
-      
-      if (storedVendorId) {
-        vendorId = storedVendorId;
-        console.log("📄 Using vendorId from localStorage:", vendorId);
-      }
+      vendorId = localStorage.getItem('vendorId') || 
+                 localStorage.getItem('touristId') ||
+                 localStorage.getItem('userId');
     }
     
     if (!vendorId) {
@@ -715,6 +583,7 @@ const AddCentre = () => {
         confirmButtonColor: '#ff6b35',
       });
       navigate('/vendor/login');
+      setIsSubmitting(false);
       return;
     }
 
@@ -728,7 +597,18 @@ const AddCentre = () => {
     });
 
     try {
-      await submitCentreData(vendorId);
+      const touristId = await submitCentreData(vendorId);
+      
+      if (touristId) {
+        // Close the loading Swal
+        Swal.close();
+        
+        // Create packages and navigate to KYC
+        await createPackagesAndFinish(touristId, centreData.centreName);
+      } else {
+        throw new Error('Failed to get centre ID');
+      }
+      
     } catch (error) {
       console.error('Centre submission error:', error);
       
@@ -745,6 +625,8 @@ const AddCentre = () => {
         text: errorMessage,
         confirmButtonColor: '#ff6b35',
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -768,7 +650,6 @@ const AddCentre = () => {
     }
   };
 
-  // ✅ FIXED: renderStepContent with packagesList passed to Review
   const renderStepContent = () => {
     switch(currentStep) {
       case 1:
@@ -837,7 +718,7 @@ const AddCentre = () => {
           <button 
             className="btn-back" 
             onClick={handleBack} 
-            disabled={loading}
+            disabled={isSubmitting || loading}
             style={{
               fontSize: "12px",
               padding: "6px 16px",
@@ -887,10 +768,10 @@ const AddCentre = () => {
             <button 
               className="btn-next" 
               onClick={handleNext} 
-              disabled={loading}
-              style={{ opacity: loading ? 0.7 : 1 }}
+              disabled={isSubmitting || loading}
+              style={{ opacity: (isSubmitting || loading) ? 0.7 : 1 }}
             >
-              {loading ? 'Submitting...' : currentStep === 6 ? 'Submit Centre' : 'Next'}
+              {(isSubmitting || loading) ? 'Submitting...' : currentStep === 6 ? 'Submit Centre' : 'Next'}
             </button>
           </div>
         </div>
@@ -901,4 +782,5 @@ const AddCentre = () => {
   );
 };
 
+// ✅ SINGLE EXPORT - Only one default export
 export default AddCentre;

@@ -25,6 +25,7 @@
   align-items: center;
 }
 
+/* ── Success badge ── */
 .success-badge-container {
   margin-bottom: 16px;
   display: flex;
@@ -39,6 +40,7 @@
   display: block;
 }
 
+/* ── Title & subtitle ── */
 .confirmation-title {
   font-size: 28px;
   line-height: 1.3;
@@ -61,6 +63,7 @@
   text-align: center;
 }
 
+/* ── Email toast ── */
 .email-toast-message {
   background-color: #dbe7f4;
   border: 1px solid #abc1dc;
@@ -94,6 +97,7 @@
   white-space: normal;
 }
 
+/* ── Booking details box ── */
 .booking-details-box {
   background-color: #ffffff;
   border: 1px solid #f2f2f2;
@@ -144,6 +148,7 @@
   color: #222222;
 }
 
+/* ── Passcode card ── */
 .passcode-container-card {
   background: linear-gradient(135deg, #fff3ee 0%, #edf1f5 100%);
   border: 1.5px solid #ff7643;
@@ -197,6 +202,11 @@
   max-width: 260px;
   box-sizing: border-box;
   margin-bottom: 18px;
+  transition: background 0.15s ease;
+}
+
+.passcode-display-block:hover {
+  background-color: #fff8f6;
 }
 
 .passcode-digit {
@@ -221,12 +231,19 @@
   justify-content: center;
   gap: 8px;
   box-sizing: border-box;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.download-passcode-action-btn:hover {
+  border-color: #ff7643;
+  color: #ff7643;
 }
 
 .download-action-icon {
   font-size: 14px;
 }
 
+/* ── Footer button ── */
 .navigation-footer-action {
   width: 100%;
   display: flex;
@@ -244,9 +261,68 @@
   font-weight: 600;
   cursor: pointer;
   box-sizing: border-box;
+  font-family: 'Manrope', sans-serif;
+  transition: background 0.15s ease;
 }
 
-/* Tablet and up */
+.homepage-redirect-btn:hover {
+  background-color: #e55a2b;
+}
+
+/* ── Loading state ── */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 0;
+  gap: 14px;
+  width: 100%;
+}
+
+.spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid #f0f0f0;
+  border-top-color: #ff6633;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Failed state ── */
+.failed-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 0;
+  gap: 12px;
+  width: 100%;
+}
+
+.failed-icon {
+  font-size: 52px;
+  margin-bottom: 4px;
+}
+
+/* ── Pending state ── */
+.pending-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 0;
+  gap: 12px;
+  width: 100%;
+}
+
+.pending-icon {
+  font-size: 52px;
+  margin-bottom: 4px;
+}
+
+/* ── Tablet and up ── */
 @media (min-width: 541px) {
   .confirmation-page-wrapper {
     align-items: center;

@@ -20,6 +20,16 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
       label: "Bookings",
       path: "/vendor/dashboard/bookings",
     },
+     {
+      icon: <img
+              src="/novaxcape/pass.png"
+              alt="exit"
+              style={{ width: "20px", height: "20px" }}
+            /> ,
+      label: "Verify Passcode",
+      path: "/vendor/dashboard/verify",
+    },
+
     {
       icon: <FiDollarSign />,
       label: "Wallet",
@@ -62,7 +72,7 @@ const Sidebar = ({ mobileOpen, onMobileClose }) => {
         <div className="sidebar-top">
           <div className="logo-section">
             <img
-              src="/novaxcape/pic.png"
+              src="/novaxcape/logo.png"
               alt="Novaxcape Logo"
               className="logo-img"
             />

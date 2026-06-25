@@ -19,6 +19,9 @@ const Profile = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
+  // Tab control state
+  const [activeTab, setActiveTab] = useState('account');
+  
   // Get auth state to determine if user is client or vendor
   const { loggedInUser, vendorDetails, isVendor } = useSelector((state) => state.auth);
   
@@ -47,6 +50,7 @@ const Profile = () => {
 
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState('/novaxcape/avatar.png');
+  const [isAvatarRemoved, setIsAvatarRemoved] = useState(false);
 
   // Load profile data when component mounts
   useEffect(() => {
@@ -63,7 +67,7 @@ const Profile = () => {
       setFormData({
         firstName: profileData.firstName || profileData.first_name || '',
         lastName: profileData.lastName || profileData.last_name || '',
-        nickname: profileData.nickname || profileData.username || '',
+        nickname: profileData.nickname || profileData.userName || profileData.username || '',
         phoneNumber: profileData.phoneNumber || profileData.phone || '',
         gender: profileData.gender || '',
         email: profileData.email || (isVendor ? vendorDetails?.email : loggedInUser?.email) || '',
@@ -71,11 +75,11 @@ const Profile = () => {
         state: profileData.state || ''
       });
       
-      if (profileData.avatar) {
-        setAvatarPreview(profileData.avatar);
+      const avatarUrl = profileData.profilePicture || profileData.avatar;
+      if (avatarUrl && !avatarFile && !isAvatarRemoved) {
+        setAvatarPreview(avatarUrl);
       }
     } else if (!isVendor && loggedInUser) {
-      // Fallback to auth state for client
       setFormData(prev => ({
         ...prev,
         firstName: loggedInUser.firstName || loggedInUser.first_name || '',
@@ -84,7 +88,7 @@ const Profile = () => {
         phoneNumber: loggedInUser.phoneNumber || loggedInUser.phone || ''
       }));
     }
-  }, [clientProfile, vendorProfile, isVendor, loggedInUser, vendorDetails]);
+  }, [clientProfile, vendorProfile, isVendor, loggedInUser, vendorDetails, avatarFile, isAvatarRemoved]);
 
   // Handle success/error messages
   useEffect(() => {
@@ -120,7 +124,6 @@ const Profile = () => {
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file size (20MB max)
       if (file.size > 20 * 1024 * 1024) {
         Swal.fire({
           icon: 'error',
@@ -131,7 +134,6 @@ const Profile = () => {
         return;
       }
       
-      // Validate file type
       const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
       if (!allowedTypes.includes(file.type)) {
         Swal.fire({
@@ -144,6 +146,7 @@ const Profile = () => {
       }
       
       setAvatarFile(file);
+      setIsAvatarRemoved(false);
       const previewUrl = URL.createObjectURL(file);
       setAvatarPreview(previewUrl);
     }
@@ -151,30 +154,26 @@ const Profile = () => {
 
   const handleRemoveAvatar = () => {
     setAvatarFile(null);
+    setIsAvatarRemoved(true);
     setAvatarPreview('/novaxcape/avatar.png');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Prepare form data for API
     const profileData = new FormData();
-    profileData.append('firstName', formData.firstName);
-    profileData.append('lastName', formData.lastName);
-    profileData.append('nickname', formData.nickname);
-    profileData.append('phoneNumber', formData.phoneNumber);
-    profileData.append('gender', formData.gender);
-    profileData.append('city', formData.city);
-    profileData.append('state', formData.state);
     
+    // 1. Generate clean userName string from fields
+    const computedUserName = formData.nickname.trim() || `${formData.firstName} ${formData.lastName}`.trim();
+    profileData.append('userName', computedUserName);
+    
+    // 2. Append binary file directly to strict key matching API schema
     if (avatarFile) {
-      profileData.append('avatar', avatarFile);
+      profileData.append('profilePicture', avatarFile);
     }
-    
-    // Also send email if it's being updated
-    if (formData.email) {
-      profileData.append('email', formData.email);
-    }
+
+    // Note: Other input form values remain visible locally in UI, 
+    // but are not appended to stay compliant with your strict API validation
     
     try {
       if (isVendor) {
@@ -183,11 +182,9 @@ const Profile = () => {
         await dispatch(updateClientProfile(profileData)).unwrap();
       }
       
-      // Refresh page data after update
       if (isVendor) {
         dispatch(getVendorDetails());
       }
-      
     } catch (error) {
       console.error('Profile update error:', error);
     }
@@ -205,7 +202,6 @@ const Profile = () => {
       cancelButtonText: 'Cancel'
     }).then((result) => {
       if (result.isConfirmed) {
-        // TODO: Implement delete account API call
         Swal.fire({
           icon: 'info',
           title: 'Feature Coming Soon',
@@ -233,6 +229,7 @@ const Profile = () => {
               src={avatarPreview} 
               alt="User avatar" 
               className="avatar-image" 
+              onError={(e) => { e.target.src = '/novaxcape/avatar.png'; }}
             />
           </div>
           <div className="photo-controls">
@@ -258,8 +255,20 @@ const Profile = () => {
 
         <div className="settings-tabs-wrapper">
           <nav className="settings-tabs-nav">
-            <button type="button" className="tab-pill-blue">Account Setting</button>
-            <button type="button" className="tab-pill-white">Setting</button>
+            <button 
+              type="button" 
+              className={activeTab === 'account' ? 'tab-pill-blue' : 'tab-pill-white'}
+              onClick={() => setActiveTab('account')}
+            >
+              Account Setting
+            </button>
+            <button 
+              type="button" 
+              className={activeTab === 'general' ? 'tab-pill-blue' : 'tab-pill-white'}
+              onClick={() => setActiveTab('general')}
+            >
+              Setting
+            </button>
           </nav>
         </div>
 
@@ -295,7 +304,7 @@ const Profile = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="nickname">Nickname</label>
+              <label htmlFor="nickname">Nickname / Username</label>
               <div className="input-wrapper">
                 <input 
                   type="text" 
@@ -316,7 +325,7 @@ const Profile = () => {
                   value={formData.phoneNumber}
                   onChange={handleChange}
                   placeholder="Input phone number" 
-                  required
+                  disabled
                 />
               </div>
             </div>
@@ -328,6 +337,7 @@ const Profile = () => {
                   id="gender" 
                   value={formData.gender}
                   onChange={handleChange}
+                  disabled
                 >
                   <option value="" disabled>Select Option</option>
                   <option value="male">Male</option>
@@ -346,7 +356,7 @@ const Profile = () => {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="Enter your Email" 
-                  required
+                  disabled
                 />
               </div>
             </div>
@@ -360,6 +370,7 @@ const Profile = () => {
                   value={formData.city}
                   onChange={handleChange}
                   placeholder="Enter your city" 
+                  disabled
                 />
               </div>
             </div>
@@ -373,6 +384,7 @@ const Profile = () => {
                   value={formData.state}
                   onChange={handleChange}
                   placeholder="Enter your state" 
+                  disabled
                 />
               </div>
             </div>

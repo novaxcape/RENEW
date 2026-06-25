@@ -1,21 +1,24 @@
-import { useState } from "react";
-import StatusBadge from "./StatusBadge";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getAllClientBookings } from "../redox/apiSlice";import StatusBadge from "./StatusBadge";
 
+const RecentBookings = ({ 
+  title = "Recent Booking",
+  viewAllText = "View all",
+  onViewAll = () => {}
+}) => {
+  const dispatch = useDispatch();
+  
+  // Extract booking data and loading state from the api slice
+  const { clientBookings, bookingLoading, bookingError } = useSelector((state) => state.api);
 
-const bookings = [
-  { id: "NOV - 00132", ticket: "Adult ticket",    date: "May 15,2026", amount: "₦13,500", status: "In Progress" },
-  { id: "NOV - 00134", ticket: "Children Ticket", date: "may 20,2026", amount: "₦11,000", status: "Installment" },
-  { id: "NOV - 00132", ticket: "Family pack",     date: "May 10,2026", amount: "₦13,500", status: "Successful" },
-  { id: "NOV - 00134", ticket: "Adult Ticket",    date: "APR 28,2026", amount: "₦3,000",  status: "Cancelled" },
-  { id: "NOV - 00132", ticket: "Adult ticket",    date: "May 04,2026", amount: "₦4,500",  status: "Successful" },
-  { id: "NOV - 00134", ticket: "Children Ticket", date: "Mar 28,2026", amount: "₦7,000",  status: "Successful" },
-  { id: "NOV - 00132", ticket: "Family Pack",     date: "May 30,2026", amount: "₦13,200", status: "Successful" },
-  { id: "NOV - 00134", ticket: "Family Pack",     date: "Apr 28,2026", amount: "₦23,500", status: "Cancelled" }
-];
-
-const RecentBookings = () => {
   const [checkedRows, setCheckedRows] = useState({});
   const [allChecked, setAllChecked] = useState(false);
+
+  // Fetch bookings on component mount
+  useEffect(() => {
+    dispatch(getAllClientBookings());
+  }, [dispatch]);
 
   const toggleRow = (index) => {
     setCheckedRows((prev) => ({ ...prev, [index]: !prev[index] }));
@@ -25,15 +28,17 @@ const RecentBookings = () => {
     const next = !allChecked;
     setAllChecked(next);
     const all = {};
-    bookings.forEach((_, i) => (all[i] = next));
+    clientBookings.forEach((_, i) => (all[i] = next));
     setCheckedRows(all);
   };
 
   return (
     <div className="single-booking-container">
       <div className="booking-top-header">
-        <h3>Recent Booking</h3>
-        <button className="view-all-link">View all</button>
+        <h3>{title}</h3>
+        <button className="view-all-link" onClick={onViewAll}>
+          {viewAllText}
+        </button>
       </div>
 
       <div className="table-wrapper">
@@ -46,6 +51,7 @@ const RecentBookings = () => {
                   className="orange-checkbox"
                   checked={allChecked}
                   onChange={toggleAll}
+                  disabled={clientBookings.length === 0}
                 />
               </th>
               <th>Ticket ID</th>
@@ -56,25 +62,58 @@ const RecentBookings = () => {
             </tr>
           </thead>
           <tbody>
-            {bookings.map((booking, index) => (
-              <tr key={index}>
-                <td className="checkbox-col">
-                  <input
-                    type="checkbox"
-                    className="orange-checkbox"
-                    checked={!!checkedRows[index]}
-                    onChange={() => toggleRow(index)}
-                  />
-                </td>
-                <td className="ticket-id">{booking.id}</td>
-                <td>{booking.ticket}</td>
-                <td>{booking.date}</td>
-                <td>{booking.amount}</td>
-                <td>
-                  <StatusBadge status={booking.status} />
+            {bookingLoading ? (
+              <tr>
+                <td colSpan="6" style={{ textAlign: "center", padding: "20px", color: "#64748b" }}>
+                  Loading bookings...
                 </td>
               </tr>
-            ))}
+            ) : bookingError ? (
+              <tr>
+                <td colSpan="6" style={{ textAlign: "center", padding: "20px", color: "#ef4444" }}>
+                  Error loading data: {bookingError}
+                </td>
+              </tr>
+            ) : clientBookings.length === 0 ? (
+              <tr>
+                <td colSpan="6" style={{ textAlign: "center", padding: "20px", color: "#64748b" }}>
+                  No bookings available
+                </td>
+              </tr>
+            ) : (
+              clientBookings.map((booking, index) => {
+                // Formatting Date cleanly if it comes as an ISO string
+                const bookingDate = booking.visitDate || booking.date || booking.createdAt || "N/A";
+                const formattedDate = typeof bookingDate === "string" && bookingDate.includes("T") 
+                  ? new Date(bookingDate).toLocaleDateString() 
+                  : bookingDate;
+
+                return (
+                  <tr key={booking.id || booking._id || index}>
+                    <td className="checkbox-col">
+                      <input
+                        type="checkbox"
+                        className="orange-checkbox"
+                        checked={!!checkedRows[index]}
+                        onChange={() => toggleRow(index)}
+                      />
+                    </td>
+                    <td className="ticket-id">{booking.id || booking._id || booking.ticketId || "N/A"}</td>
+                    {/* Maps back safely to backend key structures if nested */}
+                    <td>{booking.ticketType || booking.package?.name || booking.ticket || "N/A"}</td>
+                    <td>{formattedDate}</td>
+                    <td>
+                      {booking.totalAmount || booking.amount || booking.price 
+                        ? `₦${Number(booking.totalAmount || booking.amount || booking.price).toLocaleString()}` 
+                        : "N/A"}
+                    </td>
+                    <td>
+                      <StatusBadge status={booking.status || "Pending"} />
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>

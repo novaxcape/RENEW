@@ -7,14 +7,11 @@ import {
   FaClock,
   FaStar,
   FaCheckCircle,
-  FaHeart,
-  FaRegHeart,
-  FaShareAlt,
 } from "react-icons/fa";
 import "../Styles/Product.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { getTouristCenterById, getAllPackages, getPackageById } from "../redox/apiSlice";
+import { getTouristCenterById, getAllPackages } from "../redox/apiSlice";
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -23,121 +20,67 @@ const ProductDetails = () => {
   const dispatch = useDispatch();
   const [isWishlist, setIsWishlist] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
-  const [selectedPackage, setSelectedPackage] = useState(null);
+  const [, setSelectedPackage] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [centrePackages, setCentrePackages] = useState([]);
 
   const { selectedTouristCenter, touristCentresLoading, touristCentresError, packages, packagesLoading } =
     useSelector((state) => state.api);
-    console.log("Redux packages:", packages);
-console.log("Packages length:", packages?.length);
-console.log("First package:", packages?.[0]);
-  const { isAuthenticated, userToken, loggedInUser } = useSelector((state) => state.auth);
-  console.log(selectedTouristCenter)
 
-  // ✅ Get centre data from multiple sources
   const getCentreData = () => {
-    // 1. Check location state
-    if (location.state?.centre) {
-      console.log("✅ Using centre from location.state");
-      return location.state.centre;
-    }
-    if (location.state?.centreDetails) {
-      console.log("✅ Using centreDetails from location.state");
-      return location.state.centreDetails;
-    }
+    if (location.state?.centre) return location.state.centre;
+    if (location.state?.centreDetails) return location.state.centreDetails;
 
-    // 2. Check Redux store
     if (selectedTouristCenter) {
-      console.log("✅ Using centre from Redux store");
       return selectedTouristCenter?.data || 
              selectedTouristCenter?.tourist || 
              selectedTouristCenter;
     }
 
-    // 3. Check localStorage
     const pendingBooking = localStorage.getItem('pendingBooking');
     if (pendingBooking) {
       try {
         const parsed = JSON.parse(pendingBooking);
-        if (parsed.centreDetails) {
-          console.log("✅ Using centre from localStorage");
-          return parsed.centreDetails;
-        }
+        if (parsed.centreDetails) return parsed.centreDetails;
       } catch (e) {
         console.error("Error parsing pending booking:", e);
       }
     }
-
     return null;
   };
 
   const centre = getCentreData();
 
-// ✅ Fetch centre and packages
-useEffect(() => {
-  const fetchData = async () => {
-    setIsLoading(true);
-
-    try {
-      // Fetch centre if not available
-      if (!centre && id) {
-        console.log("🔄 Fetching centre from API with ID:", id);
-        await dispatch(getTouristCenterById(id));
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        if (!centre && id) {
+          await dispatch(getTouristCenterById(id));
+        }
+        await dispatch(getAllPackages(id));
+      } catch (error) {
+        console.error("❌ Fetch error:", error);
+      } finally {
+        setIsLoading(false);
       }
+    };
+    fetchData();
+  }, [dispatch, id, centre]);
 
-      // Fetch packages for this centre
-      console.log("🔄 Fetching packages for centre:", id);
-
-      const result = await dispatch(getAllPackages(id));
-
-      console.log("📦 Packages API Response:", result);
-      console.log("📦 Payload:", result.payload);
-    } catch (error) {
-      console.error("❌ Fetch error:", error);
-    } finally {
-      setIsLoading(false);
+  useEffect(() => {
+    if (!packages || packages.length === 0) {
+      setCentrePackages([]);
+      return;
     }
-  };
+    setCentrePackages(packages);
+  }, [packages]);
 
-  fetchData();
-}, [dispatch, id]);
-
-
-// ✅ Set centre packages
-useEffect(() => {
-  console.log("========== PACKAGE DEBUG ==========");
-  console.log("Centre:", centre);
-  console.log("Redux packages:", packages);
-
-  if (!packages || packages.length === 0) {
-    setCentrePackages([]);
-    return;
-  }
-
-  // Backend endpoint already returns packages
-  // belonging to this tourist centre.
-  setCentrePackages(packages);
-
-  console.log("✅ Packages sent to UI:", packages);
-}, [packages, centre]);
-
-
-// Optional debugging
-useEffect(() => {
-  console.log("🔄 Redux packages updated:", packages);
-  console.log("🔄 Packages length:", packages?.length);
-  console.log("🔄 First package:", packages?.[0]);
-}, [packages]);
-
-
-
-  // ✅ Handle loading state
   if (touristCentresLoading || packagesLoading || isLoading) {
     return (
       <>
         <Header />
-        <div className="loading-container" style={{ textAlign: "center", padding: "100px 20px" }}>
+        <div className="loading-container">
           <div className="spinner"></div>
           <p>Loading centre details...</p>
         </div>
@@ -146,27 +89,14 @@ useEffect(() => {
     );
   }
 
-  // ✅ Handle error state
-  if (touristCentresError && !centre) {
+  if ((touristCentresError && !centre) || !centre) {
     return (
       <>
         <Header />
-        <div className="error-container" style={{ textAlign: "center", padding: "100px 20px" }}>
+        <div className="error-container">
           <h2>Centre Not Found</h2>
-          <p>{typeof touristCentresError === "string" ? touristCentresError : "Unable to load centre details"}</p>
-          <button 
-            onClick={() => navigate("/discover")} 
-            className="back-btn" 
-            style={{ 
-              background: "#ff6b35", 
-              color: "white", 
-              border: "none", 
-              padding: "10px 24px", 
-              borderRadius: "8px", 
-              cursor: "pointer",
-              marginTop: "16px"
-            }}
-          >
+          <p>Unable to load centre details. Please try again.</p>
+          <button onClick={() => navigate("/discover")} className="back-btn">
             Back to Discover
           </button>
         </div>
@@ -175,85 +105,41 @@ useEffect(() => {
     );
   }
 
-  if (!centre) {
-    return (
-      <>
-        <Header />
-        <div className="error-container" style={{ textAlign: "center", padding: "100px 20px" }}>
-          <h2>No Centre Data</h2>
-          <p>Unable to load centre information. Please try again.</p>
-          <button 
-            onClick={() => navigate("/discover")} 
-            className="back-btn" 
-            style={{ 
-              background: "#ff6b35", 
-              color: "white", 
-              border: "none", 
-              padding: "10px 24px", 
-              borderRadius: "8px", 
-              cursor: "pointer",
-              marginTop: "16px"
-            }}
-          >
-            Back to Discover
-          </button>
-        </div>
-        <Footer />
-
-      </>
-    );
-  }
-
-  // ✅ Extract centre data
+  // Parse fields safely
   const centreName = centre.centreName || centre.name || "Tourist Centre";
-  const centreLocation = [centre.city, centre.state].filter(Boolean).join(", ") || "Location not specified";
+  const centreLocation = centre.location || [centre.city, centre.state].filter(Boolean).join(", ") || "Location not specified";
   const openingHours = centre.openingHours || "Hours not specified";
-  const rating = centre.rating || centre.averageRating || 4.5;
-  const reviewCount = centre.reviews || centre.reviewCount || 0;
+  const rating = centre.rating || centre.averageRating || 5.0;
+  const reviewCount = centre.reviews || centre.reviewCount || 567;
   const description = centre.description || "No description available";
-  const facilities = centre.facilitiesAndAmenities?.split(", ") || centre.facilities || [];
-  const images = centre.images || [];
+  
+  const facilities = typeof centre.facilitiesAndAmenities === "string"
+    ? centre.facilitiesAndAmenities.split(", ")
+    : Array.isArray(centre.facilitiesAndAmenities) 
+    ? centre.facilitiesAndAmenities 
+    : ["Nature trails", "Picnic Areas", "WildLife Viewing"];
 
-  console.log("✅ Rendering centre:", centreName);
-  console.log("✅ Available packages:", centrePackages.length);
+  const rawImages = Array.isArray(centre.images)
+    ? centre.images.map(img => (img && typeof img === "object" ? img.secureUrl : img))
+    : Array.isArray(centre.imagesPublicUrl)
+    ? centre.imagesPublicUrl
+    : typeof centre.imagesPublicUrl === "string"
+    ? [centre.imagesPublicUrl]
+    : [];
 
-  // ✅ Handle Book Now
+  const images = [
+    rawImages[0] || "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
+    rawImages[1] || "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+    rawImages[2] || "https://images.unsplash.com/photo-1441974231531-c6227db76b6e"
+  ];
+
   const handleBookNow = (pkg) => {
-    console.log("🛒 handleBookNow called with packages:", pkg);
-    
     if (!pkg) {
-      Swal.fire({
-        icon: "warning",
-        title: "No Package Selected",
-        text: "Please select a package to book.",
-        confirmButtonColor: "#ff6b35",
-      });
-      return;
-    }
-
-    if (!pkg.id) {
-      console.error("❌ Package missing ID:", pkg);
-      Swal.fire({
-        icon: "error",
-        title: "Invalid Package",
-        text: "The selected package is invalid. Please try again.",
-        confirmButtonColor: "#ff6b35",
-      });
+      Swal.fire({ icon: "warning", title: "No Package Selected", text: "Please select a package.", confirmButtonColor: "#ff6b35" });
       return;
     }
 
     const centreId = centre.id || centre._id || id;
-    if (!centreId) {
-      console.error("❌ Centre missing ID:", centre);
-      Swal.fire({
-        icon: "error",
-        title: "Invalid Centre",
-        text: "Unable to identify the centre. Please try again.",
-        confirmButtonColor: "#ff6b35",
-      });
-      return;
-    }
-
     setSelectedPackage(pkg);
     
     const bookingData = {
@@ -270,56 +156,32 @@ useEffect(() => {
       },
       centreDetails: {
         id: centreId,
-        centreName: centreName,
-        name: centreName,
+        centreName,
         city: centre.city || "",
         state: centre.state || "",
-        openingHours: openingHours,
-        description: description,
-        images: images,
+        openingHours,
+        description,
+        images,
       },
-      centreId: centreId,
-      centreName: centreName,
       returnUrl: `/booking-summary/${centreId}/${pkg.id}`
     };
+
     localStorage.setItem('pendingBooking', JSON.stringify(bookingData));
-
     const token = localStorage.getItem('token') || localStorage.getItem('userToken');
-    const isLoggedIn = !!token;
 
-    if (!isLoggedIn) {
-      navigate("/signin", { 
-        state: { 
-          from: `/centre/${centreId}`,
-          bookingData: bookingData
-        } 
-      });
+    if (!token) {
+      navigate("/signin", { state: { from: `/centre/${centreId}`, bookingData } });
       return;
     }
 
-    navigate(`/booking-summary/${centreId}/${pkg.id}`, {
-      state: {
-        touristId: centreId,
-        packageId: pkg.id,
-        packageDetails: bookingData.packageDetails,
-        centreDetails: bookingData.centreDetails,
-        centreId: centreId,
-        centreName: centreName,
-      },
-    });
+    navigate(`/booking-summary/${centreId}/${pkg.id}`, { state: bookingData });
   };
 
-  // ✅ Render stars
   const renderStars = (ratingValue) => {
     const stars = [];
     const fullStars = Math.floor(ratingValue);
-    const hasHalfStar = ratingValue % 1 >= 0.5;
-
     for (let i = 0; i < fullStars; i++) {
-      stars.push(<FaStar key={i} color="#ff6b35" />);
-    }
-    if (hasHalfStar) {
-      stars.push(<FaStar key="half" color="#ff6b35" opacity={0.5} />);
+      stars.push(<FaStar key={i} color="#ffb400" />);
     }
     while (stars.length < 5) {
       stars.push(<FaStar key={stars.length} color="#ddd" />);
@@ -327,130 +189,204 @@ useEffect(() => {
     return stars;
   };
 
-  // ✅ Get truncated description
   const getDescription = () => {
-    if (showFullDescription || description.length <= 200) {
-      return description;
-    }
-    return description.slice(0, 200) + "...";
+    if (showFullDescription || description.length <= 400) return description;
+    return description.slice(0, 400) + "...";
   };
 
-  // Sample reviews
   const reviews = [
-    {
-      id: 1,
-      name: "Nnaneme D.",
-      rating: 5,
-      comment: "Absolutely loved the canopy walkway! It was so long and the view from the top is breathtaking."
-    },
-    {
-      id: 2,
-      name: "Tunde S.",
-      rating: 4,
-      comment: "Perfect for a family outing. My kids enjoyed the canopy walk and the playground area."
-    },
-    {
-      id: 3,
-      name: "Salewa Ahmed",
-      rating: 4,
-      comment: "The place is beautiful and peaceful. Saw so many monkeys and birds."
-    }
+    { id: 1, name: "Nnaneme O.", rating: 5, comment: "Absolutely loved the canopy walkway! It was so long and the view from the top is breathtaking. A must visit for anyone in Lagos. Very well maintained." },
+    { id: 2, name: "Tunde S.", rating: 5, comment: "Perfect for a family outing. My kids enjoyed the canopy walk and the playground area. The boardwalks are clean and safe. Highly recommended!" },
+    { id: 3, name: "Salewa Ahmed", rating: 4, comment: "The place is beautiful and peaceful. Saw so many monkeys and birds. However, the ticket price is a bit high compared to other parks. Still worth it though." }
   ];
 
   return (
     <>
       <Header />
-    
-        
-                {/* HERO SECTION */}
-<section className="centre-hero">
+      <main className="product-page">
+        <div className="container">
+          
+          {/* TITLE SECTION */}
+          <section className="listing-header">
+            <h1 className="title">{centreName}</h1>
+            <div className="meta">
+              <span><FaMapMarkerAlt /> {centreLocation}</span>
+              <span><FaClock /> Timings below</span>
+              <span className="rating">
+                {renderStars(rating)}
+                <strong>{rating.toFixed(1)}</strong> ({reviewCount})
+              </span>
+            </div>
+            <div className="tags">
+              {facilities.slice(0, 6).map((facility, index) => (
+                <span key={index}>{facility}</span>
+              ))}
+            </div>
+          </section>
 
-  <h1 className="centre-title">{centreName}</h1>
+          {/* IMAGE GALLERY */}
+          <section className="gallery">
+            <div className="main-image">
+              <img
+                src={images[0]}
+                alt={centreName}
+                onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1506744038136-46273834b3fb"; }}
+              />
+            </div>
+            <div className="side-images">
+              <img 
+                src={images[1]} 
+                alt="" 
+                onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee"; }}
+              />
+              <img 
+                src={images[2]} 
+                alt="" 
+                onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1441974231531-c6227db76b6e"; }}
+              />
+            </div>
+          </section>
 
-  <div className="centre-meta">
-    <span>
-      <FaMapMarkerAlt className="meta-icon" />
-      {centreLocation}
-    </span>
+          {/* SNAPSHOT SNAP BLOCK */}
+          <section className="features">
+            <div className="feature">
+              <FaCheckCircle className="feature-icon" />
+              <div>
+                <p className="feature-label">Capacity Limit</p>
+                <h4>{centre.dailySlotCapacity || 50} Slots Daily</h4>
+              </div>
+            </div>
+            <div className="feature">
+              <FaCheckCircle className="feature-icon" />
+              <div>
+                <p className="feature-label">Installment Payments</p>
+                <h4>{centre.installmentPayment ? "Supported" : "Not Offered"}</h4>
+              </div>
+            </div>
+            <div className="feature">
+              <FaCheckCircle className="feature-icon" />
+              <div>
+                <p className="feature-label">Includes</p>
+                <h4>Ticket, Amenities Access</h4>
+              </div>
+            </div>
+          </section>
 
-    <span>
-      <FaClock className="meta-icon" />
-      {openingHours}
-    </span>
+          {/* DESCRIPTION & SCHEDULE WRAPPER */}
+          <section className="content-split-wrapper">
+            <div className="description-block">
+              <h2>Description</h2>
+              <p>
+                {getDescription()}
+                {description.length > 400 && (
+                  <span className="readmore-btn" onClick={() => setShowFullDescription(!showFullDescription)}>
+                    {showFullDescription ? " Read less" : " Read more"}
+                  </span>
+                )}
+              </p>
+              
+              <div style={{ marginTop: '20px', fontSize: '13.5px', color: '#4a5568', background: '#f7fafc', padding: '15px', borderRadius: '8px' }}>
+                <strong style={{ display: 'block', marginBottom: '6px', color: '#112244' }}>🕒 Schedule Breakdown:</strong>
+                {openingHours.split(" | ").map((day, i) => <div key={i} style={{ marginBottom: '3px' }}>{day}</div>)}
+              </div>
 
-    <span className="centre-rating">
-      {renderStars(rating)}
-      <strong>{rating}</strong>
-      <span>({reviewCount})</span>
-    </span>
-  </div>
+              <div className="actions">
+                <button 
+                  className="book-btn" 
+                  onClick={() => handleBookNow(centrePackages[0] || { id: "default", price: 2500 })}
+                >
+                  Book Now
+                </button>
+                <button className="fav-btn" onClick={() => setIsWishlist(!isWishlist)}>
+                  {isWishlist ? "Remove from favorite" : "Add to favorite"}
+                </button>
+              </div>
+            </div>
 
-  <div className="centre-tags">
-    {facilities.slice(0, 4).map((facility, index) => (
-      <span key={index}>{facility}</span>
-    ))}
-  </div>
+            {/* FIXED: Replaced your placeholder mock-map div with your custom layout map image asset */}
+            <div className="map-block">
+              <img 
+                src="https://i.postimg.cc/N0F86Np4/map.jpg" 
+                alt="Location Map" 
+                style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "12px" }}
+              />
+            </div>
+          </section>
 
-  <div className="centre-gallery">
+          {/* REVIEWS */}
+          <section className="reviews-section">
+            <h2>View all Reviews</h2>
+            <div className="review-grid">
+              {reviews.map((review) => (
+                <div className="review-card" key={review.id}>
+                  <div className="review-user-info">
+                    <div className="avatar-placeholder"></div>
+                    <div>
+                      <h4>{review.name}</h4>
+                      <div className="review-stars">
+                        {[...Array(5)].map((_, i) => (
+                          <FaStar key={i} color={i < review.rating ? "#ffb400" : "#ddd"} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <p>{review.comment}</p>
+                </div>
+              ))}
+            </div>
+            <div className="pagination-arrows">
+              <button className="arrow-btn">‹</button>
+              <button className="arrow-btn active">›</button>
+            </div>
+          </section>
 
-    <div className="gallery-main">
-      <img
-       
-        alt={centreName}
-      />
-    </div>
+          {/* DISCOVER RECOMMENDATIONS */}
+          <section className="recommendations-section">
+            <h2>Destinations you may also like</h2>
+            <div className="destination-grid">
+              <div className="destination-card">
+                <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb" alt="" />
+                <div className="card-content">
+                  <h4>Lekki Conservation Centre</h4>
+                  <p className="card-location">Lagos</p>
+                  <div className="card-meta">⭐⭐⭐⭐⭐ 5.0 (567) <span>⏰ 8:30 AM - 5:00 PM</span></div>
+                  <div className="card-footer">
+                    <div className="price-tag"><span className="from-label">From</span> ₦2500</div>
+                    <button className="book-now-small">Book Now</button>
+                  </div>
+                </div>
+              </div>
 
-    <div className="gallery-side">
-      <img
-        src={
-          images[1] ||
-          "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee"
-        }
-        alt=""
-      />
+              <div className="destination-card">
+                <img src="https://images.unsplash.com/photo-1511497584788-876760111969" alt="" />
+                <div className="card-content">
+                  <h4>Olumo Rock</h4>
+                  <p className="card-location">Abeokuta</p>
+                  <div className="card-meta">⭐⭐⭐⭐ 4.0 (89) <span>⏰ 9:00 AM - 6:00 PM</span></div>
+                  <div className="card-footer">
+                    <div className="price-tag"><span className="from-label">From</span> ₦2000</div>
+                    <button className="book-now-small">Book Now</button>
+                  </div>
+                </div>
+              </div>
 
-      <img
-        src={
-          images[2] ||
-          "https://images.unsplash.com/photo-1441974231531-c6227db76b6e"
-        }
-        alt=""
-      />
-    </div>
+              <div className="destination-card">
+                <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e" alt="" />
+                <div className="card-content">
+                  <h4>Mapo Hall</h4>
+                  <p className="card-location">Ibadan</p>
+                  <div className="card-meta">⭐⭐⭐⭐⭐ 4.9 (76) <span>⏰ 8:30 AM - 5:00 PM</span></div>
+                  <div className="card-footer">
+                    <div className="price-tag"><span className="from-label">From</span> ₦1500</div>
+                    <button className="book-now-small">Book Now</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
 
-  </div>
-</section>
-
-<hr className="centre-divider" />
-
-<section className="centre-features">
-
-  <div className="centre-feature">
-    <FaCheckCircle />
-    <div>
-      <span>Duration</span>
-      <h4>1 day</h4>
-    </div>
-  </div>
-
-  <div className="centre-feature">
-    <FaCheckCircle />
-    <div>
-      <span>Activity Level</span>
-      <h4>Topnotch</h4>
-    </div>
-  </div>
-
-  <div className="centre-feature">
-    <FaCheckCircle />
-    <div>
-      <span>Includes</span>
-      <h4>Ticket, Transportation, Equipment</h4>
-    </div>
-  </div>
-
-</section>
-       
+        </div>
+      </main>
       <Footer />
     </>
   );

@@ -12,6 +12,7 @@ import {
 } from "redux-persist";
 import authReducer from "./authSlice";
 import apiReducer from "./apiSlice";
+import  dashboardReducer from "./dashboardSlice"
 
 const customStorage = {
   getItem: (key) => {
