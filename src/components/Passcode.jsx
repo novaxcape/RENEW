@@ -1,5 +1,5 @@
 // Pages/Passcode.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { verifyPasscode } from '../redox/apiSlice';
 import Swal from 'sweetalert2';
@@ -38,25 +38,18 @@ const Passcode = () => {
       setResponseMessage('');
 
       try {
-        // ✅ Call the API to verify passcode
         const result = await dispatch(verifyPasscode({ passcode: codeString })).unwrap();
-        
+
         console.log('✅ Full API Response:', result);
         console.log('✅ Response type:', typeof result);
         console.log('✅ Response keys:', result ? Object.keys(result) : 'null');
 
-        // ✅ Check if the response indicates success or failure
-        // The API returns { message: "Invalid passcode" } for failure
-        // For success, it returns { message: "string", data: { ... } }
-        
-        // ✅ Safely check for message
         const responseMessage = result?.message || '';
-        
+
         if (responseMessage === 'Invalid passcode') {
-          // ❌ Invalid passcode
           setVerificationStatus('failed');
           setError('Invalid passcode. Please try again.');
-          
+
           Swal.fire({
             icon: 'error',
             title: 'Verification Failed',
@@ -64,12 +57,11 @@ const Passcode = () => {
             confirmButtonColor: '#ff6b35',
           });
         } else if (result?.data || result?.booking) {
-          // ✅ Success - valid passcode
           const booking = result?.data || result?.booking || result;
           setBookingData(booking);
           setVerificationStatus('success');
           setResponseMessage(responseMessage || 'Passcode verified successfully!');
-          
+
           Swal.fire({
             icon: 'success',
             title: 'Passcode Verified!',
@@ -79,12 +71,10 @@ const Passcode = () => {
             timerProgressBar: true,
           });
         } else if (result && typeof result === 'object' && Object.keys(result).length > 0) {
-          // ✅ If we have a response object but no explicit data or booking field
-          // Try to use the entire response as booking data
           setBookingData(result);
           setVerificationStatus('success');
           setResponseMessage(responseMessage || 'Passcode verified successfully!');
-          
+
           Swal.fire({
             icon: 'success',
             title: 'Passcode Verified!',
@@ -94,10 +84,9 @@ const Passcode = () => {
             timerProgressBar: true,
           });
         } else {
-          // ❌ Unknown response
           setVerificationStatus('failed');
           setError('Unexpected response from server.');
-          
+
           Swal.fire({
             icon: 'error',
             title: 'Verification Failed',
@@ -109,11 +98,9 @@ const Passcode = () => {
         console.error('❌ Passcode verification failed:', error);
         console.error('❌ Error type:', typeof error);
         console.error('❌ Error value:', error);
-        
-        // Handle different error cases
+
         let errorMessage = 'Invalid passcode. Please try again.';
-        
-        // ✅ Check if error is a string
+
         if (typeof error === 'string') {
           if (error.includes('Invalid passcode')) {
             errorMessage = 'Invalid passcode. Please check and try again.';
@@ -122,23 +109,19 @@ const Passcode = () => {
           } else {
             errorMessage = error;
           }
-        } 
-        // ✅ Check if error has a message property
-        else if (error?.message) {
+        } else if (error?.message) {
           if (error.message.includes('Invalid passcode')) {
             errorMessage = 'Invalid passcode. Please check and try again.';
           } else {
             errorMessage = error.message;
           }
-        }
-        // ✅ Check if error response has data
-        else if (error?.response?.data?.message) {
+        } else if (error?.response?.data?.message) {
           errorMessage = error.response.data.message;
         }
-        
+
         setError(errorMessage);
         setVerificationStatus('failed');
-        
+
         Swal.fire({
           icon: 'error',
           title: 'Verification Failed',
@@ -158,6 +141,28 @@ const Passcode = () => {
     setError('');
     setResponseMessage('');
   };
+
+  // ✅ Keyboard support: digits, backspace, enter
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (verificationStatus !== 'idle' || loading) return;
+
+      if (/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
+        handleKeyPress(Number(e.key));
+      } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        handleBackspace();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        handleVerify();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [passcode, verificationStatus, loading]);
 
   // Helper to format date
   const formatDate = (dateString) => {
@@ -209,33 +214,33 @@ const Passcode = () => {
 
   // Get booking number
   const getBookingNumber = () => {
-    return bookingData?.bookingNumber || 
-           bookingData?.booking?.bookingNumber || 
-           bookingData?.id || 
+    return bookingData?.bookingNumber ||
+           bookingData?.booking?.bookingNumber ||
+           bookingData?.id ||
            'N/A';
   };
 
   // Get package name
   const getPackageName = () => {
-    return bookingData?.package?.packageName || 
-           bookingData?.packageName || 
-           bookingData?.ticketType || 
+    return bookingData?.package?.packageName ||
+           bookingData?.packageName ||
+           bookingData?.ticketType ||
            'Standard';
   };
 
   // Get amount
   const getAmount = () => {
-    return bookingData?.package?.amount || 
-           bookingData?.amount || 
-           bookingData?.price || 
+    return bookingData?.package?.amount ||
+           bookingData?.amount ||
+           bookingData?.price ||
            0;
   };
 
   // Get visit date
   const getVisitDate = () => {
-    return bookingData?.visitDate || 
-           bookingData?.date || 
-           bookingData?.bookingDate || 
+    return bookingData?.visitDate ||
+           bookingData?.date ||
+           bookingData?.bookingDate ||
            null;
   };
 
@@ -262,8 +267,8 @@ const Passcode = () => {
           {/* 6-Digit Inputs */}
           <div className="passcode-inputs">
             {[...Array(6)].map((_, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className={`input-box ${index === passcode.length && verificationStatus === 'idle' ? 'active' : ''} 
                   ${verificationStatus === 'success' ? 'success' : ''} 
                   ${verificationStatus === 'failed' ? 'failed' : ''}`}
@@ -275,7 +280,7 @@ const Passcode = () => {
 
           {/* Error Message */}
           {error && <div className="error-message">{error}</div>}
-          
+
           {/* Success Message */}
           {responseMessage && verificationStatus === 'success' && (
             <div className="success-message">{responseMessage}</div>
@@ -284,23 +289,23 @@ const Passcode = () => {
           {/* Number Keypad */}
           <div className={`keypad ${passcode.length === 6 ? 'disabled' : ''}`}>
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-              <button 
-                key={num} 
-                onClick={() => handleKeyPress(num)} 
+              <button
+                key={num}
+                onClick={() => handleKeyPress(num)}
                 disabled={passcode.length === 6 || loading}
               >
                 {num}
               </button>
             ))}
-            <button 
-              onClick={() => handleKeyPress(0)} 
+            <button
+              onClick={() => handleKeyPress(0)}
               disabled={passcode.length === 6 || loading}
             >
               0
             </button>
-            <button 
-              className="backspace-btn" 
-              onClick={handleBackspace} 
+            <button
+              className="backspace-btn"
+              onClick={handleBackspace}
               disabled={passcode.length === 0 || loading}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -312,7 +317,7 @@ const Passcode = () => {
           </div>
 
           {/* Action Button */}
-          <button 
+          <button
             className={`action-btn ${passcode.length === 6 ? 'filled' : 'primary'}`}
             onClick={handleVerify}
             disabled={passcode.length < 6 || loading}

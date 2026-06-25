@@ -1,6 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useSelector } from "react-redux";
 import "../components/css/Hero.css";
 import { FaCalendarAlt } from "react-icons/fa";
+import {
+  selectPackages,
+  selectTouristCentres,
+  selectVendorCentres,
+} from "../redox/apiSlice"; // double-check this path/spelling matches your actual folder
 
 const ROTATING_TEXTS = [
   "Stunning Places",
@@ -9,10 +15,14 @@ const ROTATING_TEXTS = [
   "Beautiful Destination",
 ];
 
-const LOCATIONS = [
+// Fallback list, used only if nothing useful is in Redux yet
+const FALLBACK_LOCATIONS = [
   "Lagos", "Abuja", "Port Harcourt", "Calabar",
   "Kastina", "Enugu", "Ibadan", "Ogun",
 ];
+
+const extractState = (item) =>
+  item?.state || item?.location || item?.stateName || item?.centreState || null;
 
 const CalendarPicker = ({ onSelect, selectedDate }) => {
   const today = new Date();
@@ -60,9 +70,9 @@ const CalendarPicker = ({ onSelect, selectedDate }) => {
   return (
     <div className="cal-picker">
       <div className="cal-header">
-        <button className="cal-nav" onClick={handlePrev}>&#8249;</button>
+        <button type="button" className="cal-nav" onClick={handlePrev}>&#8249;</button>
         <span className="cal-month-label">{monthNames[viewMonth]} {viewYear}</span>
-        <button className="cal-nav" onClick={handleNext}>&#8250;</button>
+        <button type="button" className="cal-nav" onClick={handleNext}>&#8250;</button>
       </div>
       <div className="cal-grid">
         {dayNames.map(d => (
@@ -77,7 +87,9 @@ const CalendarPicker = ({ onSelect, selectedDate }) => {
               isToday(cell.day, cell.type) ? "cal-cell--today" : "",
               isSelected(cell.day, cell.type) ? "cal-cell--selected" : "",
             ].join(" ").trim()}
-            onClick={() => {
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
               if (cell.type === "current") onSelect(new Date(viewYear, viewMonth, cell.day));
             }}
           >
@@ -96,6 +108,22 @@ const Hero = () => {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [calOpen, setCalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
+
+  // ---- Pull whatever's already loaded in Redux and derive unique states ----
+  const packages = useSelector(selectPackages) || [];
+  const touristCentres = useSelector(selectTouristCentres) || [];
+  const vendorCentres = useSelector(selectVendorCentres) || [];
+
+  const LOCATIONS = useMemo(() => {
+    const all = [...packages, ...touristCentres, ...vendorCentres];
+    const states = all
+      .map(extractState)
+      .filter(Boolean)
+      .map((s) => s.trim());
+
+    const unique = Array.from(new Set(states));
+    return unique.length > 0 ? unique.sort() : FALLBACK_LOCATIONS;
+  }, [packages, touristCentres, vendorCentres]);
 
   // Desktop refs
   const locationRef = useRef(null);
@@ -116,8 +144,12 @@ const Hero = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Outside-click handler — ignores clicks on dropdown items and calendar
+  // cells so it never races with / swallows their own selection handlers.
   useEffect(() => {
     const handler = (e) => {
+      if (e.target.closest(".dropdown_item") || e.target.closest(".cal-cell")) return;
+
       if (locationRef.current && !locationRef.current.contains(e.target)) setLocationOpen(false);
       if (calRef.current && !calRef.current.contains(e.target)) setCalOpen(false);
       if (locationMobileRef.current && !locationMobileRef.current.contains(e.target)) setLocationOpen(false);
@@ -131,6 +163,23 @@ const Hero = () => {
     date
       ? date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
       : null;
+
+  const handleSearch = () => {
+    console.log("Search triggered:", { selectedLocation, selectedDate });
+    // TODO: wire up to your actual search action / navigation
+  };
+
+  const selectLocation = (loc) => {
+    console.log("Location clicked:", loc);
+    setSelectedLocation(loc);
+    setLocationOpen(false);
+  };
+
+  const selectDate = (date) => {
+    console.log("Date clicked:", date);
+    setSelectedDate(date);
+    setCalOpen(false);
+  };
 
   return (
     <div className="hero_wrapper">
@@ -161,6 +210,7 @@ const Hero = () => {
 
               <div className="search_pill_wrapper" ref={locationRef}>
                 <button
+                  type="button"
                   className="search_pill search_pill--grey"
                   onClick={() => { setLocationOpen(o => !o); setCalOpen(false); }}
                 >
@@ -172,7 +222,11 @@ const Hero = () => {
                       <div
                         key={loc}
                         className="dropdown_item"
-                        onClick={() => { setSelectedLocation(loc); setLocationOpen(false); }}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          selectLocation(loc);
+                        }}
                       >
                         {loc}
                       </div>
@@ -183,6 +237,7 @@ const Hero = () => {
 
               <div className="search_pill_wrapper" ref={calRef}>
                 <button
+                  type="button"
                   className="search_pill search_pill--grey"
                   onClick={() => { setCalOpen(o => !o); setLocationOpen(false); }}
                 >
@@ -192,12 +247,14 @@ const Hero = () => {
                 {calOpen && (
                   <CalendarPicker
                     selectedDate={selectedDate}
-                    onSelect={(d) => { setSelectedDate(d); setCalOpen(false); }}
+                    onSelect={selectDate}
                   />
                 )}
               </div>
 
-              <button className="search_btn_orange">Search</button>
+              <button type="button" className="search_btn_orange" onClick={handleSearch}>
+                Search
+              </button>
 
             </div>
           </div>
@@ -216,6 +273,7 @@ const Hero = () => {
 
         <div className="search_mobile_pill_wrapper" ref={locationMobileRef}>
           <button
+            type="button"
             className="search_mobile_pill"
             onClick={() => { setLocationOpen(o => !o); setCalOpen(false); }}
           >
@@ -227,7 +285,11 @@ const Hero = () => {
                 <div
                   key={loc}
                   className="dropdown_item"
-                  onClick={() => { setSelectedLocation(loc); setLocationOpen(false); }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    selectLocation(loc);
+                  }}
                 >
                   {loc}
                 </div>
@@ -238,6 +300,7 @@ const Hero = () => {
 
         <div className="search_mobile_pill_wrapper" ref={calMobileRef}>
           <button
+            type="button"
             className="search_mobile_pill"
             onClick={() => { setCalOpen(o => !o); setLocationOpen(false); }}
           >
@@ -247,12 +310,16 @@ const Hero = () => {
           {calOpen && (
             <CalendarPicker
               selectedDate={selectedDate}
-              onSelect={(d) => { setSelectedDate(d); setCalOpen(false); }}
+              onSelect={selectDate}
             />
           )}
         </div>
 
-        <button className="search_mobile_pill search_mobile_pill--orange">
+        <button
+          type="button"
+          className="search_mobile_pill search_mobile_pill--orange"
+          onClick={handleSearch}
+        >
           Search
         </button>
 
