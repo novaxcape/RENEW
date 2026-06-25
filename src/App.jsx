@@ -72,7 +72,9 @@ const App = () => {
           <Route path="centres" element={<ForCentrePage />} />
           <Route path="about" element={<About />} />
           <Route path="support" element={<Support />} />
-          <Route path="review" element={<ReviewPage />} />
+   
+<Route path="review" element={<ReviewPage />} />  // General reviews (no ID)
+<Route path="review/:touristCentreId" element={<ReviewPage />} />  // Specific centre reviews
           <Route path="centre/:id" element={<ProductDetails />} />
           <Route path="my-bookings" element={<MyBookingsPage />} />
         </Route>

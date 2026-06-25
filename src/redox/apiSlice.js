@@ -749,11 +749,53 @@ export const getPaymentStatus = createThunk(
     ),
 );
 
-// ========== REVIEW API THUNKS ==========
+// ========== REVIEW API THUNKS - CORRECTED VERSION ==========
 export const createReview = createThunk(
   "api/review/create",
-  (reviewData, { getState }) =>
-    axios.post(`${API_BASE_URL}/review`, reviewData, authConfig(getState())),
+  async ({ touristCentreId, reviewData }, { getState, rejectWithValue }) => {
+    try {
+      console.log(`⭐ Creating review for tourist centre: ${touristCentreId}`);
+      console.log("⭐ Review data:", reviewData);
+
+      // Prepare the payload exactly as the API expects
+      const payload = {
+        ratings: String(reviewData.ratings || reviewData.rating), // Support both field names
+        fullName: reviewData.fullName,
+        email: reviewData.email,
+        addYourReview: reviewData.addYourReview || reviewData.review, // Support both field names
+      };
+
+      console.log("⭐ Final payload:", payload);
+
+      const response = await axios.post(
+        `${API_BASE_URL}/review/${touristCentreId}`,
+        payload,
+        authConfig(getState()),
+      );
+
+      console.log("✅ Review created successfully:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Create review error:", error);
+      console.error("❌ Error response:", error.response?.data);
+      console.error("❌ Error status:", error.response?.status);
+      
+      // Handle specific error cases
+      if (error.response?.status === 404) {
+        return rejectWithValue("Tourist centre not found");
+      }
+      
+      if (error.response?.status === 400) {
+        return rejectWithValue("Invalid review data. Please check your input.");
+      }
+      
+      if (error.response?.status === 401) {
+        return rejectWithValue("Please login to submit a review");
+      }
+      
+      return rejectWithValue(getErrorMessage(error));
+    }
+  },
 );
 
 export const getAllReviews = createThunk(
@@ -1437,18 +1479,19 @@ const apiSlice = createSlice({
       // ========== REVIEWS REDUCERS ==========
       .addCase(createReview.pending, (state) => {
         state.reviewsLoading = true;
+        state.reviewsError = null;
       })
       .addCase(createReview.fulfilled, (state, action) => {
         state.reviewsLoading = false;
-        state.reviews = [
-          action.payload?.data || action.payload,
-          ...state.reviews,
-        ];
+        const newReview = action.payload?.data || action.payload;
+        state.reviews = [newReview, ...state.reviews];
         state.successMessage = "Review submitted successfully";
+        console.log("✅ Review added to Redux:", newReview);
       })
       .addCase(createReview.rejected, (state, action) => {
         state.reviewsLoading = false;
         state.reviewsError = action.payload;
+        console.error("❌ Review submission failed in Redux:", action.payload);
       })
 
       .addCase(getAllReviews.pending, (state) => {
@@ -1461,10 +1504,12 @@ const apiSlice = createSlice({
           action.payload?.reviews ||
           action.payload ||
           [];
+        console.log("✅ Reviews loaded in Redux:", state.reviews.length);
       })
       .addCase(getAllReviews.rejected, (state, action) => {
         state.reviewsLoading = false;
         state.reviewsError = action.payload;
+        console.error("❌ Reviews load failed in Redux:", action.payload);
       })
 
       .addCase(getReviewById.pending, (state) => {
@@ -1492,6 +1537,7 @@ const apiSlice = createSlice({
           action.payload?.reviews ||
           action.payload ||
           [];
+        console.log(`✅ Reviews filtered by rating: ${state.reviews.length}`);
       })
       .addCase(getReviewsByRating.rejected, (state, action) => {
         state.reviewsLoading = false;
@@ -1504,6 +1550,7 @@ const apiSlice = createSlice({
       .addCase(getRatingStatistics.fulfilled, (state, action) => {
         state.reviewsLoading = false;
         state.reviewStatistics = action.payload?.data || action.payload;
+        console.log("✅ Review statistics loaded:", state.reviewStatistics);
       })
       .addCase(getRatingStatistics.rejected, (state, action) => {
         state.reviewsLoading = false;

@@ -1,4 +1,4 @@
-
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap");
 
 .featured-section-header {
   text-align: left;
@@ -9,13 +9,13 @@
   font-family: "Manrope", sans-serif;
   font-size: 40px;
   font-weight: 600;
-  color: #271A13;
+  color: #271a13;
 }
 
 .featured-section-subtitle {
   font-size: 20px;
   font-weight: 600;
-  color: #271A13;
+  color: #271a13;
   margin-top: 4px;
   margin-bottom: 40px;
 }
@@ -24,8 +24,6 @@
   width: 100%;
   padding: 70px;
 }
-
-
 
 .category_container {
   display: flex;
@@ -50,13 +48,13 @@
   color: white;
 }
 
-
 .attractions_grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 35px;
 }
 
+/* ── Card ── */
 .attraction_card {
   background: white;
   border-radius: 18px;
@@ -64,6 +62,7 @@
   overflow: hidden;
   border: 1px solid #dcdcdc;
   transition: 0.3s;
+  cursor: pointer;
 }
 
 .attraction_card:hover {
@@ -81,7 +80,7 @@
 }
 
 .card_content h3 {
-  font-size: 18x;
+  font-size: 18px;
   font-weight: 600;
   margin-bottom: 12px;
 }
@@ -91,8 +90,6 @@
   margin-bottom: 20px;
   font-weight: 600;
 }
-
-
 
 .card_details {
   display: flex;
@@ -126,8 +123,6 @@
   color: #555;
 }
 
-
-
 .bottom_section {
   border-top: 1px solid #ececec;
   padding-top: 20px;
@@ -154,19 +149,59 @@
   padding: 14px 28px;
   font-size: 18px;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
+.bottom_section button:hover {
+  background: #e55a2b;
+}
 
+/* ── Skeleton loading ── */
+.attraction_card--skeleton {
+  pointer-events: none;
+  height: 430px;
+}
 
+.attraction_card--skeleton .skeleton-img {
+  width: 100%;
+  height: 190px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e4e4e4 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
 
-/* ================= MOBILE RESPONSIVENESS ================= */
+.skeleton-line {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e4e4e4 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
 
+.skeleton-line--title    { height: 16px; width: 75%; }
+.skeleton-line--location { height: 14px; width: 40%; margin-bottom: 20px; }
+.skeleton-line--rating   { height: 12px; width: 60%; }
+.skeleton-line--price    { height: 14px; width: 50%; margin-top: 20px; }
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Mobile ── */
 @media (max-width: 768px) {
   .attractions {
     padding: 40px 20px;
   }
 
-  /* Categories */
+  .featured-section-title {
+    font-size: 24px;
+  }
+
+  .featured-section-subtitle {
+    font-size: 16px;
+  }
+
   .category_container {
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -182,19 +217,10 @@
   .category_btn {
     flex-shrink: 0;
     padding: 12px 24px;
-    font-size: 30px;
+    font-size: 15px;
     white-space: nowrap;
   }
 
-  .section-header{
-    gap:10px;
-  }
-
-  .section-title{
-    font-size: 25px;
-  }
-
-  /* Swipeable Cards */
   .attractions_grid {
     display: flex;
     overflow-x: auto;
@@ -202,6 +228,7 @@
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
     padding-bottom: 10px;
+    grid-template-columns: unset;
   }
 
   .attractions_grid::-webkit-scrollbar {
@@ -214,7 +241,16 @@
     scroll-snap-align: start;
   }
 
+  .attraction_card--skeleton {
+    flex: 0 0 90%;
+    height: 380px;
+  }
+
   .attraction_card img {
+    height: 220px;
+  }
+
+  .attraction_card--skeleton .skeleton-img {
     height: 220px;
   }
 
@@ -250,8 +286,7 @@
   }
 }
 
-
-/* Small Phones */
+/* ── Small phones ── */
 @media (max-width: 480px) {
   .attractions {
     padding: 30px 15px;
