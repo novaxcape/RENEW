@@ -16,7 +16,6 @@ const VerifyOtp = () => {
   const { loading, error } = useSelector((state) => state.auth);
   
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [timer, setTimer] = useState(59);
   const [canResend, setCanResend] = useState(false);
 
   // Get email from location state or localStorage
@@ -27,17 +26,13 @@ const VerifyOtp = () => {
   // Store booking data in state for later use
   const [pendingBooking, setPendingBooking] = useState(bookingData);
 
-  // Timer countdown
+  // Allow resend after 59 seconds (no visible countdown, just a wait period)
   useEffect(() => {
-    if (timer > 0) {
-      const interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-      return () => clearInterval(interval);
-    } else {
+    const timeout = setTimeout(() => {
       setCanResend(true);
-    }
-  }, [timer]);
+    }, 59000);
+    return () => clearTimeout(timeout);
+  }, []);
 
   // Check localStorage for pending booking if not in state
   useEffect(() => {
@@ -176,7 +171,7 @@ const VerifyOtp = () => {
       Swal.fire({
         icon: "info",
         title: "Please Wait",
-        text: `Please wait ${timer} seconds before requesting another OTP.`,
+        text: "Please wait a moment before requesting another OTP.",
         confirmButtonColor: "#ff6b35",
       });
       return;
@@ -210,11 +205,14 @@ const VerifyOtp = () => {
         confirmButtonColor: "#ff6b35",
       });
       
-      setTimer(59);
       setCanResend(false);
       setOtp(["", "", "", "", "", ""]);
       
       document.getElementById("otp-0")?.focus();
+
+      setTimeout(() => {
+        setCanResend(true);
+      }, 59000);
       
     } catch (error) {
       console.error("Resend error:", error.response?.data);
@@ -275,10 +273,6 @@ const VerifyOtp = () => {
             ))}
           </div>
 
-          <div className="resend-timer">
-            We'll resend OTP in <span className="timer" style={{ color: timer < 10 ? "red" : "#333" }}>{timer}s</span>
-          </div>
-
           <button 
             type="button" 
             className="signup-btn verify-btn" 
@@ -289,23 +283,22 @@ const VerifyOtp = () => {
             {loading ? "Verifying..." : "Verify"}
           </button>
 
-          {canResend && (
-            <button 
-              type="button" 
-              className="resend-btn" 
-              onClick={handleResendOTP}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#ff6b35",
-                cursor: "pointer",
-                marginTop: "15px",
-                textDecoration: "underline"
-              }}
-            >
-              Resend OTP
-            </button>
-          )}
+          <button 
+            type="button" 
+            className="resend-btn" 
+            onClick={handleResendOTP}
+            disabled={!canResend}
+            style={{
+              background: "none",
+              border: "none",
+              color: canResend ? "#ff6b35" : "#999",
+              cursor: canResend ? "pointer" : "not-allowed",
+              marginTop: "15px",
+              textDecoration: "underline"
+            }}
+          >
+            Resend OTP
+          </button>
         </div>
       </div>
     </div>

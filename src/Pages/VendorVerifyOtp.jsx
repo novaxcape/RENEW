@@ -148,12 +148,11 @@ const VendorVerifyOtp = () => {
 
       setOtp(["", "", "", "", "", ""]);
       document.getElementById("otp-0")?.focus();
-      
+
       // Re-enable resend after 5 minutes (300000 ms)
       setTimeout(() => {
         setCanResend(true);
       }, 300000);
-      
     } catch (error) {
       console.error("Resend error:", error.response?.data);
       const errorMessage =
@@ -233,12 +232,6 @@ const VendorVerifyOtp = () => {
               </div>
             </div>
 
-            <div style={{ textAlign: "center", marginTop: "15px" }}>
-              <span style={{ fontSize: "14px" }}>
-                Code expires in: <strong style={{ color: "#ff6b35" }}>5 minutes</strong>
-              </span>
-            </div>
-
             <button
               type="button"
               className="signupBtn"
@@ -258,7 +251,7 @@ const VendorVerifyOtp = () => {
                   textDecoration: "underline",
                 }}
               >
-                {canResend ? "Resend Code" : "Resend available in 5 minutes"}
+                {canResend ? "Resend Code" : "Resend Code"}
               </span>
             </div>
 

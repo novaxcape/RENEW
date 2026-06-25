@@ -1,5 +1,5 @@
 // redux/store.js
-import { configureStore } from "@reduxjs/toolkit";
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import {
   persistStore,
   persistReducer,
@@ -49,13 +49,30 @@ const persistConfig = {
   whitelist: ["auth"],
 };
 
-const persistedReducer = persistReducer(persistConfig, authReducer);
+const persistedAuthReducer = persistReducer(persistConfig, authReducer);
+
+// Combine all slice reducers as normal
+const appReducer = combineReducers({
+  auth: persistedAuthReducer,
+  api: apiReducer,
+});
+
+// Root reducer wraps appReducer so we can wipe the whole store on logout
+const rootReducer = (state, action) => {
+  if (action.type === "auth/logout" || action.type === "auth/vendorLogout") {
+    // Preserve redux-persist's internal bookkeeping key so it doesn't break,
+    // but reset every other slice back to its own initialState
+    state = {
+      auth: state?.auth?._persist
+        ? { _persist: state.auth._persist }
+        : undefined,
+    };
+  }
+  return appReducer(state, action);
+};
 
 export const store = configureStore({
-  reducer: {
-    auth: persistedReducer,
-    api: apiReducer,
-  },
+  reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
