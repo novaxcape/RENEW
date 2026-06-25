@@ -77,32 +77,57 @@ const BookingConfirmation = () => {
     if (verificationAttempted.current) return;
 
     let isMounted = true;
+
     const verifyAndFetchBooking = async () => {
       verificationAttempted.current = true;
+
       const urlParams = new URLSearchParams(location.search);
       const referenceFromUrl = urlParams.get('reference') || urlParams.get('trxref');
       const referenceFromState = locationBookingData.reference;
       const currentPaymentData = paymentDataRef.current;
-      const referenceFromRedux = currentPaymentData?.reference || currentPaymentData?.data?.reference || currentPaymentData?.data?.data?.reference;
+      const referenceFromRedux =
+        currentPaymentData?.reference ||
+        currentPaymentData?.data?.reference ||
+        currentPaymentData?.data?.data?.reference;
 
       const reference = referenceFromUrl || referenceFromState || referenceFromRedux;
 
       if (reference) {
         try {
           const result = await dispatch(verifyPayment({ reference, bookingId })).unwrap();
+
           if (isMounted) {
             const responseData = result?.data || result;
-            const paymentStatus = responseData?.data?.status || responseData?.status || 'pending';
-            const isSuccess = paymentStatus === 'success' || responseData?.data?.transaction?.status === 'success' || responseData?.message?.toLowerCase().includes('success');
+
+            const paymentStatus =
+              responseData?.data?.status ||
+              responseData?.status ||
+              'pending';
+
+            const isSuccess =
+              paymentStatus === 'success' ||
+              responseData?.data?.transaction?.status === 'success' ||
+              responseData?.message?.toLowerCase().includes('success') ||
+              result?.message?.toLowerCase().includes('success');
 
             if (isSuccess) {
               setVerificationStatus('success');
+
               const bookingData = responseData?.data || responseData || {};
+
+              const otp =
+                result?.otp ||
+                responseData?.otp ||
+                bookingData.passcode ||
+                bookingData.bookingPasscode ||
+                'N/A';
+
               updateBookingDetails({
                 ...bookingData,
                 status: 'confirmed',
-                passcode: bookingData.passcode || bookingData.data?.passcode || 'N/A',
+                passcode: otp,
               });
+
               Swal.fire({
                 icon: 'success',
                 title: 'Payment Successful! 🎉',
@@ -113,13 +138,19 @@ const BookingConfirmation = () => {
               });
             } else {
               setVerificationStatus('failed');
-              setErrorMessage(responseData?.message || 'Payment verification failed.');
+              setErrorMessage(
+                result?.message ||
+                responseData?.message ||
+                'Payment verification failed.'
+              );
             }
           }
         } catch (error) {
           if (isMounted) {
             setVerificationStatus('failed');
-            setErrorMessage(typeof error === 'string' ? error : error?.message || 'Could not verify payment.');
+            setErrorMessage(
+              typeof error === 'string' ? error : error?.message || 'Could not verify payment.'
+            );
           }
         }
       } else {
@@ -127,13 +158,24 @@ const BookingConfirmation = () => {
           const currentReduxBooking = reduxBookingRef.current;
           const existingBooking = locationBookingData.booking || currentReduxBooking;
 
-          if (existingBooking && (existingBooking.status === 'confirmed' || existingBooking.status === 'completed' || existingBooking.paymentStatus === 'success')) {
+          if (
+            existingBooking &&
+            (existingBooking.status === 'confirmed' ||
+              existingBooking.status === 'completed' ||
+              existingBooking.paymentStatus === 'success')
+          ) {
             setVerificationStatus('success');
             updateBookingDetails(existingBooking);
           } else if (bookingId) {
             const result = await dispatch(getBookingById(bookingId)).unwrap();
             const fetchedBooking = result?.data || result?.booking || result;
-            if (fetchedBooking && (fetchedBooking.status === 'confirmed' || fetchedBooking.status === 'completed' || fetchedBooking.paymentStatus === 'success')) {
+
+            if (
+              fetchedBooking &&
+              (fetchedBooking.status === 'confirmed' ||
+                fetchedBooking.status === 'completed' ||
+                fetchedBooking.paymentStatus === 'success')
+            ) {
               setVerificationStatus('success');
               updateBookingDetails(fetchedBooking);
             } else {
@@ -179,7 +221,7 @@ const BookingConfirmation = () => {
   };
 
   const handleCopyPasscode = () => {
-    if(!bookingDetails.passcode) return;
+    if (!bookingDetails.passcode) return;
     navigator.clipboard.writeText(bookingDetails.passcode);
     Swal.fire({
       icon: 'success',
@@ -207,6 +249,7 @@ const BookingConfirmation = () => {
     });
   };
 
+  // Loading State
   if (verificationStatus === 'verifying') {
     return (
       <div className="confirmation-page-wrapper">
@@ -221,6 +264,7 @@ const BookingConfirmation = () => {
     );
   }
 
+  // Failed State
   if (verificationStatus === 'failed') {
     return (
       <div className="confirmation-page-wrapper">
@@ -228,11 +272,17 @@ const BookingConfirmation = () => {
           <div className="failed-state">
             <div className="failed-icon">❌</div>
             <h2 className="confirmation-title">Verification Failed</h2>
-            <p className="confirmation-subtitle">{errorMessage || "We couldn't verify your payment."}</p>
+            <p className="confirmation-subtitle">
+              {errorMessage || "We couldn't verify your payment."}
+            </p>
             <button className="homepage-redirect-btn" onClick={handleRetryPayment}>
               Retry Payment
             </button>
-            <button className="homepage-redirect-btn secondary" onClick={handleBackToHome} style={{ marginTop: '12px', background: '#e2e8f0', color: '#334155' }}>
+            <button
+              className="homepage-redirect-btn"
+              onClick={handleBackToHome}
+              style={{ marginTop: '12px', background: '#e2e8f0', color: '#334155' }}
+            >
               Back to Home
             </button>
           </div>
@@ -241,6 +291,7 @@ const BookingConfirmation = () => {
     );
   }
 
+  // Pending State
   if (verificationStatus === 'pending') {
     return (
       <div className="confirmation-page-wrapper">
@@ -257,7 +308,11 @@ const BookingConfirmation = () => {
             <button className="homepage-redirect-btn" onClick={handleRetryPayment}>
               Complete Payment
             </button>
-            <button className="homepage-redirect-btn secondary" onClick={handleBackToHome} style={{ marginTop: '12px', background: '#e2e8f0', color: '#334155' }}>
+            <button
+              className="homepage-redirect-btn"
+              onClick={handleBackToHome}
+              style={{ marginTop: '12px', background: '#e2e8f0', color: '#334155' }}
+            >
               Back to Home
             </button>
           </div>
@@ -266,25 +321,36 @@ const BookingConfirmation = () => {
     );
   }
 
+  // Success State
   const displayPasscode = bookingDetails.passcode || '••••••';
 
   return (
     <div className="confirmation-page-wrapper">
       <div className="confirmation-card">
+
+        {/* ── Check image ── */}
         <div className="success-badge-container">
-          <img src="/novaxcape/check.png" alt="Booking Confirmed" className="success-checkmark-img" />
+          <img
+            src="/novaxcape/check.png"
+            alt="Booking Confirmed"
+            className="success-checkmark-img"
+          />
         </div>
 
         <h1 className="confirmation-title">Booking Confirmed!</h1>
         <p className="confirmation-subtitle">Your booking has been successfully confirmed.</p>
 
+        {/* ── Email bar ── */}
         <div className="email-toast-message">
           <div className="email-left-content">
             <HiOutlineMail className="email-toast-icon" />
-            <span className="email-toast-text">Your digital ticket has been sent to your email.</span>
+            <span className="email-toast-text">
+              Your digital ticket has been sent to your email.
+            </span>
           </div>
         </div>
 
+        {/* ── Booking details ── */}
         <div className="booking-details-box">
           <h3 className="details-section-title">Booking Details</h3>
 
@@ -317,20 +383,30 @@ const BookingConfirmation = () => {
               <span className="detail-meta-icon">₦</span>
               <div className="detail-text-cell">
                 <span className="detail-field-label">Amount Paid</span>
-                <span className="detail-field-value">₦{Number(bookingDetails.amount).toLocaleString()}</span>
+                <span className="detail-field-value">
+                  ₦{Number(bookingDetails.amount).toLocaleString()}
+                </span>
               </div>
             </div>
           )}
         </div>
 
+        {/* ── Passcode ── */}
         <div className="passcode-container-card">
           <div className="passcode-header-row">
             <FiShield className="passcode-shield-icon" />
             <h4 className="passcode-main-heading">Gate Verification Passcode</h4>
           </div>
-          <p className="passcode-sub-caption">Click digits to copy or show code at the gate for entry</p>
+          <p className="passcode-sub-caption">
+            Tap to copy · show this code at the gate for entry
+          </p>
 
-          <div className="passcode-display-block" onClick={handleCopyPasscode} style={{cursor: 'pointer'}} title="Click to Copy">
+          <div
+            className="passcode-display-block"
+            onClick={handleCopyPasscode}
+            style={{ cursor: 'pointer' }}
+            title="Tap to copy"
+          >
             {displayPasscode.split('').map((digit, index) => (
               <span key={index} className="passcode-digit">{digit}</span>
             ))}
@@ -342,11 +418,13 @@ const BookingConfirmation = () => {
           </button>
         </div>
 
+        {/* ── Footer ── */}
         <div className="navigation-footer-action">
           <button className="homepage-redirect-btn" onClick={handleBackToHome}>
             Back to Homepage
           </button>
         </div>
+
       </div>
     </div>
   );
