@@ -30,9 +30,9 @@ const TicketDonutChart = ({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  const chartSize = isMobile ? 156 : 300;
-  const innerRadius = isMobile ? 56 : 108;
-  const outerRadius = isMobile ? 72 : 140;
+  const chartSize = isMobile ? 156 : 220;
+  const innerRadius = isMobile ? 56 : 78;
+  const outerRadius = isMobile ? 72 : 104;
   const valueFontSize = isMobile ? 22 : 40;
   const labelFontSize = isMobile ? 10 : 15;
 

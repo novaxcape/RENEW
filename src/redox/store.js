@@ -56,6 +56,7 @@ const persistedAuthReducer = persistReducer(persistConfig, authReducer);
 const appReducer = combineReducers({
   auth: persistedAuthReducer,
   api: apiReducer,
+  dashboard: dashboardReducer,
 });
 
 // Root reducer wraps appReducer so we can wipe the whole store on logout
