@@ -14,10 +14,10 @@ const DashboardBookingPage = () => {
       </div>
 
       <BookingManagement/>
-      <div className="bottom-section">
+      {/* <div className="bottom-section">
         <PerformanceInsight />
         
-      </div>
+      </div> */}
     </>
   )
 }

@@ -4,12 +4,13 @@ import { IconMapPin, IconBell, IconDollar, IconImage, IconClock, IconCheck } fro
 
 const Stepper = ({ currentStep }) => {
   const steps = [
-    { id: 1, label: 'Basic Information', icon: <IconMapPin /> },
-    { id: 2, label: 'Facilities & Amenities', icon: <IconBell /> },
-    { id: 3, label: 'Pricing & Tickets', icon: <IconDollar /> },
-    { id: 4, label: 'Images & Media', icon: <IconImage /> },
-    { id: 5, label: 'Operating Hours', icon: <IconClock /> },
-    { id: 6, label: 'Review & Submit', icon: <IconCheck /> },
+    { id: 1, label: 'KYC Verification', icon: <IconCheck /> },
+    { id: 2, label: 'Basic Information', icon: <IconMapPin /> },
+    { id: 3, label: 'Facilities & Amenities', icon: <IconBell /> },
+    { id: 4, label: 'Pricing & Tickets', icon: <IconDollar /> },
+    { id: 5, label: 'Images & Media', icon: <IconImage /> },
+    { id: 6, label: 'Operating Hours', icon: <IconClock /> },
+    { id: 7, label: 'Review & Submit', icon: <IconCheck /> },
   ];
 
   return (
