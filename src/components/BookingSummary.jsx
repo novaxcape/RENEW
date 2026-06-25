@@ -13,6 +13,51 @@ import {
 
 const SERVICE_FEE = 500;
 
+const getLocalDateInputValue = (dateValue = new Date()) => {
+  const year = dateValue.getFullYear();
+  const month = String(dateValue.getMonth() + 1).padStart(2, "0");
+  const day = String(dateValue.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const parseDateInputValue = (dateValue) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateValue || "")) {
+    return null;
+  }
+
+  const [year, month, day] = dateValue.split("-").map(Number);
+  const parsedDate = new Date(year, month - 1, day);
+
+  if (
+    parsedDate.getFullYear() !== year ||
+    parsedDate.getMonth() !== month - 1 ||
+    parsedDate.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return parsedDate;
+};
+
+const getVisitDateError = (dateValue, minimumDateValue) => {
+  if (!dateValue) {
+    return "Please select a visit date.";
+  }
+
+  const selectedDate = parseDateInputValue(dateValue);
+  const minimumDate = parseDateInputValue(minimumDateValue);
+
+  if (!selectedDate) {
+    return "Please enter a valid visit date.";
+  }
+
+  if (minimumDate && selectedDate < minimumDate) {
+    return "Please select today or a future visit date.";
+  }
+
+  return "";
+};
+
 export default function BookingSummaryPage() {
   const navigate = useNavigate();
   const { touristId, packageId } = useParams();
@@ -41,6 +86,7 @@ export default function BookingSummaryPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [packageData, setPackageData] = useState(null);
   const [ticketTypes, setTicketTypes] = useState([]);
+  const minimumVisitDate = useMemo(() => getLocalDateInputValue(), []);
 
   console.log("📄 BookingSummaryPage - Mounted");
   console.log("📄 touristId:", touristId);
@@ -280,6 +326,15 @@ export default function BookingSummaryPage() {
   const summaryItems = displayTicketTypes.filter(
     (t) => (quantities[t.id] || 0) > 0
   );
+  const visitDateError = useMemo(
+    () => getVisitDateError(date, minimumVisitDate),
+    [date, minimumVisitDate]
+  );
+  const canContinueToPayment =
+    !bookingLoading &&
+    !isProcessing &&
+    !visitDateError &&
+    summaryItems.length > 0;
 
   // ✅ Handle payment - FIXED VERSION
   const handleContinueToPayment = async () => {
@@ -309,11 +364,12 @@ export default function BookingSummaryPage() {
       return;
     }
 
-    if (!date) {
+    const currentVisitDateError = getVisitDateError(date, minimumVisitDate);
+    if (currentVisitDateError) {
       Swal.fire({
         icon: "error",
-        title: "Missing Date",
-        text: "Please select a visit date.",
+        title: "Invalid Date",
+        text: currentVisitDateError,
         confirmButtonColor: "#ff6b35",
       });
       return;
@@ -332,11 +388,8 @@ export default function BookingSummaryPage() {
     setIsProcessing(true);
 
     try {
-      let formattedDate = date;
-      if (formattedDate && formattedDate.includes("-")) {
-        const parts = formattedDate.split("-");
-        formattedDate = `${parts[1]}/${parts[2]}/${parts[0]}`;
-      }
+      const [year, month, day] = date.split("-");
+      const formattedDate = `${month}/${day}/${year}`;
 
       const bookingDataPayload = {
         visitDate: formattedDate,
@@ -674,9 +727,16 @@ export default function BookingSummaryPage() {
                 className="bp-date-input"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                min={new Date().toISOString().split("T")[0]}
+                min={minimumVisitDate}
+                aria-invalid={Boolean(visitDateError)}
+                aria-describedby="visit-date-error"
               />
             </div>
+            {visitDateError && (
+              <p className="bp-error" id="visit-date-error">
+                {visitDateError}
+              </p>
+            )}
           </section>
 
           <section className="bp-section">
@@ -799,7 +859,7 @@ export default function BookingSummaryPage() {
           <button
             className="bp-cta-btn"
             onClick={handleContinueToPayment}
-            disabled={bookingLoading || isProcessing}
+            disabled={!canContinueToPayment}
           >
             {bookingLoading || isProcessing
               ? "Processing..."
