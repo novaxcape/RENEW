@@ -56,12 +56,12 @@ const TopNavbar = ({ onMenuOpen = () => {} }) => {
 
       <div className="top-right">
         <div className="iconwrapper" ref={notifRef}>
-          <div className="iconbell" onClick={() => setShowNotifications(!showNotifications)}>
-            <FiBell size={20} color="#334155" />
+          {/* <div className="iconbell" onClick={() => setShowNotifications(!showNotifications)}> */}
+            {/* <FiBell size={20} color="#334155" /> */}
           </div>
           <span className="icondot"></span>
-
-          {showNotifications && (
+{/*  */}
+          {/* {showNotifications && (
             <div className="notification-dropdown">
               <div className="notification-header">
                 <p className="notification-title">Notification</p>
@@ -75,7 +75,7 @@ const TopNavbar = ({ onMenuOpen = () => {} }) => {
               ))}
               <button className="notification-view-all">View all notifications</button>
             </div>
-          )}
+          )} */}
         </div>
 
         <div className="profile">
@@ -95,7 +95,7 @@ const TopNavbar = ({ onMenuOpen = () => {} }) => {
           <FiMenu size={24} />
         </button>
       </div>
-    </div>
+    // </div>
   );
 };
 
