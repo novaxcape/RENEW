@@ -369,6 +369,16 @@ h1 {
   padding-bottom: 0;
 }
 
+.legal-section .upload-box {
+  width: 100%;
+  min-height: 188px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
 .section-subtitle {
   font-size: 1.1rem;
   font-weight: 700;

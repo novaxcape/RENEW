@@ -45,23 +45,29 @@ const KycForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { kycLoading } = useSelector((state) => state.api);
-  const [formData, setFormData] = useState(initialFormData);
+  const [formData, setFormData] = useState(() => ({
+    ...initialFormData,
+    ...(location.state?.centreName ? { centreName: location.state.centreName } : {}),
+  }));
 
   const touristId =
     location.state?.touristId ||
     localStorage.getItem("latestTouristId") ||
     getEntityId(location.state?.centreData) ||
     null;
-  const isPreCentreKyc = !touristId;
 
   useEffect(() => {
-    if (location.state?.centreName) {
-      setFormData((prev) => ({
-        ...prev,
-        centreName: location.state.centreName,
-      }));
+    if (!touristId) {
+      Swal.fire({
+        icon: "info",
+        title: "Add Your Centre First",
+        text: "Please add your tourism centre before completing KYC verification.",
+        confirmButtonColor: "#ff6b35",
+      }).then(() => {
+        navigate("/add-centre", { replace: true });
+      });
     }
-  }, [location.state?.centreName]);
+  }, [navigate, touristId]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -123,6 +129,18 @@ const KycForm = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    if (!touristId) {
+      Swal.fire({
+        icon: "info",
+        title: "Add Your Centre First",
+        text: "Please add your tourism centre before completing KYC verification.",
+        confirmButtonColor: "#ff6b35",
+      }).then(() => {
+        navigate("/add-centre", { replace: true });
+      });
+      return;
+    }
+
     const validationError = validateForm();
     if (validationError) {
       Swal.fire({
@@ -161,28 +179,11 @@ const KycForm = () => {
     console.log("=== SENDING BOTH PHONE FIELDS ===");
     console.log("Submitting KYC data:", JSON.stringify(kycData, null, 2));
     console.log("Tourist ID:", touristId);
-    console.log("Has phoneNumber:", kycData.hasOwnProperty("phoneNumber"));
-    console.log("Has centrePhoneNumber:", kycData.hasOwnProperty("centrePhoneNumber"));
-
-    if (isPreCentreKyc) {
-      localStorage.setItem("pendingCentreKyc", JSON.stringify(kycData));
-      localStorage.setItem("kycDraftCompleted", "true");
-
-      Swal.fire({
-        icon: "success",
-        title: "KYC Details Saved",
-        text: "Now add your tourism centre details to complete registration.",
-        confirmButtonColor: "#ff6b35",
-        timer: 1800,
-        timerProgressBar: true,
-      }).then(() => {
-        navigate("/add-centre", { replace: true, state: { kycCompleted: true } });
-      });
-      return;
-    }
+    console.log("Has phoneNumber:", Object.hasOwn(kycData, "phoneNumber"));
+    console.log("Has centrePhoneNumber:", Object.hasOwn(kycData, "centrePhoneNumber"));
 
     try {
-   const response = await dispatch(
+   await dispatch(
   createKyc({ touristId, kycData })
 ).unwrap();
 
@@ -538,9 +539,7 @@ Swal.fire({
               >
                 {kycLoading
                   ? "Submitting..."
-                  : isPreCentreKyc
-                    ? "Continue to Add Centre"
-                    : "Submit for Verification"}
+                  : "Submit for Verification"}
                 <FiCheckCircle className="btn-success-check-icon" />
               </button>
             </div>
