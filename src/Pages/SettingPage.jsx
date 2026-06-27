@@ -335,17 +335,7 @@ const SettingsPage = () => {
         </button>
       </form>
 
-      {/* Save Changes */}
-      <div className="save-container">
-        <button 
-          type="button" 
-          className="orange-btn save-btn"
-          onClick={handleSaveAllChanges}
-          disabled={vendorLoading}
-        >
-          Save All Changes <FaSave />
-        </button>
-      </div>
+      
     </div>
     </>
 

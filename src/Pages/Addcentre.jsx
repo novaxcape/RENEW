@@ -1,5 +1,5 @@
 // Pages/AddCentre.jsx
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -14,7 +14,7 @@ import Pricing from '../components/Pricing';
 import Images from '../components/Images';
 import Hours from '../components/Hours';
 import Review from '../components/Review';
-import { createKyc, createPackage, registerTouristCenter } from '../redox/apiSlice';
+import { createPackage, registerTouristCenter } from '../redox/apiSlice';
 
 const defaultOpeningHours = {
   monday: { isOpen: false, openTime: '10 AM', closeTime: '4 PM' },
@@ -121,10 +121,6 @@ const getEntityId = (value, depth = 0) => {
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const MINIMUM_IMAGES = 3;
-const hasPendingKyc = () => Boolean(localStorage.getItem('pendingCentreKyc'));
-const hasSubmittedKyc = () =>
-  localStorage.getItem('kycSubmitted') === 'true' ||
-  localStorage.getItem('vendorHasCentre') === 'true';
 
 const AddCentre = () => {
   const dispatch = useDispatch();
@@ -156,15 +152,6 @@ const AddCentre = () => {
   });
   const [openingHours, setOpeningHours] = useState(defaultOpeningHours);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (!hasPendingKyc() && !hasSubmittedKyc()) {
-      navigate('/kyc', {
-        replace: true,
-        state: { next: '/add-centre' },
-      });
-    }
-  }, [navigate]);
 
   const handleCentreChange = (event) => {
     const { name, value } = event.target;
@@ -323,10 +310,6 @@ const AddCentre = () => {
       Number(pkg.numberOfPeople) > 0
     );
 
-    if (!hasPendingKyc() && !hasSubmittedKyc()) {
-      return 'Please complete KYC verification before adding a centre.';
-    }
-
     if (!centreData.centreName || !centreData.description || !centreData.city ||
       !centreData.state || !centreData.streetAddress || !centreData.location) {
       return 'Please complete the basic information fields.';
@@ -362,37 +345,6 @@ const AddCentre = () => {
     }
 
     return '';
-  };
-
-  const submitKycData = async (touristId) => {
-    const savedKyc = localStorage.getItem('pendingCentreKyc');
-    if (!savedKyc && hasSubmittedKyc()) {
-      return null;
-    }
-
-    if (!savedKyc) {
-      throw new Error('KYC details were not found. Please complete KYC first.');
-    }
-
-    const parsedKyc = JSON.parse(savedKyc);
-    const payload = {
-      ...parsedKyc,
-      yearEstablished: Number(parsedKyc.yearEstablished),
-      phoneNumber: String(parsedKyc.phoneNumber),
-      centrePhoneNumber: String(parsedKyc.phoneNumber),
-      directorPhoneNumber: String(parsedKyc.directorPhoneNumber),
-      accountNumber: String(parsedKyc.accountNumber),
-      bankCode: parsedKyc.bankCode || '',
-      centreName: centreData.centreName,
-      city: centreData.city,
-      streetAddress: centreData.streetAddress,
-    };
-
-    const response = await dispatch(createKyc({ touristId, kycData: payload })).unwrap();
-    localStorage.removeItem('pendingCentreKyc');
-    localStorage.removeItem('kycDraftCompleted');
-    localStorage.setItem('kycSubmitted', 'true');
-    return response;
   };
 
   const createPackagesForCentre = async (touristId) => {
@@ -448,12 +400,16 @@ const AddCentre = () => {
       localStorage.setItem('centreName', centreName);
     }
 
-    localStorage.setItem('kycSubmitted', 'true');
     localStorage.setItem('vendorHasCentre', 'true');
-    navigate('/vendor/dashboard', { replace: true });
+    localStorage.removeItem('pendingCentreKyc');
+    localStorage.removeItem('kycDraftCompleted');
+    navigate('/kyc', {
+      replace: true,
+      state: { touristId, centreName },
+    });
   };
 
-  const createPackagesAndFinish = async (touristId, centreName, kycWasSubmitted) => {
+  const createPackagesAndFinish = async (touristId, centreName) => {
     console.log("📦 Creating packages for touristId:", touristId);
 
     if (!touristId) {
@@ -473,10 +429,7 @@ const AddCentre = () => {
       const successful = packageResults.filter(r => r.success);
       const failed = packageResults.filter(r => !r.success);
 
-      let message = '✅ Your tourism centre has been registered!\n\n';
-      message = kycWasSubmitted
-        ? 'Your tourism centre has been registered and KYC has been submitted.\n\n'
-        : 'Your tourism centre has been registered using your existing KYC verification.\n\n';
+      let message = 'Your tourism centre has been registered.\n\n';
       if (successful.length > 0) {
         message += `${successful.length} package(s) created successfully.\n\n`;
       }
@@ -485,19 +438,12 @@ const AddCentre = () => {
       }
       message += '📋 Next: Complete KYC verification to activate your centre.';
 
-      message = message.replace(
-        /Next: Complete KYC verification to activate your centre\./,
-        kycWasSubmitted
-          ? 'KYC verification has been submitted for review.'
-          : 'You can manage this centre from your dashboard.'
-      );
-
       await Swal.fire({
         icon: successful.length > 0 ? 'success' : 'warning',
         title: successful.length > 0 ? 'Centre & Packages Created!' : 'Centre Created with Issues',
         text: message,
         confirmButtonColor: '#ff6b35',
-        confirmButtonText: 'Go to Dashboard'
+        confirmButtonText: 'Continue to KYC'
       });
 
       localStorage.setItem('vendorHasPackages', successful.length > 0 ? 'true' : 'false');
@@ -509,11 +455,9 @@ const AddCentre = () => {
       await Swal.fire({
         icon: 'warning',
         title: 'Centre Created',
-        text: kycWasSubmitted
-          ? 'Your centre and KYC were submitted, but we had issues with packages. You can add them later from your dashboard.'
-          : 'Your centre was created, but we had issues with packages. You can add them later from your dashboard.',
+        text: 'Your centre was created, but we had issues with packages. You can add them later from your dashboard. Please complete KYC next.',
         confirmButtonColor: '#ff6b35',
-        confirmButtonText: 'Go to Dashboard'
+        confirmButtonText: 'Continue to KYC'
       });
 
       localStorage.setItem('vendorHasPackages', 'false');
@@ -640,9 +584,7 @@ const AddCentre = () => {
 
     Swal.fire({
       title: 'Creating Centre...',
-      text: hasPendingKyc()
-        ? 'Please wait while we set up your tourism centre and submit KYC.'
-        : 'Please wait while we set up your tourism centre.',
+      text: 'Please wait while we set up your tourism centre.',
       allowOutsideClick: false,
       didOpen: () => {
         Swal.showLoading();
@@ -653,12 +595,8 @@ const AddCentre = () => {
       const touristId = await submitCentreData(vendorId);
 
       if (touristId) {
-        const kycWasSubmitted = hasPendingKyc();
-        if (kycWasSubmitted) {
-          await submitKycData(touristId);
-        }
         Swal.close();
-        await createPackagesAndFinish(touristId, centreData.centreName, kycWasSubmitted);
+        await createPackagesAndFinish(touristId, centreData.centreName);
       } else {
         throw new Error('Failed to get centre ID');
       }
