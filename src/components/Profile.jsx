@@ -62,17 +62,28 @@ const Profile = () => {
   // Populate form when profile data is available
   useEffect(() => {
     const profileData = isVendor ? vendorProfile : clientProfile;
+
+    // Fields the backend doesn't support yet (phone, email, city, state,
+    // gender for clients) are persisted locally so they survive refresh
+    // and login, until the backend adds real support for them.
+    const localExtra = (() => {
+      try {
+        return JSON.parse(localStorage.getItem('clientProfileExtra') || '{}');
+      } catch {
+        return {};
+      }
+    })();
     
     if (profileData) {
       setFormData({
-        firstName: profileData.firstName || profileData.first_name || '',
-        lastName: profileData.lastName || profileData.last_name || '',
+        firstName: profileData.firstName || profileData.first_name || localExtra.firstName || '',
+        lastName: profileData.lastName || profileData.last_name || localExtra.lastName || '',
         nickname: profileData.nickname || profileData.userName || profileData.username || '',
-        phoneNumber: profileData.phoneNumber || profileData.phone || '',
-        gender: profileData.gender || '',
-        email: profileData.email || (isVendor ? vendorDetails?.email : loggedInUser?.email) || '',
-        city: profileData.city || '',
-        state: profileData.state || ''
+        phoneNumber: profileData.phoneNumber || profileData.phone || localExtra.phoneNumber || '',
+        gender: profileData.gender || localExtra.gender || '',
+        email: profileData.email || (isVendor ? vendorDetails?.email : loggedInUser?.email) || localExtra.email || '',
+        city: profileData.city || localExtra.city || '',
+        state: profileData.state || localExtra.state || ''
       });
       
       const avatarUrl = profileData.profilePicture || profileData.avatar;
@@ -82,10 +93,13 @@ const Profile = () => {
     } else if (!isVendor && loggedInUser) {
       setFormData(prev => ({
         ...prev,
-        firstName: loggedInUser.firstName || loggedInUser.first_name || '',
-        lastName: loggedInUser.lastName || loggedInUser.last_name || '',
-        email: loggedInUser.email || '',
-        phoneNumber: loggedInUser.phoneNumber || loggedInUser.phone || ''
+        firstName: loggedInUser.firstName || loggedInUser.first_name || localExtra.firstName || '',
+        lastName: loggedInUser.lastName || loggedInUser.last_name || localExtra.lastName || '',
+        email: loggedInUser.email || localExtra.email || '',
+        phoneNumber: loggedInUser.phoneNumber || loggedInUser.phone || localExtra.phoneNumber || '',
+        gender: localExtra.gender || '',
+        city: localExtra.city || '',
+        state: localExtra.state || ''
       }));
     }
   }, [clientProfile, vendorProfile, isVendor, loggedInUser, vendorDetails, avatarFile, isAvatarRemoved]);
@@ -167,10 +181,55 @@ const Profile = () => {
     const computedUserName = formData.nickname.trim() || `${formData.firstName} ${formData.lastName}`.trim();
     profileData.append('userName', computedUserName);
     
-    // 2. Append binary file directly to strict key matching API schema
-    if (avatarFile) {
-      profileData.append('profilePicture', avatarFile);
+    // 2. profilePicture is REQUIRED by the API on every update (400 if missing).
+    // If the user picked a new file, use it directly.
+    // Otherwise, fall back to fetching their current avatar as a Blob/File
+    // so the request always includes a profilePicture.
+    let fileToSend = avatarFile;
+
+    if (!fileToSend) {
+      // If the user clicked "Remove", there's no current avatar to fall back to
+      if (isAvatarRemoved) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Profile Picture Required',
+          text: 'Please upload a profile picture before saving.',
+          confirmButtonColor: '#ff6b35'
+        });
+        return;
+      }
+
+      try {
+        const response = await fetch(avatarPreview);
+        const blob = await response.blob();
+        const fileName = avatarPreview.split('/').pop().split('?')[0] || 'avatar.png';
+        fileToSend = new File([blob], fileName, { type: blob.type || 'image/png' });
+      } catch (fetchError) {
+        console.error('Failed to fetch existing avatar as blob:', fetchError);
+        Swal.fire({
+          icon: 'error',
+          title: 'Profile Picture Required',
+          text: 'Could not load your current profile picture. Please upload a new one.',
+          confirmButtonColor: '#ff6b35'
+        });
+        return;
+      }
     }
+
+    profileData.append('profilePicture', fileToSend);
+
+    // Backend only accepts userName + profilePicture right now.
+    // Persist the rest locally so they show up next time, until
+    // the backend adds real support for these fields.
+    localStorage.setItem('clientProfileExtra', JSON.stringify({
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      phoneNumber: formData.phoneNumber,
+      gender: formData.gender,
+      email: formData.email,
+      city: formData.city,
+      state: formData.state,
+    }));
 
     // Note: Other input form values remain visible locally in UI, 
     // but are not appended to stay compliant with your strict API validation
@@ -185,6 +244,11 @@ const Profile = () => {
       if (isVendor) {
         dispatch(getVendorDetails());
       }
+
+      // Clear the local file/blob so the next render picks up
+      // the permanent profilePicture URL returned by the server
+      setAvatarFile(null);
+      setIsAvatarRemoved(false);
     } catch (error) {
       console.error('Profile update error:', error);
     }
@@ -325,7 +389,6 @@ const Profile = () => {
                   value={formData.phoneNumber}
                   onChange={handleChange}
                   placeholder="Input phone number" 
-                  disabled
                 />
               </div>
             </div>
@@ -337,7 +400,6 @@ const Profile = () => {
                   id="gender" 
                   value={formData.gender}
                   onChange={handleChange}
-                  disabled
                 >
                   <option value="" disabled>Select Option</option>
                   <option value="male">Male</option>
@@ -356,7 +418,6 @@ const Profile = () => {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="Enter your Email" 
-                  disabled
                 />
               </div>
             </div>
@@ -370,7 +431,6 @@ const Profile = () => {
                   value={formData.city}
                   onChange={handleChange}
                   placeholder="Enter your city" 
-                  disabled
                 />
               </div>
             </div>
@@ -384,7 +444,6 @@ const Profile = () => {
                   value={formData.state}
                   onChange={handleChange}
                   placeholder="Enter your state" 
-                  disabled
                 />
               </div>
             </div>

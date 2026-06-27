@@ -85,6 +85,17 @@ export const updateClientProfile = createThunk(
     ),
 );
 
+// Client Logout - hits the server to invalidate session/token
+export const logoutClient = createThunk(
+  "api/client/logout",
+  (_, { getState }) =>
+    axios.post(
+      `${API_BASE_URL}/client/logout`,
+      {},
+      authConfig(getState()),
+    ),
+);
+
 // Client Password Management
 export const forgotClientPassword = createThunk(
   "api/client/forgotPassword",
@@ -684,8 +695,6 @@ export const verifyPayment = createAsyncThunk(
       console.log(`🔍 Verifying payment with reference: ${reference}`);
       console.log(`🔍 Booking ID: ${bookingId}`);
 
-      // CORRECTED: The API expects the reference as a query parameter
-      // The URL should be: /payment/verify-payment?reference=REFERENCE
       const token = getToken(getState());
       
       const response = await axios.get(
@@ -702,7 +711,6 @@ export const verifyPayment = createAsyncThunk(
 
       console.log(`✅ Payment verification response:`, response.data);
       
-      // Return the full response data with the correct structure
       return {
         success: true,
         data: response.data,
@@ -714,7 +722,6 @@ export const verifyPayment = createAsyncThunk(
       console.error(`❌ Error status:`, error.response?.status);
       console.error(`❌ Error config:`, error.config);
       
-      // Handle specific error cases
       if (error.response?.status === 404) {
         return rejectWithValue("Payment reference not found");
       }
@@ -727,7 +734,6 @@ export const verifyPayment = createAsyncThunk(
         return rejectWithValue("Unauthorized. Please login again.");
       }
       
-      // Return the error message from the response if available
       const errorMessage = 
         error.response?.data?.message ||
         error.response?.data?.error ||
@@ -904,6 +910,17 @@ const apiSlice = createSlice({
       })
       .addCase(updateClientProfile.rejected, (state, action) => {
         state.clientError = action.payload;
+      })
+
+      .addCase(logoutClient.fulfilled, (state) => {
+        state.clientProfile = null;
+        state.clientSuccessMessage = null;
+        state.clientError = null;
+      })
+      .addCase(logoutClient.rejected, (state, action) => {
+        // Even if the server call fails (e.g. token already expired),
+        // we still proceed with local logout in the component.
+        console.warn("Server logout call failed:", action.payload);
       })
 
       .addCase(forgotClientPassword.fulfilled, (state, action) => {
