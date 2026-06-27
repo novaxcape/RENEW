@@ -338,21 +338,22 @@ const FeaturedAttractions = () => {
                   </div>
                 </div>
 
-                {/* <div className="bottom_section"> */}
-                  {/* <div>
+                {/* ✅ Added Price and Book Now Button */}
+                <div className="bottom_section">
+                  <div>
                     <p>From</p>
                     <h2>{formatPrice(meta.price)}</h2>
-                  </div> */}
+                  </div>
 
-                  {/* <button
+                  <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleCardClick(centre, meta);
                     }}
                   >
                     Book Now
-                  </button> */}
-                {/* </div> */}
+                  </button>
+                </div>
               </div>
             </div>
           );
