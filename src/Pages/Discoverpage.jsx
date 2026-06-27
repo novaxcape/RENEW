@@ -1,3 +1,5 @@
+// File: src/Pages/Discoverpage.jsx
+
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
@@ -24,11 +26,30 @@ const Discoverpage = () => {
   const loading = useSelector(selectTouristCentresLoading);
   const error = useSelector(selectTouristCentresError);
 
-  // ✅ Load all centres on initial page load
+  // ✅ Handle search from Hero component via URL parameters
   useEffect(() => {
-    if (!initialLoadDone && !location.state) {
-      // Load a default state or all centres
+    // Check if there's a location parameter in the URL
+    const queryParams = new URLSearchParams(location.search);
+    const locationParam = queryParams.get('location');
+    
+    // Check if there's state from navigation (from Hero component)
+    const stateLocation = location.state?.searchLocation;
+    
+    // Use location from state first, then URL param, then default
+    const searchTerm = stateLocation || locationParam || null;
+    
+    if (searchTerm) {
+      console.log("🔍 Search triggered from Hero with location:", searchTerm);
+      setSearchState(searchTerm);
+      setSelectedLocation(searchTerm);
+      setSearchSubmitted(true);
+      setInitialLoadDone(true);
+      dispatch(clearApiError());
+      dispatch(getTouristCentersByState(searchTerm));
+    } else if (!initialLoadDone && !location.state) {
+      // Load default state on initial page load
       const defaultState = "Lagos";
+      console.log("📄 Loading default state:", defaultState);
       setSearchState(defaultState);
       setSelectedLocation(defaultState);
       setSearchSubmitted(true);
@@ -36,13 +57,14 @@ const Discoverpage = () => {
       dispatch(clearApiError());
       dispatch(getTouristCentersByState(defaultState));
     }
-  }, [dispatch, location.state, initialLoadDone]);
+  }, [dispatch, location, initialLoadDone]);
 
-  // Handle state passed from PopularDestinations or other components
+  // ✅ Handle state passed from PopularDestinations or other components
   useEffect(() => {
     if (location.state) {
       const { searchState: stateSearch, selectedLocation: stateLocation, searchSubmitted: stateSubmitted } = location.state;
-      if (stateSearch) {
+      if (stateSearch && !location.state?.searchLocation) {
+        console.log("📄 Loading from state:", stateSearch);
         setSearchState(stateSearch);
         setSelectedLocation(stateLocation || stateSearch);
         setSearchSubmitted(true);
@@ -57,6 +79,7 @@ const Discoverpage = () => {
     const term = (searchTerm || searchState).trim();
     if (!term) return;
 
+    console.log("🔍 Manual search triggered:", term);
     setSearchState(term);
     setSelectedLocation(term);
     setSearchSubmitted(true);
@@ -67,6 +90,7 @@ const Discoverpage = () => {
 
   // ✅ Function to clear search and show default data
   const handleClearSearch = () => {
+    console.log("🔄 Clearing search...");
     setSearchState("");
     setSelectedLocation("");
     setSearchSubmitted(false);
@@ -79,10 +103,11 @@ const Discoverpage = () => {
     dispatch(getTouristCentersByState(defaultState));
   };
 
-  console.log("📄 DiscoverPage - touristCentres:", touristCentres);
+  console.log("📄 DiscoverPage - touristCentres:", touristCentres?.length || 0);
   console.log("📄 DiscoverPage - loading:", loading);
   console.log("📄 DiscoverPage - error:", error);
   console.log("📄 DiscoverPage - searchSubmitted:", searchSubmitted);
+  console.log("📄 DiscoverPage - searchState:", searchState);
 
   return (
     <div>
@@ -97,7 +122,7 @@ const Discoverpage = () => {
       <Discoversection
         searchState={searchState}
         searchSubmitted={searchSubmitted}
-        touristCentres={touristCentres}  // ✅ This will be an array
+        touristCentres={touristCentres}
         loading={loading}
         error={error}
         onClearSearch={handleClearSearch}

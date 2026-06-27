@@ -1,5 +1,10 @@
+// File: src/components/Reviews.jsx
+
 import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
 import { PiSliders } from "react-icons/pi";
+import { createReview } from "../redox/apiSlice";
 import "./css/Reviews.css";
 
 const reviewsData = [
@@ -66,7 +71,15 @@ const StarInput = ({ value, onChange }) => {
   );
 };
 
-const Reviews = () => {
+const Reviews = ({ touristCentreId: propTouristCentreId }) => {
+  const dispatch = useDispatch();
+  
+  // Try to get ID from props first, then from URL params as fallback
+  const params = useParams();
+  const touristCentreId = propTouristCentreId || params.touristCentreId;
+  
+  const { reviewsLoading } = useSelector((state) => state.api);
+
   const overallRating = 4.8;
   const totalReviews = 110;
 
@@ -82,26 +95,71 @@ const Reviews = () => {
   const [formName, setFormName] = useState("");
   const [formEmail, setFormEmail] = useState("");
   const [formReview, setFormReview] = useState("");
+  const [submitMsg, setSubmitMsg] = useState("");
+  const [submitError, setSubmitError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitMsg("");
+    setSubmitError("");
+
+    // Validate form
     if (!formRating || !formName.trim() || !formEmail.trim() || !formReview.trim()) {
-      alert("Please fill in all fields and select a rating.");
+      setSubmitError("Please fill in all fields and select a rating.");
       return;
     }
 
-    console.log({
-      rating: formRating,
-      name: formName,
-      email: formEmail,
-      review: formReview,
-    });
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formEmail.trim())) {
+      setSubmitError("Please enter a valid email address.");
+      return;
+    }
 
-    setFormRating(0);
-    setFormName("");
-    setFormEmail("");
-    setFormReview("");
-    alert("Thank you! Your review has been submitted.");
+    // Check if touristCentreId exists
+    if (!touristCentreId) {
+      setSubmitError("Error: Tourist centre ID is missing. Please go back and try again.");
+      return;
+    }
+
+    try {
+      console.log("📤 Submitting review for centre:", touristCentreId);
+      console.log("📤 Form data:", {
+        ratings: String(formRating),
+        fullName: formName.trim(),
+        email: formEmail.trim(),
+        addYourReview: formReview.trim(),
+      });
+
+      // ✅ CORRECT: Pass touristCentreId and reviewData as an object
+      await dispatch(
+        createReview({
+          touristCentreId: touristCentreId,
+          reviewData: {
+            ratings: String(formRating),
+            fullName: formName.trim(),
+            email: formEmail.trim(),
+            addYourReview: formReview.trim(),
+          }
+        })
+      ).unwrap();
+
+      setSubmitMsg("Thank you! Your review has been submitted. 🎉");
+      
+      // Reset form
+      setFormRating(0);
+      setFormName("");
+      setFormEmail("");
+      setFormReview("");
+      
+    } catch (error) {
+      console.error("❌ Review submission error:", error);
+      setSubmitError(
+        typeof error === "string"
+          ? error
+          : error?.message || "Failed to submit review. Please try again."
+      );
+    }
   };
 
   return (
@@ -185,6 +243,7 @@ const Reviews = () => {
               placeholder="Enter your Name"
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
+              disabled={reviewsLoading}
             />
 
             <label className="reviews-form__label" htmlFor="reviews-email">
@@ -197,6 +256,7 @@ const Reviews = () => {
               placeholder="Enter your Email"
               value={formEmail}
               onChange={(e) => setFormEmail(e.target.value)}
+              disabled={reviewsLoading}
             />
 
             <label className="reviews-form__label" htmlFor="reviews-review">
@@ -208,10 +268,23 @@ const Reviews = () => {
               placeholder="Type here"
               value={formReview}
               onChange={(e) => setFormReview(e.target.value)}
+              disabled={reviewsLoading}
             />
 
-            <button type="submit" className="reviews-form__submit">
-              Add Review
+            {/* Success / Error Messages */}
+            {submitMsg && (
+              <p className="reviews-form__success">{submitMsg}</p>
+            )}
+            {submitError && (
+              <p className="reviews-form__error">{submitError}</p>
+            )}
+
+            <button 
+              type="submit" 
+              className="reviews-form__submit"
+              disabled={reviewsLoading}
+            >
+              {reviewsLoading ? "Submitting..." : "Add Review"}
             </button>
           </form>
         </div>

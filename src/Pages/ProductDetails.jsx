@@ -1,3 +1,5 @@
+// File: src/Pages/ProductDetails.jsx
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,6 +9,8 @@ import {
   FaClock,
   FaStar,
   FaCheckCircle,
+  FaHeart,
+  FaRegHeart,
 } from "react-icons/fa";
 import "../Styles/Product.css";
 import Header from "../components/Header";
@@ -51,6 +55,16 @@ const ProductDetails = () => {
 
   const centre = getCentreData();
 
+  // ✅ FIXED: Load wishlist from localStorage on component mount
+  useEffect(() => {
+    if (centre) {
+      const savedWishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+      const centreId = id || centre?.id || centre?._id;
+      const isSaved = savedWishlist.some(item => item.id === centreId || item._id === centreId);
+      setIsWishlist(isSaved);
+    }
+  }, [id, centre]);
+
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -76,6 +90,84 @@ const ProductDetails = () => {
     setCentrePackages(packages);
   }, [packages]);
 
+  // Handle Add to Wishlist / Favorite
+  const handleWishlistToggle = () => {
+    if (!centre) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Error',
+        text: 'Centre data not available',
+        confirmButtonColor: '#ff6b35'
+      });
+      return;
+    }
+
+    const centreId = centre.id || centre._id || id;
+    
+    // Get current wishlist from localStorage
+    const savedWishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+    
+    // Check if centre is already in wishlist
+    const existingIndex = savedWishlist.findIndex(item => 
+      item.id === centreId || item._id === centreId
+    );
+
+    let newWishlist;
+    let message;
+    let icon;
+
+    if (existingIndex !== -1) {
+      // Remove from wishlist
+      newWishlist = savedWishlist.filter((_, index) => index !== existingIndex);
+      message = `${centreName} removed from your favorites`;
+      icon = 'success';
+      setIsWishlist(false);
+    } else {
+      // Add to wishlist
+      const wishlistItem = {
+        id: centreId,
+        _id: centreId,
+        centreName: centreName,
+        name: centreName,
+        location: centreLocation,
+        city: centre.city || '',
+        state: centre.state || '',
+        rating: rating,
+        averageRating: rating,
+        reviews: reviewCount,
+        openingHours: openingHours,
+        images: images,
+        image: images[0],
+        price: centrePackages[0]?.amount || centrePackages[0]?.price || 2500,
+        description: description,
+        facilities: facilities,
+      };
+      
+      newWishlist = [...savedWishlist, wishlistItem];
+      message = `${centreName} added to your favorites! ❤️`;
+      icon = 'success';
+      setIsWishlist(true);
+    }
+
+    // Save to localStorage
+    localStorage.setItem('wishlist', JSON.stringify(newWishlist));
+    
+    // Show success message
+    Swal.fire({
+      icon: icon,
+      title: message,
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+    });
+
+    // Dispatch custom event to update wishlist count in header
+    window.dispatchEvent(new Event('wishlistUpdated'));
+  };
+
+  // Show loading state
   if (touristCentresLoading || packagesLoading || isLoading) {
     return (
       <>
@@ -89,6 +181,7 @@ const ProductDetails = () => {
     );
   }
 
+  // Show error state
   if ((touristCentresError && !centre) || !centre) {
     return (
       <>
@@ -105,7 +198,7 @@ const ProductDetails = () => {
     );
   }
 
-  // Parse fields safely
+  // Parse fields safely (only runs if centre exists)
   const centreName = centre.centreName || centre.name || "Tourist Centre";
   const centreLocation = centre.location || [centre.city, centre.state].filter(Boolean).join(", ") || "Location not specified";
   const openingHours = centre.openingHours || "Hours not specified";
@@ -297,13 +390,26 @@ const ProductDetails = () => {
                 >
                   Book Now
                 </button>
-                <button className="fav-btn" onClick={() => setIsWishlist(!isWishlist)}>
-                  {isWishlist ? "Remove from favorite" : "Add to favorite"}
+                <button 
+                  className={`fav-btn ${isWishlist ? 'active' : ''}`} 
+                  onClick={handleWishlistToggle}
+                >
+                  {isWishlist ? (
+                    <>
+                      <FaHeart style={{ color: '#ff6b35', marginRight: '8px' }} />
+                      Remove from favorite
+                    </>
+                  ) : (
+                    <>
+                      <FaRegHeart style={{ marginRight: '8px' }} />
+                      Add to favorite
+                    </>
+                  )}
                 </button>
               </div>
             </div>
 
-            {/* FIXED: Replaced your placeholder mock-map div with your custom layout map image asset */}
+            {/* MAP BLOCK */}
             <div className="map-block">
               <img 
                 src="https://i.postimg.cc/N0F86Np4/map.jpg" 
