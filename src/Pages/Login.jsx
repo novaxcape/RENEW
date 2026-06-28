@@ -243,6 +243,34 @@ const Login = () => {
       
       setLocalError(errorMessage);
 
+      // 🚨 UNVERIFIED EMAIL LOGIC: Check if the error indicates an unverified email
+      const isUnverified = 
+        errorMessage.toLowerCase().includes("verify") || 
+        errorMessage.toLowerCase().includes("unverified") ||
+        error.response?.status === 403; // Standard status for unverified accounts, adjust if your API uses 401/400 for this
+
+      if (isUnverified) {
+        Swal.fire({
+          icon: "warning",
+          title: "Email Not Verified",
+          text: "Please verify your email address to continue.",
+          confirmButtonColor: "#ff6b35",
+          confirmButtonText: "Go to Verification",
+        }).then(() => {
+          // Send them to the OTP page with the email and booking data
+          navigate("/verify-otp", {
+            state: {
+              email: formData.email,
+              from: from,
+              bookingData: bookingData || localStorage.getItem("pendingBooking")
+            },
+          });
+        });
+        
+        setLoading(false);
+        return; // Exit early so we don't show the generic error alert below
+      }
+
       Swal.fire({
         icon: "error",
         title: "Login Failed",

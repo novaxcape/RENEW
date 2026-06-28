@@ -1,7 +1,7 @@
-// Dashboard.jsx
-import { useEffect, useCallback } from "react";
+// Dashboard.jsx - FULLY FIXED
+import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, useLocation } from "react-router-dom";
 import TopNavbar from "../components/TopNavbar";
 import WelcomeSection from "../components/WelcomeSection";
 import StatCard from "../components/StatCard";
@@ -33,9 +33,11 @@ const API_URL = 'https://novaxcape.onrender.com/api/v1';
 
 const Dashboard = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const { openMobileMenu = () => {} } = useOutletContext() || {};
   
-  // ✅ Using specific selectors for better performance
+  const [selectedCentre, setSelectedCentre] = useState(null);
+  
   const stats = useSelector(selectStats);
   const loading = useSelector(selectLoading);
   const error = useSelector(selectError);
@@ -49,19 +51,33 @@ const Dashboard = () => {
   
   const { userToken, isAuthenticated } = useSelector((state) => state.auth);
 
-  // Function to fetch dashboard data
+  // Get selected centre from navigation state or localStorage
+  useEffect(() => {
+    const centreFromState = location.state?.selectedCentre;
+    const centreIdFromStorage = localStorage.getItem("selectedCentreId");
+    const centreNameFromStorage = localStorage.getItem("selectedCentreName");
+    
+    if (centreFromState) {
+      setSelectedCentre(centreFromState);
+      console.log("✅ Using centre from navigation state:", centreFromState.centreName);
+    } else if (centreIdFromStorage) {
+      setSelectedCentre({
+        id: centreIdFromStorage,
+        centreName: centreNameFromStorage || "Selected Centre"
+      });
+      console.log("✅ Using centre from localStorage:", centreIdFromStorage);
+    }
+  }, [location]);
+
   const fetchDashboardData = useCallback(async () => {
     try {
-      // Check if user is authenticated
       if (!isAuthenticated || !userToken) {
         dispatch(fetchDashboardFail('Please login to view dashboard'));
         return;
       }
 
-      // Set loading state
       dispatch(fetchDashboard());
 
-      // Make API call
       const response = await fetch(`${API_URL}/vendor/dashboard`, {
         method: 'GET',
         headers: {
@@ -71,30 +87,23 @@ const Dashboard = () => {
       });
 
       if (!response.ok) {
-        // Handle 401 Unauthorized
         if (response.status === 401) {
           dispatch(logout());
           dispatch(fetchDashboardFail('Session expired. Please login again.'));
           return;
         }
         
-        // Handle 404 Not Found
         if (response.status === 404) {
           dispatch(fetchDashboardFail('Vendor not found.'));
           return;
         }
 
-        // Handle other errors
         const errorData = await response.json();
         dispatch(fetchDashboardFail(errorData.message || 'Failed to fetch dashboard data'));
         return;
       }
 
-      // Parse the response
       const data = await response.json();
-      
-      // ✅ The API returns: { message, data: { vendorName, requests, revenue, ... } }
-      // So we pass data.data to the success action
       dispatch(fetchDashboardSuccess(data.data));
 
     } catch (error) {
@@ -103,25 +112,21 @@ const Dashboard = () => {
     }
   }, [dispatch, isAuthenticated, userToken]);
 
-  // Fetch dashboard data on mount and when auth changes
   useEffect(() => {
     if (isAuthenticated) {
       fetchDashboardData();
     }
 
-    // Cleanup error on unmount
     return () => {
       dispatch(clearDashboardError());
     };
   }, [dispatch, isAuthenticated, fetchDashboardData]);
 
-  // Handle retry
   const handleRetry = () => {
     dispatch(clearDashboardError());
     fetchDashboardData();
   };
 
-  // Loading state
   if (loading) {
     return (
       <>
@@ -135,7 +140,6 @@ const Dashboard = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <>
@@ -150,7 +154,6 @@ const Dashboard = () => {
     );
   }
 
-  // No data state
   if (!stats) {
     return (
       <>
@@ -165,14 +168,15 @@ const Dashboard = () => {
     );
   }
 
-  // ✅ Now stats contains: vendorName, requests, revenue, bookings, ticketTypes, visitorStats, ratings
+  const displayName = selectedCentre?.centreName || vendorName || "Lekki Conservation";
+
   return (
     <>
       <div className="sticky-wrapper">
         <TopNavbar onMenuOpen={openMobileMenu} />
       </div>
 
-      <WelcomeSection />
+      <WelcomeSection centreName={displayName} />
 
       <div className="dashboard-stats-grid">
         <StatCard 
@@ -229,7 +233,7 @@ const Dashboard = () => {
           ratings: ratings,
         }} />
         <CapacityGoals 
-          centreName={vendorName || "Lekki Conservation"}
+          centreName={displayName}
           capacity={bookings?.total || 1200}
           filled={bookings?.today || 0}
           percentage={bookings?.total > 0 
@@ -258,4 +262,4 @@ const formatCurrency = (amount) => {
   }).format(amount);
 };
 
-export default Dashboard;
+export default Dashboard;  
