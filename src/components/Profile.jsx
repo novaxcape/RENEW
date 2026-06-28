@@ -1,3 +1,5 @@
+// File: src/Pages/Profile.jsx
+
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -38,6 +40,7 @@ const Profile = () => {
   } = useSelector((state) => state.api);
 
   const [formData, setFormData] = useState({
+    userName: '',
     firstName: '',
     lastName: '',
     nickname: '',
@@ -86,7 +89,7 @@ const Profile = () => {
         state: profileData.state || localExtra.state || ''
       });
       
-      const avatarUrl = profileData.profilePicture || profileData.avatar;
+      const avatarUrl = profileData.profilePicture || profileData.avatar || profileData.avatarUrl;
       if (avatarUrl && !avatarFile && !isAvatarRemoved) {
         setAvatarPreview(avatarUrl);
       }
@@ -138,6 +141,7 @@ const Profile = () => {
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Validate file size (20MB max)
       if (file.size > 20 * 1024 * 1024) {
         Swal.fire({
           icon: 'error',
@@ -148,12 +152,13 @@ const Profile = () => {
         return;
       }
       
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
       if (!allowedTypes.includes(file.type)) {
         Swal.fire({
           icon: 'error',
           title: 'Invalid File Type',
-          text: 'Please upload PNG, JPEG, or GIF images only',
+          text: 'Please upload PNG, JPEG, GIF, or WEBP images only',
           confirmButtonColor: '#ff6b35'
         });
         return;
@@ -175,11 +180,24 @@ const Profile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Validate required fields
+    if (!formData.userName && !formData.firstName) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Information',
+        text: 'Please provide at least a username or first name',
+        confirmButtonColor: '#ff6b35'
+      });
+      return;
+    }
+
+    // Create FormData for multipart/form-data upload
     const profileData = new FormData();
     
-    // 1. Generate clean userName string from fields
-    const computedUserName = formData.nickname.trim() || `${formData.firstName} ${formData.lastName}`.trim();
-    profileData.append('userName', computedUserName);
+    // 1. Add userName (required by API)
+    const userName = formData.userName.trim() || 
+                     formData.nickname.trim() || 
+                     `${formData.firstName} ${formData.lastName}`.trim();
     
     // 2. profilePicture is REQUIRED by the API on every update (400 if missing).
     // If the user picked a new file, use it directly.
@@ -235,12 +253,17 @@ const Profile = () => {
     // but are not appended to stay compliant with your strict API validation
     
     try {
+      console.log('📤 Submitting profile update...');
+      console.log('📤 userName:', userName);
+      console.log('📤 profilePicture:', avatarFile ? avatarFile.name : 'No change');
+      
       if (isVendor) {
         await dispatch(updateVendorProfile(profileData)).unwrap();
       } else {
         await dispatch(updateClientProfile(profileData)).unwrap();
       }
       
+      // Refresh vendor details if vendor
       if (isVendor) {
         dispatch(getVendorDetails());
       }
@@ -250,7 +273,8 @@ const Profile = () => {
       setAvatarFile(null);
       setIsAvatarRemoved(false);
     } catch (error) {
-      console.error('Profile update error:', error);
+      console.error('❌ Profile update error:', error);
+      // Error is handled by useEffect
     }
   };
 
@@ -304,7 +328,7 @@ const Profile = () => {
                 Upload Image
                 <input
                   type="file"
-                  accept="image/png,image/jpeg,image/gif"
+                  accept="image/png,image/jpeg,image/gif,image/webp"
                   onChange={handleAvatarChange}
                   style={{ display: 'none' }}
                 />
@@ -313,7 +337,7 @@ const Profile = () => {
                 Remove
               </button>
             </div>
-            <p className="photo-hint">We support PNGs, JPEGs and GIFs under 20MB.</p>
+            <p className="photo-hint">We support PNGs, JPEGs, GIFs, and WEBP under 20MB.</p>
           </div>
         </section>
 
@@ -339,6 +363,22 @@ const Profile = () => {
         <form className="settings-form" onSubmit={handleSubmit}>
           <div className="form-grid">
             
+            {/* ✅ userName - Required by API */}
+            <div className="form-group">
+              <label htmlFor="userName">Username *</label>
+              <div className="input-wrapper">
+                <input 
+                  type="text" 
+                  id="userName" 
+                  value={formData.userName}
+                  onChange={handleChange}
+                  placeholder="Enter your username" 
+                  required
+                />
+                <small className="field-hint">This is your display name. Required for API.</small>
+              </div>
+            </div>
+
             <div className="form-group">
               <label htmlFor="firstName">First Name</label>
               <div className="input-wrapper">
@@ -348,7 +388,6 @@ const Profile = () => {
                   value={formData.firstName}
                   onChange={handleChange}
                   placeholder="Enter your first name" 
-                  required
                 />
               </div>
             </div>
@@ -362,13 +401,12 @@ const Profile = () => {
                   value={formData.lastName}
                   onChange={handleChange}
                   placeholder="Enter your last name" 
-                  required
                 />
               </div>
             </div>
 
             <div className="form-group">
-              <label htmlFor="nickname">Nickname / Username</label>
+              <label htmlFor="nickname">Nickname</label>
               <div className="input-wrapper">
                 <input 
                   type="text" 

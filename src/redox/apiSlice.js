@@ -758,8 +758,46 @@ export const getPaymentStatus = createThunk(
 // ========== REVIEW API THUNKS ==========
 export const createReview = createThunk(
   "api/review/create",
-  (reviewData, { getState }) =>
-    axios.post(`${API_BASE_URL}/review`, reviewData, authConfig(getState())),
+  async ({ touristCentreId, reviewData }, { getState, rejectWithValue }) => {
+    try {
+      console.log(`⭐ Creating review for tourist centre: ${touristCentreId}`);
+      console.log("⭐ Review data:", reviewData);
+
+      const payload = {
+        ratings: String(reviewData.ratings || reviewData.rating),
+        fullName: reviewData.fullName,
+        email: reviewData.email,
+        addYourReview: reviewData.addYourReview || reviewData.review,
+      };
+
+      console.log("⭐ Final payload:", payload);
+
+      const response = await axios.post(
+        `${API_BASE_URL}/review/${touristCentreId}`,
+        payload,
+        authConfig(getState()),
+      );
+
+      console.log("✅ Review created successfully:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Create review error:", error);
+      console.error("❌ Error response:", error.response?.data);
+      console.error("❌ Error status:", error.response?.status);
+
+      if (error.response?.status === 404) {
+        return rejectWithValue("Tourist centre not found");
+      }
+      if (error.response?.status === 400) {
+        return rejectWithValue("Invalid review data. Please check your input.");
+      }
+      if (error.response?.status === 401) {
+        return rejectWithValue("Please login to submit a review");
+      }
+
+      return rejectWithValue(getErrorMessage(error));
+    }
+  },
 );
 
 export const getAllReviews = createThunk(
@@ -1454,18 +1492,19 @@ const apiSlice = createSlice({
       // ========== REVIEWS REDUCERS ==========
       .addCase(createReview.pending, (state) => {
         state.reviewsLoading = true;
+        state.reviewsError = null;
       })
       .addCase(createReview.fulfilled, (state, action) => {
         state.reviewsLoading = false;
-        state.reviews = [
-          action.payload?.data || action.payload,
-          ...state.reviews,
-        ];
+        const newReview = action.payload?.data || action.payload;
+        state.reviews = [newReview, ...state.reviews];
         state.successMessage = "Review submitted successfully";
+        console.log("✅ Review added to Redux:", newReview);
       })
       .addCase(createReview.rejected, (state, action) => {
         state.reviewsLoading = false;
         state.reviewsError = action.payload;
+        console.error("❌ Review submission failed in Redux:", action.payload);
       })
 
       .addCase(getAllReviews.pending, (state) => {
