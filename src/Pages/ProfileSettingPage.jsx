@@ -1,12 +1,12 @@
 import React from 'react'
 import Profile from '../components/Profile'
 import Footer from '../components/Footer'
-import PaymentHeader from '../components/PaymentHeader'
+import Header from '../components/Header'
 const ProfileSettingPage = () => {
   return (
     <div>
       
-      <PaymentHeader/>
+      <Header/>
       <Profile/>
       <Footer/>
     </div>

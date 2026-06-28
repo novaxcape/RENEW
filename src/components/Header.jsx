@@ -37,7 +37,10 @@ const Header = () => {
       ? [{ name: "My Bookings", to: "/my-bookings" }]
       : []),
 
-    { name: "For Centres", to: "/centres" },
+    ...(!isLoggedIn
+      ? [{ name: "For Centres", to: "/centres" }]
+      : []),
+
     { name: "About us", to: "/about" },
     { name: "Support", to: "/support" },
   ];
