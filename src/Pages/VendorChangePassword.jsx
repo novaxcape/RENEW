@@ -14,7 +14,7 @@ const VendorChangePassword = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { userToken, loading: reduxLoading } = useSelector((state) => state.auth);
-  
+
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [loading, setLoadingState] = useState(false);
@@ -34,53 +34,62 @@ const VendorChangePassword = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
       setErrorState("Please fill in all fields");
       return;
     }
-    
+
     if (formData.newPassword !== formData.confirmPassword) {
       setErrorState("New passwords do not match");
       return;
     }
-    
+
     if (formData.newPassword.length < 6) {
       setErrorState("Password must be at least 6 characters");
       return;
     }
-    
+
     setLoadingState(true);
     setErrorState("");
     dispatch(setLoading(true));
     dispatch(clearError());
-    
+
     try {
-      const response = await axios.post(`${API_BASE_URL}/vendor/change-password`, {
-        currentPassword: formData.currentPassword,
-        newPassword: formData.newPassword
-      }, {
-        headers: { Authorization: `Bearer ${userToken}` }
-      });
-      
+      const response = await axios.post(
+        `${API_BASE_URL}/vendor/change-password`,
+        {
+          oldPassword: formData.currentPassword,
+          newPassword: formData.newPassword
+        },
+        {
+          headers: { Authorization: `Bearer ${userToken}` }
+        }
+      );
+
       console.log("Change password response:", response.data);
-      
+
       Swal.fire({
         icon: "success",
         title: "Password Changed!",
         text: "Please login with your new password.",
         confirmButtonColor: "#ff6b35",
       });
-      
+
       dispatch(vendorLogout());
       navigate("/vendor/login");
-      
+
     } catch (error) {
       console.error("Change password error:", error.response?.data);
-      const errorMessage = error.response?.data?.message || "Failed to change password";
+
+      const status = error.response?.status;
+      const errorMessage =
+        error.response?.data?.message ||
+        (status === 400 ? "Old password is invalid" : "Failed to change password");
+
       setErrorState(errorMessage);
       dispatch(setError(errorMessage));
-      
+
       Swal.fire({
         icon: "error",
         title: "Change Failed",
@@ -101,11 +110,11 @@ const VendorChangePassword = () => {
         </div>
         <div className="rightLogin-panel">
           <h2>Change Password</h2>
-          
+
           {error && (
-            <div className="error-message" style={{ 
-              color: "red", 
-              textAlign: "center", 
+            <div className="error-message" style={{
+              color: "red",
+              textAlign: "center",
               marginBottom: "15px",
               padding: "10px",
               backgroundColor: "#fee2e2",
@@ -114,7 +123,7 @@ const VendorChangePassword = () => {
               {error}
             </div>
           )}
-          
+
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label>Current Password</label>
@@ -131,11 +140,11 @@ const VendorChangePassword = () => {
                 />
                 <span
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                  style={{ 
-                    position: "absolute", 
-                    right: "12px", 
-                    top: "50%", 
-                    transform: "translateY(-50%)", 
+                  style={{
+                    position: "absolute",
+                    right: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
                     cursor: "pointer",
                     color: "#666"
                   }}
@@ -144,7 +153,7 @@ const VendorChangePassword = () => {
                 </span>
               </div>
             </div>
-            
+
             <div className="form-group">
               <label>New Password</label>
               <div style={{ position: "relative" }}>
@@ -160,11 +169,11 @@ const VendorChangePassword = () => {
                 />
                 <span
                   onClick={() => setShowNewPassword(!showNewPassword)}
-                  style={{ 
-                    position: "absolute", 
-                    right: "12px", 
-                    top: "50%", 
-                    transform: "translateY(-50%)", 
+                  style={{
+                    position: "absolute",
+                    right: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
                     cursor: "pointer",
                     color: "#666"
                   }}
@@ -173,23 +182,23 @@ const VendorChangePassword = () => {
                 </span>
               </div>
             </div>
-            
+
             <div className="form-group">
               <label>Confirm New Password</label>
-              <input 
-                type="password" 
-                name="confirmPassword" 
-                placeholder="Confirm new password" 
-                value={formData.confirmPassword} 
+              <input
+                type="password"
+                name="confirmPassword"
+                placeholder="Confirm new password"
+                value={formData.confirmPassword}
                 onChange={handleChange}
                 disabled={loading || reduxLoading}
-                required 
+                required
               />
             </div>
-            
-            <button 
-              type="submit" 
-              className="signup-btn" 
+
+            <button
+              type="submit"
+              className="signup-btn"
               disabled={loading || reduxLoading}
               style={{ opacity: (loading || reduxLoading) ? 0.7 : 1 }}
             >
