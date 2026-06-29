@@ -12,26 +12,23 @@ import {
   setError,
   clearError,
 } from "../redox/authSlice";
-import { getVendorTouristCenters, getKycStatus } from "../redox/apiSlice";
+import { getVendorAllCentres } from "../redox/apiSlice";
 import "../Styles/VendorLogin.css";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "https://novaxcape.onrender.com/api/v1";
 
-const getEntityId = (value) =>
-  value?.id || value?._id || value?.vendorId || value?.touristId || 
-  value?.data?.id || value?.touristCenter?._id || value?.touristCenter?.id;
-
 const VendorLogin = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { loading: reduxLoading } = useSelector((state) => state.auth);
+  const { touristCentresLoading } = useSelector((state) => state.api);
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoadingState] = useState(false);
   const [error, setErrorState] = useState("");
   const [formData, setFormData] = useState({ email: "", password: "" });
-  const center = localStorage.getItem("centerName")
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -39,46 +36,80 @@ const VendorLogin = () => {
     if (reduxLoading) dispatch(clearError());
   };
 
-  const handlePostLoginFlow = async (user) => {
-    const vendorId = getEntityId(user);
-    console.log("Vendor ID:", vendorId);
-
-    if (!vendorId) {
-      console.warn("No vendor ID found, redirecting to add centre");
-      navigate("/add-centre", { replace: true });
-      return;
-    }
-
+  const handlePostLoginFlow = async () => {
+    console.log("🔍 Checking vendor centres after login...");
+    
     try {
-      // Fetch vendor's tourist centres
-      const centresResp = await dispatch(getVendorTouristCenters(vendorId)).unwrap();
-      console.log("Centres response:", centresResp);
+      const result = await dispatch(getVendorAllCentres()).unwrap();
       
-      // Extract centres array from response
-      const centres = centresResp?.data || centresResp?.touristCentres || centresResp || [];
-      
-      console.log("Number of centres found:", centres.length);
+      const centres = result?.data || [];
+      console.log(`📄 Found ${centres.length} centre(s)`);
 
-      // Check if vendor has added any centre
-      if (!centres || centres.length === 0) {
-        console.log("No centres found, redirecting to add centre");
+      if (centres.length > 0) {
+        localStorage.setItem("vendorCenterCount", centres.length);
+        localStorage.setItem("hasCentre", "true");
+        
+        const firstCentre = centres[0];
+        const centreId = firstCentre?.id || firstCentre?._id;
+        if (centreId) {
+          localStorage.setItem("centreId", centreId);
+          localStorage.setItem("selectedCentreId", centreId);
+          localStorage.setItem("selectedCentreName", firstCentre.centreName || firstCentre.name || "");
+        }
+        
+        console.log(`✅ Found ${centres.length} centres, navigating to centres page`);
+        
         await Swal.fire({
-          icon: "info",
-          title: "No Centre Found",
-          text: "Please add your tourism centre to get started.",
+          icon: "success",
+          title: "Login Successful",
+          text: `Welcome back! You have ${centres.length} centre(s).`,
           confirmButtonColor: "#ff6b35",
+          timer: 1500,
+          showConfirmButton: false,
         });
+
+        navigate("/vendor/centers", { replace: true });
+        return;
+      }
+
+      console.log("No centres found, redirecting to add centre");
+      localStorage.removeItem("hasCentre");
+      localStorage.removeItem("centreId");
+      
+      await Swal.fire({
+        icon: "info",
+        title: "No Centre Found",
+        text: "Please add your tourism centre to get started.",
+        confirmButtonColor: "#ff6b35",
+      });
+      navigate("/add-centre", { replace: true });
+
+    } catch (error) {
+      console.error("❌ Post-login flow error:", error);
+      
+      if (error === "No centres found. Create your first centre.") {
+        localStorage.removeItem("hasCentre");
+        localStorage.removeItem("centreId");
         navigate("/add-centre", { replace: true });
         return;
       }
 
-      // Vendor has centres, proceed to dashboard
-      navigate("/vendor/dashboard", { replace: true });
-      
-    } catch (err) {
-      console.error("Post-login flow check failed:", err);
-      // If error fetching centres, assume no centres exist
-      navigate("/add-centre", { replace: true });
+      const result = await Swal.fire({
+        icon: "warning",
+        title: "Could Not Load Centres",
+        text: error || "We couldn't load your centres. What would you like to do?",
+        showCancelButton: true,
+        confirmButtonColor: "#ff6b35",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Go to Dashboard",
+        cancelButtonText: "Add Centre"
+      });
+
+      if (result.isConfirmed) {
+        navigate("/vendor/dashboard", { replace: true });
+      } else {
+        navigate("/add-centre", { replace: true });
+      }
     }
   };
 
@@ -87,6 +118,12 @@ const VendorLogin = () => {
 
     if (!formData.email || !formData.password) {
       setErrorState("Please fill in all fields");
+      Swal.fire({
+        icon: "warning",
+        title: "Incomplete Form",
+        text: "Please fill in all fields.",
+        confirmButtonColor: "#ff6b35",
+      });
       return;
     }
 
@@ -101,41 +138,52 @@ const VendorLogin = () => {
         password: formData.password,
       });
 
-      console.log("Vendor login response:", response.data);
+      console.log("✅ Vendor login response:", response.data);
 
       const loginData = response.data?.data || response.data;
       const token = response.data?.token || loginData?.token || loginData?.accessToken;
       const user = loginData?.user || loginData?.vendor || loginData;
 
-      if (token) {
-        dispatch(updateVendorToken(token));
-        localStorage.setItem("vendorToken", token);
-      }
-      
-      if (user) {
-        dispatch(setVendorDetails(user));
-        localStorage.setItem("vendorName", user?.centreName || user?.name || "");
-        localStorage.setItem("vendorId", user?.id || user?._id || user?.vendorId || "");
+      if (!token || !user) {
+        throw new Error("Invalid login response: Missing token or user data");
       }
 
+      dispatch(updateVendorToken(token));
+      localStorage.setItem("vendorToken", token);
+      localStorage.setItem("token", token);
       localStorage.setItem("vendorEmail", formData.email);
 
-      await Swal.fire({
-        icon: "success",
-        title: "Login Successful",
-        text: "Welcome back!",
-        confirmButtonColor: "#ff6b35",
-        timer: 1500,
-        showConfirmButton: false,
-      });
+      dispatch(setVendorDetails(user));
+      
+      const vendorName = user?.centreName || user?.name || user?.centerName || "";
+      const vendorId = user?.id || user?._id || user?.vendorId || "";
+      
+      localStorage.setItem("vendorName", vendorName);
+      localStorage.setItem("vendorId", vendorId);
+      
+      console.log("✅ Vendor logged in:", { vendorName, vendorId });
 
-      // Run post-login checks to determine where to navigate next
-      await handlePostLoginFlow(user);
+      await handlePostLoginFlow();
       
     } catch (error) {
-      console.error("Vendor login error:", error.response?.data || error);
-      const errorMessage =
-        error.response?.data?.message || "Login failed. Please try again.";
+      console.error("❌ Vendor login error:", error);
+      
+      let errorMessage = "Login failed. Please try again.";
+      
+      if (error.response) {
+        if (error.response.status === 401) {
+          errorMessage = "Invalid email or password. Please try again.";
+        } else if (error.response.status === 404) {
+          errorMessage = "Vendor account not found. Please sign up first.";
+        } else {
+          errorMessage = error.response.data?.message || `Server error: ${error.response.status}`;
+        }
+      } else if (error.request) {
+        errorMessage = "Cannot connect to server. Please check your internet connection.";
+      } else {
+        errorMessage = error.message || "An unexpected error occurred.";
+      }
+      
       setErrorState(errorMessage);
       dispatch(setError(errorMessage));
 
@@ -220,10 +268,17 @@ const VendorLogin = () => {
             <button
               type="submit"
               className="signup-btn"
-              disabled={loading || reduxLoading}
-              style={{ opacity: loading || reduxLoading ? 0.7 : 1 }}
+              disabled={loading || reduxLoading || touristCentresLoading}
+              style={{ opacity: loading || reduxLoading || touristCentresLoading ? 0.7 : 1 }}
             >
-              {loading || reduxLoading ? "Logging in..." : "Login"}
+              {loading || reduxLoading || touristCentresLoading ? (
+                <>
+                  <span className="spinner"></span> 
+                  {touristCentresLoading ? "Checking centres..." : "Logging in..."}
+                </>
+              ) : (
+                "Login"
+              )}
             </button>
           </form>
 

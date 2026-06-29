@@ -140,12 +140,12 @@ const Review = ({
           <span>Daily Slot Capacity:</span>
           <span>{pricingData.dailySlotCapacity || "Not set"}</span>
         </div>
-        <div className="review-row">
+        {/* <div className="review-row">
           <span>Installment Payment:</span>
           <span style={{ color: pricingData.installmentPayment ? '#28a745' : '#6c757d' }}>
             {pricingData.installmentPayment ? "✅ Yes" : "No"}
           </span>
-        </div>
+        </div> */}
       </div>
 
       {/* ✅ Images & Documents Section */}
@@ -206,7 +206,7 @@ const Review = ({
           </span>
           <span style={{ color: selectedFacilities?.length > 0 ? '#28a745' : '#dc3545' }}>
             {selectedFacilities?.length > 0 ? '✅' : '❌'} Facilities
-          </span>
+          </span>np
           <span style={{ color: validPackages.length > 0 ? '#28a745' : '#dc3545' }}>
             {validPackages.length > 0 ? '✅' : '❌'} Packages ({validPackages.length})
           </span>

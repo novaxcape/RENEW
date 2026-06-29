@@ -1,12 +1,11 @@
+// App.jsx
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
 
-// Import your header and layout tool
 import Header from "./components/Header";
 import PaymentHeader from "./components/PaymentHeader";
 
-// Import your route guard pages
 import PrivateRoute from "./Pages/PrivateRoute";
 import PublicRoute from "./Pages/PublicRoute";
 import RootLayout from "./Outlet/RootLayout";
@@ -30,7 +29,7 @@ import PaymentOptionPage from "./Pages/PaymentOptionPage";
 import MyBookingsPage from "./Pages/MyBookingsPage";
 import PaymentConfirmationPage from "./Pages/PaymentConfirmationPage";
 import DashboardLayout from "./components/DashboardLayout";
-import Dashboard  from "./Pages/Dashboard";
+import Dashboard from "./Pages/Dashboard";
 import SettingsPage from "./Pages/SettingPage";
 import ProfileSettingPage from "./Pages/ProfileSettingPage";
 import AddCentre from "./Pages/Addcentre";
@@ -57,13 +56,13 @@ import VendorResetPassword from "./Pages/VendorResetPassword";
 import VendorChangePassword from "./Pages/VendorChangePassword";
 import DashboardPackageActive from "./Pages/DashboardPackageActive";
 import DashboardPackageInactive from "./Pages/DashboardPackageInactive";
+import VendorCenters from "./Pages/VendorCenters"; // ✅ Import Vendor Centers
 
 const App = () => {
   return (
     <>
-      {/* ✅ Globally active listener: Catches all route changes below */}
       <ScrollToTop />
-      
+
       <Routes>
         {/* ========== PUBLIC CLIENT ROUTES ========== */}
         <Route path="/" element={<RootLayout />}>
@@ -72,13 +71,12 @@ const App = () => {
           <Route path="centres" element={<ForCentrePage />} />
           <Route path="about" element={<About />} />
           <Route path="support" element={<Support />} />
-   
-<Route path="review" element={<ReviewPage />} />  // General reviews (no ID)
-<Route path="review/:touristCentreId" element={<ReviewPage />} />  // Specific centre reviews
+          <Route path="review" element={<ReviewPage />} />
+          <Route path="review/:touristCentreId" element={<ReviewPage />} />
           <Route path="centre/:id" element={<ProductDetails />} />
           <Route path="my-bookings" element={<MyBookingsPage />} />
         </Route>
-        
+
         {/* ========== CLIENT PROTECTED ROUTES ========== */}
         <Route
           path="/wishlist"
@@ -263,7 +261,17 @@ const App = () => {
           }
         />
 
-        {/* ========== VENDOR DASHBOARD ROUTES (Nested Outlets) ========== */}
+        {/* ========== VENDOR CENTERS PAGE ========== */}
+        <Route
+          path="/vendor/centers"
+          element={
+            <PrivateRoute role="vendor">
+              <VendorCenters />
+            </PrivateRoute>
+          }
+        />
+
+        {/* ========== VENDOR DASHBOARD ROUTES ========== */}
         <Route
           path="/vendor/dashboard"
           element={
@@ -314,7 +322,15 @@ const App = () => {
         <Route
           path="*"
           element={
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", fontSize: "24px" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100vh",
+                fontSize: "24px",
+              }}
+            >
               404 - Page Not Found
             </div>
           }
