@@ -38,6 +38,74 @@ const getAuthToken = (reduxToken) =>
   localStorage.getItem("userToken") ||
   localStorage.getItem("token");
 
+const DashboardLoadingState = () => (
+  <main className="dashboard-loading-shell" aria-busy="true">
+    <section className="dashboard-loading-welcome">
+      <div>
+        <span className="dashboard-skeleton dashboard-skeleton-title" />
+        <span className="dashboard-skeleton dashboard-skeleton-text" />
+      </div>
+      <span className="dashboard-skeleton dashboard-skeleton-button" />
+    </section>
+
+    <section className="dashboard-stats-grid dashboard-stats-grid--loading">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <article className="dashboard-stat-card dashboard-stat-card--loading" key={index}>
+          <div className="stat-header">
+            <span className="dashboard-skeleton dashboard-skeleton-stat-title" />
+            <span className="dashboard-skeleton dashboard-skeleton-icon" />
+          </div>
+          <div className="stat-value-row">
+            <span className="dashboard-skeleton dashboard-skeleton-stat-value" />
+            <span className="dashboard-skeleton dashboard-skeleton-pill" />
+          </div>
+          <span className="dashboard-skeleton dashboard-skeleton-stat-foot" />
+        </article>
+      ))}
+    </section>
+
+    <section className="chart-section chart-section--loading">
+      <div className="chart-card dashboard-chart-card--loading">
+        <span className="dashboard-skeleton dashboard-skeleton-chart-title" />
+        <span className="dashboard-skeleton dashboard-skeleton-chart-subtitle" />
+        <div className="dashboard-skeleton-chart">
+          {Array.from({ length: 7 }).map((_, index) => (
+            <span
+              className="dashboard-skeleton-bar"
+              key={index}
+              style={{ height: `${36 + index * 8}%` }}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="ticket-chart dashboard-ticket-chart--loading">
+        <span className="dashboard-skeleton dashboard-skeleton-chart-title" />
+        <div className="dashboard-skeleton-donut-wrap">
+          <span className="dashboard-skeleton-donut" />
+          <div className="dashboard-skeleton-legend">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <span className="dashboard-skeleton dashboard-skeleton-legend-line" key={index} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section className="single-booking-container dashboard-bookings--loading">
+      <div className="booking-top-header">
+        <span className="dashboard-skeleton dashboard-skeleton-table-title" />
+        <span className="dashboard-skeleton dashboard-skeleton-table-link" />
+      </div>
+      <div className="dashboard-skeleton-table">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <span className="dashboard-skeleton dashboard-skeleton-table-row" key={index} />
+        ))}
+      </div>
+    </section>
+  </main>
+);
+
 const Dashboard = () => {
   const dispatch = useDispatch();
   const { openMobileMenu = () => {} } = useOutletContext() || {};
@@ -137,9 +205,7 @@ const Dashboard = () => {
         <div className="sticky-wrapper">
           <TopNavbar onMenuOpen={openMobileMenu} />
         </div>
-        <div className="dashboard-loading">
-          <p>Loading dashboard...</p>
-        </div>
+        <DashboardLoadingState />
       </>
     );
   }
