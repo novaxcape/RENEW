@@ -7,7 +7,7 @@ import HowItWorks from "../components/HowItWorks";
 // import "./css/Home.css";
 import "../Styles/Home.css"
 import TopAttractions from "../components/TopAttractions";
-import Trusted from "../components/Trusted";
+// import Trusted from "../components/Trusted";
 import CtaSection from "../components/CtaSection";
 import Footer from "../components/Footer";
 const LandingPage = () => {
@@ -20,7 +20,7 @@ const LandingPage = () => {
         <PopularDestinations />
         <FeaturedAttractions />
         <HowItWorks />
-        <Trusted/>
+        {/* <Trusted/> */}
         <CtaSection/>
          <Footer/>
       </div>

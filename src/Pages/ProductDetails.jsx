@@ -420,7 +420,7 @@ const ProductDetails = () => {
           </section>
 
           {/* REVIEWS */}
-          <section className="reviews-section">
+          {/* <section className="reviews-section">
             <h2>View all Reviews</h2>
             <div className="review-grid">
               {reviews.map((review) => (
@@ -444,7 +444,7 @@ const ProductDetails = () => {
               <button className="arrow-btn">‹</button>
               <button className="arrow-btn active">›</button>
             </div>
-          </section>
+          </section> */}
 
           {/* DISCOVER RECOMMENDATIONS */}
           <section className="recommendations-section">
