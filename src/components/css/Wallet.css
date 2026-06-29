@@ -91,6 +91,71 @@
   margin-bottom: 32px;
 }
 
+.wallet-withdraw-input {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(100%, 560px);
+}
+
+.wallet-withdraw-input::before {
+  content: "₦";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 56px;
+  border: 1px solid #eadfd9;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #ff6b35;
+  font-family: "Manrope", sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
+.wallet-withdraw-field {
+  width: 100%;
+  min-width: 0;
+  height: 56px;
+  padding: 0 18px;
+  border: 1px solid #eadfd9;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1a0800;
+  font-family: "Manrope", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  outline: none;
+  box-sizing: border-box;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.wallet-withdraw-field::placeholder {
+  color: #9a8f8a;
+  font-weight: 400;
+}
+
+.wallet-withdraw-field:focus {
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.14);
+}
+
+.wallet-withdraw-field::-webkit-outer-spin-button,
+.wallet-withdraw-field::-webkit-inner-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+.wallet-withdraw-field[type="number"] {
+  appearance: textfield;
+}
+
 .wallet-withdraw-btn {
   background-color: #ff6b35;
   color: #ffffff;
@@ -110,6 +175,12 @@
 
 .wallet-withdraw-btn:hover {
   background-color: #e85a24;
+}
+
+.wallet-withdraw-btn:disabled {
+  background-color: #f5b79f;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .wallet-transactions-panel {
@@ -248,6 +319,21 @@
   }
   .wallet-stats-grid {
     grid-template-columns: 1fr;
+  }
+  .wallet-withdraw-row {
+    justify-content: stretch;
+  }
+  .wallet-withdraw-input {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .wallet-withdraw-input::before {
+    display: none;
+  }
+  .wallet-withdraw-field,
+  .wallet-withdraw-btn {
+    width: 100%;
   }
   .wallet-transactions-panel {
     padding: 16px;

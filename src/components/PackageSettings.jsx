@@ -36,6 +36,60 @@ const getStoredCentreId = () =>
   localStorage.getItem("centreId") ||
   localStorage.getItem("touristId");
 
+const PackageLoadingState = () => (
+  <div className="package-container package-container--loading" aria-busy="true">
+    <div className="package-header">
+      <div className="package-loading-title-area">
+        <span className="package-skeleton package-skeleton-title" />
+        <span className="package-skeleton package-skeleton-subtitle" />
+      </div>
+      <span className="package-skeleton package-skeleton-add-btn" />
+    </div>
+
+    <div className="package-filters package-filters--loading">
+      <span className="package-skeleton package-skeleton-search" />
+      <div className="package-loading-tabs">
+        <span className="package-skeleton package-skeleton-filter active" />
+        <span className="package-skeleton package-skeleton-filter" />
+        <span className="package-skeleton package-skeleton-filter" />
+        <span className="package-skeleton package-skeleton-count" />
+      </div>
+    </div>
+
+    <div className="stats-grid package-loading-stats">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <div className="stat-card package-loading-stat-card" key={index}>
+          <span className="package-skeleton package-skeleton-stat-icon" />
+          <div>
+            <span className="package-skeleton package-skeleton-stat-number" />
+            <span className="package-skeleton package-skeleton-stat-label" />
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div className="package-list package-list--loading">
+      <div className="package-loading-table-head">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <span className="package-skeleton package-skeleton-th" key={index} />
+        ))}
+      </div>
+      <div className="package-loading-table-body">
+        {Array.from({ length: 6 }).map((_, rowIndex) => (
+          <div className="package-loading-table-row" key={rowIndex}>
+            <span className="package-skeleton package-skeleton-name-cell" />
+            <span className="package-skeleton package-skeleton-price-cell" />
+            <span className="package-skeleton package-skeleton-type-cell" />
+            <span className="package-skeleton package-skeleton-status-cell" />
+            <span className="package-skeleton package-skeleton-date-cell" />
+            <span className="package-skeleton package-skeleton-actions-cell" />
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
 const PackageSettings = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -295,20 +349,7 @@ const PackageSettings = () => {
 
   // Show loading state
   if (loading || packagesLoading) {
-    return (
-      <div className="package-container">
-        <div className="package-header">
-          <div>
-            <h2>Package Settings</h2>
-            <p>Loading your packages...</p>
-          </div>
-        </div>
-        <div className="loading-spinner">
-          <div className="spinner"></div>
-          <p>Loading packages...</p>
-        </div>
-      </div>
-    );
+    return <PackageLoadingState />;
   }
 
   // Show error state
