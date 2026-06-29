@@ -1,4 +1,4 @@
-// apiSlice.js - FULLY EDITED WITH ALL EXPORTS
+// apiSlice.js - FULLY EDITED WITH ALL FEATURES + LOGOUT
 
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
@@ -89,6 +89,28 @@ export const updateClientProfile = createThunk(
     axios.put(
       `${API_BASE_URL}/client/update-profile`,
       toFormData(payload),
+      authConfig(getState()),
+    ),
+);
+
+// ✅ Client Logout - hits the server to invalidate session/token
+export const logoutClient = createThunk(
+  "api/client/logout",
+  (_, { getState }) =>
+    axios.post(
+      `${API_BASE_URL}/client/logout`,
+      {},
+      authConfig(getState()),
+    ),
+);
+
+// ✅ Vendor Logout - hits the server to invalidate vendor session/token
+export const logoutVendor = createThunk(
+  "api/vendor/logout",
+  (_, { getState }) =>
+    axios.post(
+      `${API_BASE_URL}/vendor/logout`,
+      {},
       authConfig(getState()),
     ),
 );
@@ -198,9 +220,6 @@ export const changeVendorPassword = createThunk(
 );
 
 // ========== PACKAGE API THUNKS ==========
-
-// FIX: Use createAsyncThunk directly so rejectWithValue works correctly.
-// Also sends amount as a Number (not String) to match API schema.
 export const createPackage = createAsyncThunk(
   "api/package/create",
   async ({ touristId, packageData }, { getState, rejectWithValue }) => {
@@ -212,7 +231,7 @@ export const createPackage = createAsyncThunk(
         packageName: packageData.packageName,
         packageType: packageData.packageType,
         numberOfPeople: packageData.numberOfPeople,
-        amount: Number(packageData.amount), // ← must be a number per API schema
+        amount: Number(packageData.amount),
       };
 
       const response = await axios.post(
@@ -244,6 +263,7 @@ export const getAllPackages = createThunk(
       return response.data;
     } catch (error) {
       console.error("❌ Get all packages error:", error);
+      console.error("❌ Request URL:", `${API_BASE_URL}/package/all/${touristId}`);
       return rejectWithValue(getErrorMessage(error));
     }
   },
@@ -267,8 +287,6 @@ export const getPackageById = createThunk(
   },
 );
 
-// FIX: Switched from createThunk to createAsyncThunk so rejectWithValue
-// is properly in scope. Sends amount as Number and adds Content-Type header.
 export const updatePackage = createAsyncThunk(
   "api/package/update",
   async ({ id, packageData }, { getState, rejectWithValue }) => {
@@ -279,7 +297,7 @@ export const updatePackage = createAsyncThunk(
         packageName: packageData.packageName,
         packageType: packageData.packageType,
         numberOfPeople: packageData.numberOfPeople,
-        amount: Number(packageData.amount), // ← must be a number per API schema
+        amount: Number(packageData.amount),
       };
 
       const response = await axios.put(
@@ -378,6 +396,7 @@ export const getTouristCentersByState = createAsyncThunk(
       const count = response.data?.count || centres.length;
       const message = response.data?.message || "Centers found";
       console.log(`📄 Found ${centres.length} centres in ${state}`);
+      console.log("📄 First centre sample:", centres[0]);
       const validCentres = centres.filter(
         (centre) =>
           centre &&
@@ -416,7 +435,6 @@ export const getTouristCenterById = createThunk(
   (id) => axios.get(`${API_BASE_URL}/tourist/get-one/${id}`),
 );
 
-// OLD: Uses /tourist/vendor/${vendorId} - kept for backward compatibility
 export const getVendorTouristCenters = createThunk(
   "api/touristCentre/getVendorCentres",
   (vendorId, { getState }) =>
@@ -426,8 +444,6 @@ export const getVendorTouristCenters = createThunk(
     ),
 );
 
-// ========== CORRECTED VENDOR CENTRES THUNK ==========
-// Calls GET /api/v1/tourist/get-all (matches your API docs)
 export const getVendorAllCentres = createAsyncThunk(
   "api/touristCentre/getVendorAllCentres",
   async (_, { getState, rejectWithValue }) => {
@@ -731,6 +747,9 @@ export const verifyPayment = createAsyncThunk(
       };
     } catch (error) {
       console.error(`❌ Verify payment error:`, error);
+      console.error(`❌ Error response:`, error.response?.data);
+      console.error(`❌ Error status:`, error.response?.status);
+      console.error(`❌ Error config:`, error.config);
       if (error.response?.status === 404) {
         return rejectWithValue("Payment reference not found");
       }
@@ -783,6 +802,8 @@ export const createReview = createThunk(
       return response.data;
     } catch (error) {
       console.error("❌ Create review error:", error);
+      console.error("❌ Error response:", error.response?.data);
+      console.error("❌ Error status:", error.response?.status);
       if (error.response?.status === 404) {
         return rejectWithValue("Tourist centre not found");
       }
@@ -938,6 +959,7 @@ const apiSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // ========== CLIENT REDUCERS ==========
       .addCase(updateClientProfile.fulfilled, (state, action) => {
         state.clientProfile =
           action.payload?.data || action.payload?.user || action.payload;
@@ -946,6 +968,39 @@ const apiSlice = createSlice({
       .addCase(updateClientProfile.rejected, (state, action) => {
         state.clientError = action.payload;
       })
+      
+      // ✅ Client Logout Reducers
+      .addCase(logoutClient.fulfilled, (state) => {
+        state.clientProfile = null;
+        state.clientSuccessMessage = null;
+        state.clientError = null;
+        console.log("✅ Client logout successful on server");
+      })
+      .addCase(logoutClient.rejected, (state, action) => {
+        console.warn("⚠️ Server logout call failed:", action.payload);
+        // Still clear local state even if server fails
+        state.clientProfile = null;
+        state.clientSuccessMessage = null;
+        state.clientError = null;
+      })
+
+      // ✅ Vendor Logout Reducers
+      .addCase(logoutVendor.fulfilled, (state) => {
+        state.vendorProfile = null;
+        state.vendorSuccessMessage = null;
+        state.vendorError = null;
+        state.vendorCentres = [];
+        console.log("✅ Vendor logout successful on server");
+      })
+      .addCase(logoutVendor.rejected, (state, action) => {
+        console.warn("⚠️ Vendor server logout call failed:", action.payload);
+        // Still clear local state even if server fails
+        state.vendorProfile = null;
+        state.vendorSuccessMessage = null;
+        state.vendorError = null;
+        state.vendorCentres = [];
+      })
+
       .addCase(forgotClientPassword.fulfilled, (state, action) => {
         state.clientSuccessMessage =
           action.payload?.message || "Password reset OTP sent";
@@ -972,6 +1027,8 @@ const apiSlice = createSlice({
       .addCase(changeClientPassword.rejected, (state, action) => {
         state.clientError = action.payload;
       })
+
+      // ========== VENDOR REDUCERS ==========
       .addCase(updateVendorProfile.fulfilled, (state, action) => {
         state.vendorProfile =
           action.payload?.data || action.payload?.vendor || action.payload;
@@ -1029,10 +1086,12 @@ const apiSlice = createSlice({
         state.selectedPackage = nextPackage;
         state.packages = [nextPackage, ...state.packages];
         state.successMessage = "Package created successfully";
+        console.log("✅ Package created in Redux:", nextPackage);
       })
       .addCase(createPackage.rejected, (state, action) => {
         state.packagesLoading = false;
         state.packagesError = action.payload;
+        console.error("❌ Package creation failed in Redux:", action.payload);
       })
       .addCase(getAllPackages.pending, (state) => {
         state.packagesLoading = true;
@@ -1044,10 +1103,12 @@ const apiSlice = createSlice({
           action.payload?.packages ||
           action.payload ||
           [];
+        console.log("✅ Packages loaded in Redux:", state.packages.length);
       })
       .addCase(getAllPackages.rejected, (state, action) => {
         state.packagesLoading = false;
         state.packagesError = action.payload;
+        console.error("❌ Packages load failed in Redux:", action.payload);
       })
       .addCase(getPackageById.pending, (state) => {
         state.packagesLoading = true;
@@ -1069,7 +1130,7 @@ const apiSlice = createSlice({
         state.packagesLoading = false;
         const updatedPackage =
           action.payload?.data || action.payload?.package || action.payload;
-        // FIX: check both id and _id for UUID-based APIs
+        
         const updatedId = updatedPackage?.id || updatedPackage?._id;
         if (updatedId) {
           state.packages = state.packages.map((item) => {
@@ -1082,10 +1143,12 @@ const apiSlice = createSlice({
           state.selectedPackage = updatedPackage;
         }
         state.successMessage = "Package updated successfully";
+        console.log("✅ Package updated in Redux:", updatedPackage);
       })
       .addCase(updatePackage.rejected, (state, action) => {
         state.packagesLoading = false;
         state.packagesError = action.payload;
+        console.error("❌ Package update failed in Redux:", action.payload);
       })
       .addCase(deletePackage.pending, (state) => {
         state.packagesLoading = true;
@@ -1102,10 +1165,12 @@ const apiSlice = createSlice({
           state.selectedPackage = null;
         }
         state.successMessage = "Package deleted successfully";
+        console.log(`✅ Package ${deletedId} deleted from Redux`);
       })
       .addCase(deletePackage.rejected, (state, action) => {
         state.packagesLoading = false;
         state.packagesError = action.payload;
+        console.error("❌ Package deletion failed in Redux:", action.payload);
       })
 
       // ========== TOURIST CENTRE REDUCERS ==========
@@ -1121,10 +1186,12 @@ const apiSlice = createSlice({
           ...state.vendorCentres,
         ];
         state.successMessage = "Tourist centre registered successfully";
+        console.log("✅ Tourist centre registered:", state.createdTouristCenter);
       })
       .addCase(registerTouristCenter.rejected, (state, action) => {
         state.touristCentresLoading = false;
         state.touristCentresError = action.payload;
+        console.error("❌ Tourist centre registration failed:", action.payload);
       })
       .addCase(getTouristCentersByState.pending, (state) => {
         state.touristCentresLoading = true;
@@ -1135,6 +1202,8 @@ const apiSlice = createSlice({
         const centres = action.payload?.data || [];
         state.touristCentres = centres;
         state.touristCentresError = null;
+        console.log("✅ Stored in Redux - touristCentres:", centres);
+        console.log(`✅ Count: ${centres.length}`);
       })
       .addCase(getTouristCentersByState.rejected, (state, action) => {
         state.touristCentresLoading = false;
@@ -1152,10 +1221,12 @@ const apiSlice = createSlice({
         state.touristCentresLoading = false;
         state.selectedTouristCenter =
           action.payload?.data || action.payload?.tourist || action.payload;
+        console.log("✅ Tourist centre loaded:", state.selectedTouristCenter);
       })
       .addCase(getTouristCenterById.rejected, (state, action) => {
         state.touristCentresLoading = false;
         state.touristCentresError = action.payload;
+        console.error("❌ Tourist centre load failed:", action.payload);
       })
       .addCase(getVendorTouristCenters.pending, (state) => {
         state.touristCentresLoading = true;
@@ -1172,8 +1243,6 @@ const apiSlice = createSlice({
         state.touristCentresLoading = false;
         state.touristCentresError = action.payload;
       })
-
-      // ========== CORRECTED VENDOR CENTRES REDUCERS ==========
       .addCase(getVendorAllCentres.pending, (state) => {
         state.touristCentresLoading = true;
         state.touristCentresError = null;
@@ -1195,7 +1264,6 @@ const apiSlice = createSlice({
         }
         state.vendorCentres = [];
       })
-
       .addCase(updateTouristCenter.pending, (state) => {
         state.touristCentresLoading = true;
       })
@@ -1245,6 +1313,8 @@ const apiSlice = createSlice({
         state.touristCentresLoading = false;
         state.touristCentresError = action.payload;
       })
+
+      // ========== KYC REDUCERS ==========
       .addCase(createKyc.pending, (state) => {
         state.kycLoading = true;
       })
@@ -1281,10 +1351,12 @@ const apiSlice = createSlice({
           action.payload?.data || action.payload?.plan || action.payload;
         state.paymentPlans = [state.paymentPlan, ...state.paymentPlans];
         state.successMessage = "Payment plan created successfully";
+        console.log("✅ Payment plan created:", state.paymentPlan);
       })
       .addCase(createPaymentPlan.rejected, (state, action) => {
         state.paymentPlanLoading = false;
         state.paymentPlanError = action.payload;
+        console.error("❌ Payment plan creation failed:", action.payload);
       })
       .addCase(getPaymentPlans.pending, (state) => {
         state.paymentPlanLoading = true;
@@ -1293,10 +1365,12 @@ const apiSlice = createSlice({
         state.paymentPlanLoading = false;
         state.paymentPlans =
           action.payload?.data || action.payload?.plans || action.payload || [];
+        console.log("✅ Payment plans loaded:", state.paymentPlans.length);
       })
       .addCase(getPaymentPlans.rejected, (state, action) => {
         state.paymentPlanLoading = false;
         state.paymentPlanError = action.payload;
+        console.error("❌ Payment plans load failed:", action.payload);
       })
 
       // ========== BOOKINGS REDUCERS ==========
@@ -1310,10 +1384,12 @@ const apiSlice = createSlice({
           action.payload?.data || action.payload?.booking || action.payload;
         state.userBookings = [state.booking, ...state.userBookings];
         state.successMessage = "Booking created successfully";
+        console.log("✅ Booking created in Redux:", state.booking);
       })
       .addCase(createBooking.rejected, (state, action) => {
         state.bookingLoading = false;
         state.bookingError = action.payload;
+        console.error("❌ Booking rejected in Redux:", action.payload);
       })
       .addCase(getAllClientBookings.pending, (state) => {
         state.bookingLoading = true;
@@ -1413,12 +1489,17 @@ const apiSlice = createSlice({
           action.payload?.data?.data?.reference ||
           null;
         state.successMessage = "Payment initialized successfully";
+        console.log("✅ Payment initialized in Redux:", {
+          paymentData: state.paymentData,
+          paymentReference: state.paymentReference
+        });
       })
       .addCase(initializePayment.rejected, (state, action) => {
         state.paymentLoading = false;
         state.paymentError = action.payload;
         state.paymentData = null;
         state.paymentReference = null;
+        console.error("❌ Payment initialization failed in Redux:", action.payload);
       })
       .addCase(verifyPayment.pending, (state) => {
         state.paymentLoading = true;
@@ -1430,11 +1511,13 @@ const apiSlice = createSlice({
         state.paymentVerified = true;
         state.paymentData = action.payload?.data || action.payload;
         state.successMessage = action.payload?.message || "Payment verified successfully";
+        console.log("✅ Payment verified in Redux:", state.paymentData);
       })
       .addCase(verifyPayment.rejected, (state, action) => {
         state.paymentLoading = false;
         state.paymentError = action.payload;
         state.paymentVerified = false;
+        console.error("❌ Payment verification failed in Redux:", action.payload);
       })
       .addCase(getPaymentStatus.pending, (state) => {
         state.paymentLoading = true;
@@ -1458,10 +1541,12 @@ const apiSlice = createSlice({
         const newReview = action.payload?.data || action.payload;
         state.reviews = [newReview, ...state.reviews];
         state.successMessage = "Review submitted successfully";
+        console.log("✅ Review added to Redux:", newReview);
       })
       .addCase(createReview.rejected, (state, action) => {
         state.reviewsLoading = false;
         state.reviewsError = action.payload;
+        console.error("❌ Review submission failed in Redux:", action.payload);
       })
       .addCase(getAllReviews.pending, (state) => {
         state.reviewsLoading = true;

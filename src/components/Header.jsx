@@ -10,8 +10,8 @@ import {
   FiX,
   FiHeart,
 } from "react-icons/fi";
-
 import { logout } from "../redox/authSlice";
+import { logoutClient, logoutVendor } from "../redox/apiSlice";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -19,6 +19,7 @@ const Header = () => {
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const dropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
@@ -26,6 +27,10 @@ const Header = () => {
   // Redux Persist authentication state
   const isLoggedIn = useSelector(
     (state) => state.auth.isAuthenticated
+  );
+  
+  const isVendor = useSelector(
+    (state) => state.auth.isVendor
   );
 
   // Navigation Links
@@ -86,12 +91,37 @@ const Header = () => {
       document.removeEventListener("mousedown", handleClickOutside);
   }, [mobileMenuOpen]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Prevent multiple logout clicks
+    if (isLoggingOut) return;
+    
+    setIsLoggingOut(true);
+
+    try {
+      // 1. Call the appropriate logout endpoint based on user type
+      if (isVendor) {
+        // Call vendor logout API
+        const result = await dispatch(logoutVendor()).unwrap();
+        console.log("✅ Vendor server logout successful:", result);
+      } else {
+        // Call client logout API
+        const result = await dispatch(logoutClient()).unwrap();
+        console.log("✅ Client server logout successful:", result);
+      }
+    } catch (error) {
+      // Even if the API call fails (e.g., token expired), proceed with local logout
+      console.warn("⚠️ Server logout failed, proceeding with local logout:", error);
+    }
+
+    // 2. Dispatch the local logout action (clears Redux state and localStorage)
     dispatch(logout());
 
+    // 3. Close any open menus
     setDropdownOpen(false);
     setMobileMenuOpen(false);
+    setIsLoggingOut(false);
 
+    // 4. Redirect to home
     navigate("/");
   };
 
@@ -170,6 +200,7 @@ const Header = () => {
                   <button
                     className="p-navbars-action-btn"
                     onClick={toggleDropdown}
+                    aria-label="User menu"
                   >
                     <FiUser size={22} />
                   </button>
@@ -180,6 +211,7 @@ const Header = () => {
                       <Link
                         to="/profile-settings"
                         className="p-dropdown-item"
+                        onClick={() => setDropdownOpen(false)}
                       >
                         <FiSettings size={16} />
                         Profile Settings
@@ -188,9 +220,10 @@ const Header = () => {
                       <button
                         onClick={handleLogout}
                         className="p-dropdown-item"
+                        disabled={isLoggingOut}
                       >
                         <FiLogOut size={16} />
-                        Logout
+                        {isLoggingOut ? "Logging out..." : "Logout"}
                       </button>
 
                     </div>
@@ -211,6 +244,7 @@ const Header = () => {
                 <Link
                   to="/WishList"
                   className="m-mobile-wishlist-link"
+                  onClick={() => setMobileMenuOpen(false)}
                 >
                   <FiHeart size={22} />
                 </Link>
@@ -218,6 +252,7 @@ const Header = () => {
                 <Link
                   to="/profile-settings"
                   className="m-mobile-profile-link"
+                  onClick={() => setMobileMenuOpen(false)}
                 >
                   <FiUser size={22} />
                 </Link>
@@ -288,9 +323,10 @@ const Header = () => {
               <button
                 onClick={handleLogout}
                 className="m-mobile-logout-btn"
+                disabled={isLoggingOut}
               >
                 <FiLogOut size={18} />
-                Logout
+                {isLoggingOut ? "Logging out..." : "Logout"}
               </button>
             )}
           </div>
