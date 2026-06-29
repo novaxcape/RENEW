@@ -13,6 +13,48 @@ import {
 
 const SERVICE_FEE = 500;
 
+const decodeJwtPayload = (token) => {
+  if (!token) return null;
+
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+
+    const normalizedPayload = payload.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(normalizedPayload));
+  } catch (error) {
+    console.warn("Unable to decode auth token payload:", error);
+    return null;
+  }
+};
+
+const getEntityId = (value) =>
+  value?.id ||
+  value?._id ||
+  value?.clientId ||
+  value?.ClientId ||
+  value?.userId ||
+  value?.UserId ||
+  null;
+
+const getRoleName = (value) =>
+  value?.role ||
+  value?.Role ||
+  value?.userType ||
+  value?.type ||
+  "";
+
+const getPackageTouristId = (pkg, centre, fallbackId) =>
+  pkg?.touristId ||
+  pkg?.tourist?.id ||
+  pkg?.tourist?._id ||
+  pkg?.touristCentre?.id ||
+  pkg?.touristCentre?._id ||
+  centre?.touristId ||
+  centre?.id ||
+  centre?._id ||
+  fallbackId;
+
 const getLocalDateInputValue = (dateValue = new Date()) => {
   const year = dateValue.getFullYear();
   const month = String(dateValue.getMonth() + 1).padStart(2, "0");
@@ -87,6 +129,27 @@ export default function BookingSummaryPage() {
   const [packageData, setPackageData] = useState(null);
   const [ticketTypes, setTicketTypes] = useState([]);
   const minimumVisitDate = useMemo(() => getLocalDateInputValue(), []);
+  const authToken =
+    userToken ||
+    localStorage.getItem("userToken") ||
+    localStorage.getItem("token") ||
+    localStorage.getItem("vendorToken");
+  const tokenPayload = useMemo(() => decodeJwtPayload(authToken), [authToken]);
+  const authenticatedRole = (
+    getRoleName(loggedInUser) ||
+    getRoleName(tokenPayload)
+  ).toLowerCase();
+  const authenticatedClientId =
+    authenticatedRole === "vendor"
+      ? null
+      : getEntityId(loggedInUser) ||
+        localStorage.getItem("clientId") ||
+        getEntityId(tokenPayload);
+  const bookingTouristId = getPackageTouristId(
+    packageData || bookingData.packageDetails,
+    bookingData.centreDetails,
+    touristId
+  );
 
   console.log("📄 BookingSummaryPage - Mounted");
   console.log("📄 touristId:", touristId);
@@ -95,7 +158,6 @@ export default function BookingSummaryPage() {
   // ✅ Fetch package details and payment plans
   useEffect(() => {
     const fetchPackageData = async () => {
-      // If we already have package details from location state
       if (location.state?.packageDetails) {
         const pkg = location.state.packageDetails;
         setPackageData(pkg);
@@ -104,8 +166,6 @@ export default function BookingSummaryPage() {
           packageDetails: pkg,
           centreDetails: location.state.centreDetails || prev.centreDetails,
         }));
-        
-        // Generate ticket types from package
         generateTicketTypes(pkg);
         return;
       }
@@ -114,7 +174,6 @@ export default function BookingSummaryPage() {
         try {
           console.log("📦 Fetching package details for ID:", packageId);
           
-          // Fetch package details
           const packageResult = await dispatch(getPackageById(packageId)).unwrap();
           console.log("📦 Package details fetched:", packageResult);
           
@@ -126,19 +185,15 @@ export default function BookingSummaryPage() {
             centreDetails: pkg?.touristCentre || pkg?.centre || prev.centreDetails,
           }));
 
-          // ✅ Fetch payment plans for this package
           console.log("📋 Fetching payment plans for package:", packageId);
           const plansResult = await dispatch(getPaymentPlans(packageId)).unwrap();
           console.log("📋 Payment plans fetched:", plansResult);
           
           const plans = plansResult?.data || plansResult?.plans || plansResult || [];
-          
-          // Generate ticket types from payment plans
           generateTicketTypes(pkg, plans);
           
         } catch (error) {
           console.error("❌ Failed to fetch package data:", error);
-          // Try to get from localStorage as fallback
           const savedData = localStorage.getItem("selectedPackage");
           if (savedData) {
             try {
@@ -160,13 +215,11 @@ export default function BookingSummaryPage() {
     fetchPackageData();
   }, [dispatch, packageId, location.state]);
 
-  // ✅ Generate ticket types from package data and payment plans
   const generateTicketTypes = (pkg, plans = []) => {
     console.log("🔄 Generating ticket types from:", { pkg, plans });
     
     let types = [];
 
-    // If package has payment plans
     if (plans && plans.length > 0) {
       types = plans.map((plan, index) => ({
         id: plan.id || `plan-${index}`,
@@ -176,9 +229,7 @@ export default function BookingSummaryPage() {
         planId: plan.id,
         isInstallment: plan.isInstallment || false,
       }));
-    } 
-    // If package has packages array (like Adult, Child, Family)
-    else if (pkg?.packages && Array.isArray(pkg.packages) && pkg.packages.length > 0) {
+    } else if (pkg?.packages && Array.isArray(pkg.packages) && pkg.packages.length > 0) {
       types = pkg.packages.map((pkgItem, index) => ({
         id: pkgItem.id || `pkg-${index}`,
         label: pkgItem.packageType || pkgItem.name || `Package ${index + 1}`,
@@ -186,18 +237,14 @@ export default function BookingSummaryPage() {
         price: pkgItem.amount || pkgItem.price || 0,
         packageId: pkgItem.id,
       }));
-    }
-    // If package has ticket types directly
-    else if (pkg?.ticketTypes && Array.isArray(pkg.ticketTypes)) {
+    } else if (pkg?.ticketTypes && Array.isArray(pkg.ticketTypes)) {
       types = pkg.ticketTypes.map((ticket, index) => ({
         id: ticket.id || `ticket-${index}`,
         label: ticket.name || ticket.label || `Ticket ${index + 1}`,
         description: ticket.description || `${ticket.name || 'Ticket'} - ₦${(ticket.price || 0).toLocaleString()}`,
         price: ticket.price || 0,
       }));
-    }
-    // Fallback: Use package amount as a single ticket type
-    else if (pkg?.amount || pkg?.price) {
+    } else if (pkg?.amount || pkg?.price) {
       const amount = pkg.amount || pkg.price || 0;
       types = [{
         id: 'standard',
@@ -210,7 +257,6 @@ export default function BookingSummaryPage() {
     console.log("✅ Generated ticket types:", types);
     setTicketTypes(types);
 
-    // Initialize quantities for each ticket type
     const initialQuantities = {};
     types.forEach((ticket, index) => {
       initialQuantities[ticket.id] = index === 0 ? 1 : 0;
@@ -218,7 +264,6 @@ export default function BookingSummaryPage() {
     setQuantities(initialQuantities);
   };
 
-  // ✅ Fallback ticket types if API fails
   const fallbackTicketTypes = useMemo(() => [
     {
       id: "adult",
@@ -240,7 +285,6 @@ export default function BookingSummaryPage() {
     },
   ], []);
 
-  // ✅ Use fetched ticket types or fallback
   const displayTicketTypes = ticketTypes.length > 0 ? ticketTypes : fallbackTicketTypes;
 
   // ✅ Check authentication on mount
@@ -253,11 +297,13 @@ export default function BookingSummaryPage() {
       console.log("🚫 User not authenticated - redirecting to signin");
 
       const pendingData = {
-        touristId: touristId,
+        touristId: bookingTouristId,
+        centreId: bookingTouristId,
+        clientId: authenticatedClientId,
         packageId: packageId,
         packageDetails: bookingData.packageDetails,
         centreDetails: bookingData.centreDetails,
-        returnUrl: `/booking-summary/${touristId}/${packageId}`,
+        returnUrl: `/booking-summary/${bookingTouristId}/${packageId}`,
       };
       localStorage.setItem("pendingBooking", JSON.stringify(pendingData));
 
@@ -270,13 +316,21 @@ export default function BookingSummaryPage() {
       }).then(() => {
         navigate("/signin", {
           state: {
-            from: `/booking-summary/${touristId}/${packageId}`,
+            from: `/booking-summary/${bookingTouristId}/${packageId}`,
             bookingData: pendingData,
           },
         });
       });
     }
-  }, [isAuthenticated, navigate, touristId, packageId, bookingData]);
+  }, [
+    isAuthenticated,
+    navigate,
+    touristId,
+    packageId,
+    bookingData,
+    authenticatedClientId,
+    bookingTouristId,
+  ]);
 
   // ✅ Restore from localStorage if needed
   useEffect(() => {
@@ -291,7 +345,6 @@ export default function BookingSummaryPage() {
           });
           setPackageData(parsed.packageDetails);
           
-          // Try to generate ticket types from saved data
           if (parsed.packageDetails) {
             generateTicketTypes(parsed.packageDetails);
           }
@@ -314,7 +367,6 @@ export default function BookingSummaryPage() {
       [id]: Math.max(0, (prev[id] || 0) - 1),
     }));
 
-  // ✅ Calculate subtotal using dynamic ticket types
   const subtotal = displayTicketTypes.reduce(
     (sum, t) => sum + t.price * (quantities[t.id] || 0),
     0,
@@ -336,7 +388,7 @@ export default function BookingSummaryPage() {
     !visitDateError &&
     summaryItems.length > 0;
 
-  // ✅ Handle payment - FIXED VERSION
+  // ✅ Handle payment - FIXED: initializePayment now only sends bookingId
   const handleContinueToPayment = async () => {
     console.log("🚀 Starting payment process...");
     
@@ -353,7 +405,8 @@ export default function BookingSummaryPage() {
           state: {
             from: `/booking-summary/${touristId}/${packageId}`,
             bookingData: {
-              touristId: touristId,
+              touristId: bookingTouristId,
+              centreId: bookingTouristId,
               packageId: packageId,
               packageDetails: bookingData.packageDetails,
               centreDetails: bookingData.centreDetails,
@@ -393,11 +446,49 @@ export default function BookingSummaryPage() {
 
       const bookingDataPayload = {
         visitDate: formattedDate,
+        touristId: bookingTouristId,
+        centreId: bookingTouristId,
+        packageId,
       };
+
+      if (authenticatedRole === "vendor") {
+        Swal.fire({
+          icon: "warning",
+          title: "Client Account Required",
+          text: "Please log in with a client account to complete a booking.",
+          confirmButtonColor: "#ff6b35",
+        });
+        return;
+      }
+
+      if (!authenticatedClientId) {
+        Swal.fire({
+          icon: "warning",
+          title: "Authentication Required",
+          text: "Please log in again so we can confirm your client account.",
+          confirmButtonColor: "#ff6b35",
+          confirmButtonText: "Go to Login",
+        }).then(() => {
+          navigate("/signin", {
+            state: {
+              from: `/booking-summary/${touristId}/${packageId}`,
+              bookingData: {
+                touristId: bookingTouristId,
+                centreId: bookingTouristId,
+                packageId: packageId,
+                packageDetails: bookingData.packageDetails,
+                centreDetails: bookingData.centreDetails,
+              },
+            },
+          });
+        });
+        return;
+      }
 
       const bookingResult = await dispatch(
         createBooking({
-          touristId: touristId,
+          clientId: authenticatedClientId,
+          centreId: bookingTouristId,
           packageId: packageId,
           bookingData: bookingDataPayload
         })
@@ -423,86 +514,50 @@ export default function BookingSummaryPage() {
 
       localStorage.removeItem("pendingBooking");
 
-      const customerEmail =
-        loggedInUser?.email ||
-        loggedInUser?.Email ||
-        localStorage.getItem("email") ||
-        localStorage.getItem("Email") ||
-        "";
-
-      const customerName =
-        loggedInUser?.fullName ||
-        loggedInUser?.name ||
-        loggedInUser?.firstName ||
-        "Customer";
-
-      const paymentData = {
+      // Save booking state before payment
+      const bookingState = {
+        bookingId: bookingId,
         amount: total,
-        customer: {
-          email: customerEmail,
-          name: customerName,
-        },
-        subtotal,
+        subtotal: subtotal,
         serviceFee: SERVICE_FEE,
-        date: formattedDate,
-        numberOfPeople: summaryItems.reduce(
-          (sum, t) => sum + (quantities[t.id] || 0),
-          0,
-        ),
+        centreDetails: bookingData.centreDetails,
+        packageDetails: bookingData.packageDetails,
         ticketDetails: summaryItems.map((t) => ({
           ticketType: t.id,
           ticketLabel: t.label,
           quantity: quantities[t.id] || 0,
           price: t.price,
-          planId: t.planId || null,
-          packageId: t.packageId || null,
         })),
+        numberOfPeople: summaryItems.reduce(
+          (sum, t) => sum + (quantities[t.id] || 0),
+          0,
+        ),
+        date: formattedDate,
         packageId: packageId,
-        packageName: packageData?.packageName || packageData?.name || "Package",
-        touristId: touristId,
+        touristId: bookingTouristId,
+        clientId: authenticatedClientId,
+        centreId: bookingTouristId,
       };
-
-      console.log("📄 Payment Data:", paymentData);
+      localStorage.setItem("pendingBookingState", JSON.stringify(bookingState));
 
       try {
+        // ✅ FIXED: Only pass bookingId — backend reads everything else from the booking record
         const paymentResponse = await dispatch(
-          initializePayment({
-            bookingId: bookingId,
-            paymentData: paymentData,
-          })
+          initializePayment({ bookingId })
         ).unwrap();
 
         console.log("PAYMENT RESPONSE:", paymentResponse);
         console.log("PAYMENT RESPONSE STRUCTURE:", JSON.stringify(paymentResponse, null, 2));
 
-        // 🔧 FIXED: Better redirect URL extraction with multiple fallback paths
-        const redirectUrl = paymentResponse.data.data.checkout_url
-        // Save booking state regardless of redirect
-        const bookingState = {
-          bookingId: bookingId,
-          amount: total,
-          subtotal: subtotal,
-          serviceFee: SERVICE_FEE,
-          centreDetails: bookingData.centreDetails,
-          packageDetails: bookingData.packageDetails,
-          ticketDetails: summaryItems.map((t) => ({
-            ticketType: t.id,
-            ticketLabel: t.label,
-            quantity: quantities[t.id] || 0,
-            price: t.price,
-          })),
-          numberOfPeople: summaryItems.reduce(
-            (sum, t) => sum + (quantities[t.id] || 0),
-            0,
-          ),
-          date: formattedDate,
-          packageId: packageId,
-          touristId: touristId,
-        };
+        const paymentResult = paymentResponse?.data || paymentResponse;
+        const redirectUrl =
+          paymentResult?.data?.checkout_url ||
+          paymentResult?.checkout_url ||
+          paymentResult?.redirect_url ||
+          paymentResult?.authorization_url ||
+          paymentResult?.paymentUrl ||
+          paymentResponse?.redirect_url;
 
-        localStorage.setItem("pendingBookingState", JSON.stringify(bookingState));
-
-        // Check if we have a valid redirect URL
         if (redirectUrl && redirectUrl.startsWith('http')) {
           console.log("🔄 Redirecting to:", redirectUrl);
           await Swal.fire({
@@ -519,7 +574,6 @@ export default function BookingSummaryPage() {
           console.warn("⚠️ No valid redirect URL found, falling back to checkout page");
           console.log("Full payment response for debugging:", JSON.stringify(paymentResponse, null, 2));
           
-          // Show a better fallback message with option to navigate
           const result = await Swal.fire({
             icon: "success",
             title: "Booking Created Successfully!",
@@ -547,15 +601,6 @@ export default function BookingSummaryPage() {
       } catch (paymentError) {
         console.error("❌ Payment initialization failed:", paymentError);
         
-        // Log the full error for debugging
-        console.log("Payment error details:", {
-          error: paymentError,
-          message: paymentError?.message,
-          response: paymentError?.response,
-          data: paymentError?.data,
-        });
-        
-        // Show error with retry option
         const result = await Swal.fire({
           icon: "warning",
           title: "Booking Created but Payment Failed",
@@ -584,9 +629,9 @@ export default function BookingSummaryPage() {
       console.error("❌ Error:", error);
 
       let errorMessage = "Unable to process your booking. Please try again.";
+      const errorText = typeof error === "string" ? error : error?.message;
 
-      if (error?.message === "Client not found") {
-        errorMessage = "Your account was not found. Please log in again.";
+      if (errorText === "Client not found") {
         Swal.fire({
           icon: "error",
           title: "Session Expired",
@@ -598,7 +643,8 @@ export default function BookingSummaryPage() {
             state: {
               from: `/booking-summary/${touristId}/${packageId}`,
               bookingData: {
-                touristId: touristId,
+                touristId: bookingTouristId,
+                centreId: bookingTouristId,
                 packageId: packageId,
                 packageDetails: bookingData.packageDetails,
                 centreDetails: bookingData.centreDetails,
@@ -607,8 +653,8 @@ export default function BookingSummaryPage() {
           });
         });
         return;
-      } else if (error?.message) {
-        errorMessage = error.message;
+      } else if (errorText) {
+        errorMessage = errorText;
       }
 
       Swal.fire({

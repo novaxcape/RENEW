@@ -1,7 +1,7 @@
-// Dashboard.jsx - FULLY FIXED
-import React, { useEffect, useState, useCallback } from "react";
+// Dashboard.jsx
+import { useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useOutletContext, useLocation } from "react-router-dom";
+import { useOutletContext } from "react-router-dom";
 import TopNavbar from "../components/TopNavbar";
 import WelcomeSection from "../components/WelcomeSection";
 import StatCard from "../components/StatCard";
@@ -29,15 +29,19 @@ import {
 import { logout } from "../redox/authSlice";
 import "../Styles/Dashboard.css";
 
-const API_URL = 'https://novaxcape.onrender.com/api/v1';
+const API_URL =
+  import.meta.env.VITE_API_URL || "https://novaxcape.onrender.com/api/v1";
+
+const getAuthToken = (reduxToken) =>
+  localStorage.getItem("vendorToken") ||
+  reduxToken ||
+  localStorage.getItem("userToken") ||
+  localStorage.getItem("token");
 
 const Dashboard = () => {
   const dispatch = useDispatch();
-  const location = useLocation();
   const { openMobileMenu = () => {} } = useOutletContext() || {};
-  
-  const [selectedCentre, setSelectedCentre] = useState(null);
-  
+
   const stats = useSelector(selectStats);
   const loading = useSelector(selectLoading);
   const error = useSelector(selectError);
@@ -48,78 +52,78 @@ const Dashboard = () => {
   const ticketTypes = useSelector(selectTicketTypes);
   const visitorStats = useSelector(selectVisitorStats);
   const ratings = useSelector(selectRatings);
-  
-  const { userToken, isAuthenticated } = useSelector((state) => state.auth);
 
-  // Get selected centre from navigation state or localStorage
-  useEffect(() => {
-    const centreFromState = location.state?.selectedCentre;
-    const centreIdFromStorage = localStorage.getItem("selectedCentreId");
-    const centreNameFromStorage = localStorage.getItem("selectedCentreName");
-    
-    if (centreFromState) {
-      setSelectedCentre(centreFromState);
-      console.log("✅ Using centre from navigation state:", centreFromState.centreName);
-    } else if (centreIdFromStorage) {
-      setSelectedCentre({
-        id: centreIdFromStorage,
-        centreName: centreNameFromStorage || "Selected Centre"
-      });
-      console.log("✅ Using centre from localStorage:", centreIdFromStorage);
-    }
-  }, [location]);
+  const { userToken, isAuthenticated } = useSelector((state) => state.auth);
 
   const fetchDashboardData = useCallback(async () => {
     try {
-      if (!isAuthenticated || !userToken) {
-        dispatch(fetchDashboardFail('Please login to view dashboard'));
+      const token = getAuthToken(userToken);
+
+      if (!isAuthenticated || !token) {
+        dispatch(fetchDashboardFail("Please login to view dashboard"));
         return;
       }
 
       dispatch(fetchDashboard());
 
       const response = await fetch(`${API_URL}/vendor/dashboard`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Authorization': `Bearer ${userToken}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
       });
 
       if (!response.ok) {
         if (response.status === 401) {
           dispatch(logout());
-          dispatch(fetchDashboardFail('Session expired. Please login again.'));
+          dispatch(fetchDashboardFail("Session expired. Please login again."));
           return;
         }
-        
+
         if (response.status === 404) {
-          dispatch(fetchDashboardFail('Vendor not found.'));
+          dispatch(fetchDashboardFail("Vendor not found."));
           return;
         }
 
         const errorData = await response.json();
-        dispatch(fetchDashboardFail(errorData.message || 'Failed to fetch dashboard data'));
+        dispatch(
+          fetchDashboardFail(
+            errorData.message || "Failed to fetch dashboard data",
+          ),
+        );
         return;
       }
 
       const data = await response.json();
-      dispatch(fetchDashboardSuccess(data.data));
 
+      const dashboardData = {
+        ...data.data,
+        recentBookings: data.data.recentBookings || [], 
+      };
+
+      dispatch(fetchDashboardSuccess(dashboardData));
     } catch (error) {
-      console.error('Dashboard fetch error:', error);
-      dispatch(fetchDashboardFail(error.message || 'Network error. Please check your connection.'));
+      console.error("Dashboard fetch error:", error);
+      dispatch(
+        fetchDashboardFail(
+          error.message || "Network error. Please check your connection.",
+        ),
+      );
     }
   }, [dispatch, isAuthenticated, userToken]);
 
   useEffect(() => {
     if (isAuthenticated) {
       fetchDashboardData();
-    }
 
-    return () => {
-      dispatch(clearDashboardError());
-    };
+      // Optional: Auto-refresh every 5 minutes
+      const interval = setInterval(fetchDashboardData, 5 * 60 * 1000);
+      return () => {
+        clearInterval(interval);
+        dispatch(clearDashboardError());
+      };
+    }
   }, [dispatch, isAuthenticated, fetchDashboardData]);
 
   const handleRetry = () => {
@@ -147,7 +151,7 @@ const Dashboard = () => {
           <TopNavbar onMenuOpen={openMobileMenu} />
         </div>
         <div className="dashboard-error">
-          <p style={{ color: 'red' }}>Error: {error}</p>
+          <p style={{ color: "red" }}>Error: {error}</p>
           <button onClick={handleRetry}>Retry</button>
         </div>
       </>
@@ -168,77 +172,81 @@ const Dashboard = () => {
     );
   }
 
-  const displayName = selectedCentre?.centreName || vendorName || "Lekki Conservation";
-
   return (
     <>
       <div className="sticky-wrapper">
         <TopNavbar onMenuOpen={openMobileMenu} />
       </div>
 
-      <WelcomeSection centreName={displayName} />
+      <WelcomeSection />
 
       <div className="dashboard-stats-grid">
-        <StatCard 
-          title="Total Tickets Today" 
-          value={requests?.today || 0} 
-          percent={calculatePercentage(requests?.today, requests?.yesterday)} 
-          previous={`Yesterday: ${requests?.yesterday || 0}`} 
-          type="ticket" 
+        <StatCard
+          title="Total Tickets Today"
+          value={requests?.today || 0}
+          percent={calculatePercentage(requests?.today, requests?.yesterday)}
+          previous={`Yesterday: ${requests?.yesterday || 0}`}
+          type="ticket"
         />
-        <StatCard 
-          title="Total Revenue" 
-          value={formatCurrency(revenue?.today || 0)} 
-          percent={calculatePercentage(revenue?.today, revenue?.yesterday)} 
-          previous={`Yesterday: ${formatCurrency(revenue?.yesterday || 0)}`} 
-          type="revenue" 
+        <StatCard
+          title="Total Revenue"
+          value={formatCurrency(revenue?.today || 0)}
+          percent={calculatePercentage(revenue?.today, revenue?.yesterday)}
+          previous={`Yesterday: ${formatCurrency(revenue?.yesterday || 0)}`}
+          type="revenue"
         />
-        <StatCard 
-          title="Total Bookings" 
-          value={bookings?.today || 0} 
-          percent={calculatePercentage(bookings?.today, bookings?.yesterday)} 
-          previous={`Yesterday: ${bookings?.yesterday || 0}`} 
-          type="booking" 
+        <StatCard
+          title="Total Bookings"
+          value={bookings?.today || 0}
+          percent={calculatePercentage(bookings?.today, bookings?.yesterday)}
+          previous={`Yesterday: ${bookings?.yesterday || 0}`}
+          type="booking"
         />
-        <StatCard 
-          title="Average Rating" 
-          value={ratings?.average || 0} 
-          percent={`${ratings?.count || 0} reviews`} 
-          previous={`Total reviews: ${ratings?.count || 0}`} 
-          type="rating" 
+        <StatCard
+          title="Average Rating"
+          value={ratings?.average || 0}
+          percent={`${ratings?.count || 0} reviews`}
+          previous={`Total reviews: ${ratings?.count || 0}`}
+          type="rating"
         />
       </div>
 
       <div className="chart-section">
-        <RevenueChart 
-          data={visitorStats?.map(item => ({
-            day: item.date,
-            revenue: item.visits
-          })) || []}
+        <RevenueChart
+          data={
+            visitorStats?.map((item) => ({
+              day: item.date,
+              revenue: item.visits,
+            })) || []
+          }
           title="Visitor Revenue Trend"
           subtitle={`For ${visitorStats?.length || 0} days`}
         />
-        <TicketDonutChart 
+        <TicketDonutChart
           data={ticketTypes?.breakdown || []}
           total={ticketTypes?.total || 0}
         />
       </div>
 
+      {/* ✅ Fixed: Added fallback for recentBookings */}
       <RecentBookings bookings={stats.recentBookings || []} />
 
       <div className="bottom-section">
-        <PerformanceInsight data={{
-          revenue: revenue,
-          bookings: bookings,
-          ratings: ratings,
-        }} />
-        <CapacityGoals 
-          centreName={displayName}
+        <PerformanceInsight
+          data={{
+            revenue: revenue,
+            bookings: bookings,
+            ratings: ratings,
+          }}
+        />
+        <CapacityGoals
+          centreName={vendorName || "Lekki Conservation"}
           capacity={bookings?.total || 1200}
           filled={bookings?.today || 0}
-          percentage={bookings?.total > 0 
-            ? Math.round((bookings.today / bookings.total) * 100) 
-            : 0
+          percentage={
+            bookings?.total > 0
+              ? Math.round((bookings.today / bookings.total) * 100)
+              : 0
           }
         />
       </div>
@@ -246,20 +254,19 @@ const Dashboard = () => {
   );
 };
 
-// Helper functions
 const calculatePercentage = (current, previous) => {
-  if (!previous || previous === 0) return '0%';
+  if (!previous || previous === 0) return "0%";
   const change = ((current - previous) / previous) * 100;
-  return `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
+  return `${change >= 0 ? "+" : ""}${change.toFixed(1)}%`;
 };
 
 const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
 };
 
-export default Dashboard;  
+export default Dashboard;

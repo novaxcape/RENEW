@@ -1,4 +1,3 @@
-// PackageSettings.jsx - FULLY EDITED WITH ALL FIXES
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -12,17 +11,30 @@ import {
   Edit,
   Trash2,
   Eye,
-  AlertCircle,
 } from "lucide-react";
-import Swal from "sweetalert2";
 import {
   getAllPackages,
   deletePackage,
   createPackage,
   updatePackage,
-  getVendorAllCentres,
 } from "../redox/apiSlice";
 import "./css/Package.css";
+
+const getEntityId = (value) =>
+  value?.id ||
+  value?._id ||
+  value?.touristId ||
+  value?.centreId ||
+  value?.centerId ||
+  value?.tourist?.id ||
+  value?.tourist?._id ||
+  value?.touristCentre?.id ||
+  value?.touristCentre?._id;
+
+const getStoredCentreId = () =>
+  localStorage.getItem("latestTouristId") ||
+  localStorage.getItem("centreId") ||
+  localStorage.getItem("touristId");
 
 const PackageSettings = () => {
   const dispatch = useDispatch();
@@ -32,272 +44,256 @@ const PackageSettings = () => {
   const [filterStatus, setFilterStatus] = useState("All");
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [centreId, setCentreId] = useState(null);
-  const [hasCentre, setHasCentre] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Modal states
+  // Modal display control states
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
 
-  // Form state
+  // Form input management state
   const [formData, setFormData] = useState({
     id: "",
     packageName: "",
     packageType: "",
     numberOfPeople: "",
     amount: "",
+    status: "active",
   });
 
-  // Get data from Redux
-  const { packagesLoading, vendorCentres } = useSelector((state) => state.api);
+  // Get packages and vendor centres from Redux state
+  const {
+    packages: packagesFromRedux,
+    packagesLoading,
+    packagesError,
+  } = useSelector((state) => state.api);
+  const { vendorCentres } = useSelector((state) => state.api);
+  const { vendorDetails } = useSelector((state) => state.auth);
 
-  // Load vendor centres and set centre ID
+  // Get the centre/tourist ID used by package APIs.
+  const centreId =
+    getEntityId(vendorCentres?.[0]) || getStoredCentreId() || getEntityId(vendorDetails);
+
+  // Fetch packages when centreId changes
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
+    if (centreId) {
+      fetchPackages(centreId);
+    } else {
+      setLoading(false);
+    }
+  }, [centreId]);
 
-        // First check if we already have centres in Redux
-        if (vendorCentres && vendorCentres.length > 0) {
-          const centre = vendorCentres[0];
-          const id = centre?.id || centre?._id;
-          if (id) {
-            console.log("✅ Found centre in Redux:", id);
-            setCentreId(id);
-            setHasCentre(true);
-            await fetchPackages(id);
-            setLoading(false);
-            return;
-          }
-        }
-
-        // Try to get centres from API
-        console.log("📄 Fetching vendor centres...");
-        const result = await dispatch(getVendorAllCentres()).unwrap();
-
-        if (result?.data && result.data.length > 0) {
-          const centre = result.data[0];
-          const id = centre?.id || centre?._id;
-
-          if (id) {
-            console.log("✅ Found centre from API:", id);
-            setCentreId(id);
-            setHasCentre(true);
-            localStorage.setItem("centreId", id);
-            await fetchPackages(id);
-          }
-        } else {
-          console.warn("⚠️ No centres found for this vendor");
-          setHasCentre(false);
-          setCentreId(null);
-        }
-      } catch (error) {
-        console.error("❌ Error loading centres:", error);
-        // Fallback to localStorage
-        const storedId = localStorage.getItem("centreId");
-        if (storedId) {
-          console.log("📄 Using stored centre ID:", storedId);
-          setCentreId(storedId);
-          setHasCentre(true);
-          await fetchPackages(storedId);
-        } else {
-          setHasCentre(false);
-          setCentreId(null);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, [dispatch]);
+  // Update local packages when Redux packages change
+  useEffect(() => {
+    if (packagesFromRedux && packagesFromRedux.length > 0) {
+      setPackages(packagesFromRedux);
+    }
+  }, [packagesFromRedux]);
 
   const fetchPackages = async (id) => {
-    if (!id) {
-      console.warn("⚠️ No centre ID to fetch packages");
-      return;
-    }
-
     try {
-      console.log(`📦 Fetching packages for centre: ${id}`);
+      setLoading(true);
+      setError(null);
       const result = await dispatch(getAllPackages(id)).unwrap();
+
+      // The API returns: { message, count, data: packages[] }
       const packageList = result?.data || result?.packages || result || [];
-      setPackages(Array.isArray(packageList) ? packageList : []);
-      console.log(`✅ Found ${packageList.length} packages`);
+      setPackages(packageList);
     } catch (error) {
-      console.error("❌ Error fetching packages:", error);
+      console.error("Error fetching packages:", error);
+      setError(error || "Failed to load packages");
       setPackages([]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Handle Add Package
+  // Handle delete click
+  const handleDeleteClick = (packageId) => {
+    setDeleteTargetId(packageId);
+  };
+
+  // Execute delete confirm action
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetId) return;
+    try {
+      setLoading(true);
+      await dispatch(deletePackage(deleteTargetId)).unwrap();
+      setDeleteTargetId(null);
+      setSuccessMessage("Package deleted successfully");
+      setShowSuccessModal(true);
+      // Refresh packages
+      if (centreId) fetchPackages(centreId);
+    } catch (error) {
+      console.error("Failed to delete package:", error);
+      setError(error || "Failed to delete package");
+      setDeleteTargetId(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Open Add popup
+  const handleAddPackageClick = () => {
+    setFormData({
+      id: "",
+      packageName: "",
+      packageType: "",
+      numberOfPeople: "",
+      amount: "",
+      status: "active",
+    });
+    setShowAddModal(true);
+  };
+
+  // Open Edit popup and populate fields
+  const handleEditClick = (pkg) => {
+    setFormData({
+      id: pkg.id || pkg._id,
+      packageName: pkg.packageName || pkg.name || "",
+      packageType: pkg.packageType || pkg.type || "",
+      numberOfPeople: pkg.numberOfPeople || pkg.maxPeople || "",
+      amount: pkg.amount || pkg.price || "",
+      status: pkg.status || "active",
+    });
+    setShowEditModal(true);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handle Add Form Submission
   const handleAddSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.packageName || !formData.packageType || !formData.amount) {
-      Swal.fire({
-        icon: "warning",
-        title: "Missing Fields",
-        text: "Please fill in all required fields.",
-        confirmButtonColor: "#ff6b35",
-      });
+    // Validate required fields
+    if (!formData.packageName) {
+      setError("Package name is required");
       return;
     }
 
-    if (!centreId) {
-      Swal.fire({
-        icon: "error",
-        title: "No Tourist Centre",
-        text: "Please register a tourist centre first.",
-        confirmButtonColor: "#ff6b35",
-        confirmButtonText: "Register Centre",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          navigate("/add-centre");
-        }
-      });
+    if (!formData.amount) {
+      setError("Amount is required");
       return;
     }
 
     try {
-      // FIX: amount sent as Number, numberOfPeople as String per API schema
+      setLoading(true);
+      setError(null);
+
+      // Prepare package data for API - matches the exact API spec
       const packageData = {
         packageName: formData.packageName,
-        packageType: formData.packageType,
-        numberOfPeople: String(formData.numberOfPeople || "1"),
-        amount: Number(formData.amount || 0),
+        packageType: formData.packageType || "Standard",
+        numberOfPeople: formData.numberOfPeople || "1",
+        amount: parseFloat(formData.amount),
       };
 
-      console.log(`📦 Creating package for centre: ${centreId}`, packageData);
-      await dispatch(createPackage({ touristId: centreId, packageData })).unwrap();
+      console.log("📦 Creating package with data:", packageData);
+      console.log("📦 For touristId:", centreId);
+
+      await dispatch(
+        createPackage({
+          touristId: centreId,
+          packageData,
+        }),
+      ).unwrap();
 
       setShowAddModal(false);
-      setFormData({ id: "", packageName: "", packageType: "", numberOfPeople: "", amount: "" });
+      setSuccessMessage("Package added successfully");
+      setShowSuccessModal(true);
 
-      Swal.fire({
-        icon: "success",
-        title: "Package Created!",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-
-      await fetchPackages(centreId);
+      // Refresh packages
+      if (centreId) fetchPackages(centreId);
     } catch (error) {
-      console.error("❌ Error creating package:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Creation Failed",
-        text: typeof error === "string" ? error : "Failed to create package.",
-        confirmButtonColor: "#ff6b35",
-      });
+      console.error("❌ Failed to create package:", error);
+      setError(error || "Failed to create package");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Handle Edit Package
+  // Handle Edit Form Submission
   const handleEditSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.packageName || !formData.packageType || !formData.amount) {
-      Swal.fire({
-        icon: "warning",
-        title: "Missing Fields",
-        text: "Please fill in all required fields.",
-        confirmButtonColor: "#ff6b35",
-      });
+    // Validate required fields
+    if (!formData.packageName) {
+      setError("Package name is required");
       return;
     }
 
-    if (!formData.id) {
-      Swal.fire({
-        icon: "error",
-        title: "Missing Package ID",
-        text: "Could not identify package to update.",
-        confirmButtonColor: "#ff6b35",
-      });
+    if (!formData.amount) {
+      setError("Amount is required");
       return;
     }
 
     try {
-      // FIX: amount sent as Number, numberOfPeople as String per API schema
+      setLoading(true);
+      setError(null);
+
+      // Prepare package data for API
       const packageData = {
         packageName: formData.packageName,
-        packageType: formData.packageType,
-        numberOfPeople: String(formData.numberOfPeople || "1"),
-        amount: Number(formData.amount || 0),
+        packageType: formData.packageType || "Standard",
+        numberOfPeople: formData.numberOfPeople || "1",
+        amount: parseFloat(formData.amount),
       };
 
-      console.log(`📦 Updating package ${formData.id}`, packageData);
-      await dispatch(updatePackage({ id: formData.id, packageData })).unwrap();
+      console.log("📦 Updating package:", { id: formData.id, ...packageData });
+
+      await dispatch(
+        updatePackage({
+          id: formData.id,
+          packageData,
+        }),
+      ).unwrap();
 
       setShowEditModal(false);
-      setFormData({ id: "", packageName: "", packageType: "", numberOfPeople: "", amount: "" });
+      setSuccessMessage("Package updated successfully");
+      setShowSuccessModal(true);
 
-      Swal.fire({
-        icon: "success",
-        title: "Package Updated!",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-
-      // Refresh list so UI reflects latest data from server
-      if (centreId) await fetchPackages(centreId);
+      // Refresh packages
+      if (centreId) fetchPackages(centreId);
     } catch (error) {
-      console.error("❌ Error updating package:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Update Failed",
-        text: typeof error === "string" ? error : "Failed to update package.",
-        confirmButtonColor: "#ff6b35",
-      });
+      console.error("❌ Failed to update package:", error);
+      setError(error || "Failed to update package");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Handle Delete Package
-  const handleDelete = async () => {
-    if (!deleteTargetId) return;
-
-    try {
-      await dispatch(deletePackage(deleteTargetId)).unwrap();
-      setDeleteTargetId(null);
-
-      Swal.fire({
-        icon: "success",
-        title: "Deleted!",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-
-      if (centreId) await fetchPackages(centreId);
-    } catch (error) {
-      console.error("❌ Error deleting package:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Delete Failed",
-        text: typeof error === "string" ? error : "Failed to delete package.",
-        confirmButtonColor: "#ff6b35",
-      });
-      setDeleteTargetId(null);
-    }
+  // Handle view package details
+  const handleView = (packageId) => {
+    navigate(`/vendor/package/${packageId}`);
   };
 
-  // Filter packages
+  // Filter package entries matching UI criteria
   const filteredPackages = packages.filter((pkg) => {
-    const matchesSearch = (pkg.packageName || pkg.name || "")
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      pkg.packageName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pkg.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pkg.description?.toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesStatus =
       filterStatus === "All" ||
       (filterStatus === "Active" && pkg.status !== "inactive") ||
       (filterStatus === "Inactive" && pkg.status === "inactive");
+
     return matchesSearch && matchesStatus;
   });
 
-  // Stats
   const totalPackages = packages.length;
   const activePackages = packages.filter((p) => p.status !== "inactive").length;
-  const inactivePackages = packages.filter((p) => p.status === "inactive").length;
+  const inactivePackages = packages.filter(
+    (p) => p.status === "inactive",
+  ).length;
 
+  // Show loading state
   if (loading || packagesLoading) {
     return (
       <div className="package-container">
@@ -315,79 +311,44 @@ const PackageSettings = () => {
     );
   }
 
+  // Show error state
+  if (error && packages.length === 0) {
+    return (
+      <div className="package-container">
+        <div className="package-header">
+          <div>
+            <h2>Package Settings</h2>
+            <p>Error loading packages</p>
+          </div>
+        </div>
+        <div className="error-state">
+          <p>{error}</p>
+          <button onClick={() => centreId && fetchPackages(centreId)}>
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="package-container">
-      {/* Header */}
+      {/* Header element */}
       <div className="package-header">
         <div>
           <h2>Package Settings</h2>
-          <p>Manage your tour packages</p>
+          <p>
+            Manage your tour packages — view, edit, and control availability
+          </p>
         </div>
-        <button
-          className="add-package-btn"
-          onClick={() => {
-            if (!hasCentre) {
-              Swal.fire({
-                icon: "warning",
-                title: "No Tourist Centre",
-                text: "Please register a tourist centre first.",
-                confirmButtonColor: "#ff6b35",
-                confirmButtonText: "Register Centre",
-              }).then((result) => {
-                if (result.isConfirmed) navigate("/vendor/add-centre");
-              });
-              return;
-            }
-            setFormData({ id: "", packageName: "", packageType: "", numberOfPeople: "", amount: "" });
-            setShowAddModal(true);
-          }}
-        >
+
+        <button className="add-package-btn" onClick={handleAddPackageClick}>
           <Plus size={18} />
           Add Package
         </button>
       </div>
 
-      {/* Warning Banner - No Centre */}
-      {!hasCentre && (
-        <div
-          className="warning-banner"
-          style={{
-            background: "#fff3cd",
-            border: "1px solid #ffc107",
-            borderRadius: "8px",
-            padding: "16px 20px",
-            marginBottom: "20px",
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-          }}
-        >
-          <AlertCircle size={24} color="#856404" />
-          <div>
-            <strong style={{ color: "#856404" }}>No Tourist Centre Found</strong>
-            <p style={{ margin: "4px 0 0 0", color: "#856404" }}>
-              You need to register a tourist centre before creating packages.
-            </p>
-          </div>
-          <button
-            onClick={() => navigate("/vendor/add-centre")}
-            style={{
-              marginLeft: "auto",
-              padding: "8px 20px",
-              background: "#ffc107",
-              border: "none",
-              borderRadius: "4px",
-              color: "#212529",
-              cursor: "pointer",
-              fontWeight: "bold",
-            }}
-          >
-            Register Centre
-          </button>
-        </div>
-      )}
-
-      {/* Search & Filters */}
+      {/* Search Bar & Status Filters */}
       <div className="package-filters">
         <div className="search-box">
           <Search size={18} />
@@ -398,6 +359,7 @@ const PackageSettings = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+
         <div className="filter-buttons">
           <button
             className={`filter ${filterStatus === "All" ? "active" : ""}`}
@@ -417,11 +379,13 @@ const PackageSettings = () => {
           >
             Inactive
           </button>
-          <span className="package-count">{filteredPackages.length} packages</span>
+          <span className="package-count">
+            {filteredPackages.length} packages
+          </span>
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats Summary Panel */}
       <div className="stats-grid">
         <div className="stat-card blue">
           <div className="stat-icon">
@@ -432,6 +396,7 @@ const PackageSettings = () => {
             <p>Total Packages</p>
           </div>
         </div>
+
         <div className="stat-card green">
           <div className="stat-icon">
             <Check size={18} />
@@ -441,6 +406,7 @@ const PackageSettings = () => {
             <p>Active</p>
           </div>
         </div>
+
         <div className="stat-card orange">
           <div className="stat-icon">
             <X size={18} />
@@ -452,16 +418,27 @@ const PackageSettings = () => {
         </div>
       </div>
 
-      {/* Package Table */}
+      {/* Main Datatable Render */}
       {filteredPackages.length === 0 ? (
         <div className="empty-state">
           <Inbox size={35} strokeWidth={1.5} />
-          <h3>{hasCentre ? "No packages found" : "No tourist centre registered"}</h3>
+          <h3>No packages found</h3>
           <p>
-            {hasCentre
-              ? "Add your first package to get started"
-              : "Register a tourist centre first to create packages"}
+            {searchTerm || filterStatus !== "All"
+              ? "Try adjusting your search or filters"
+              : "Add your first package to get started"}
           </p>
+          {(searchTerm || filterStatus !== "All") && (
+            <button
+              className="clear-filters-btn"
+              onClick={() => {
+                setSearchTerm("");
+                setFilterStatus("All");
+              }}
+            >
+              Clear Filters
+            </button>
+          )}
         </div>
       ) : (
         <div className="package-list">
@@ -478,9 +455,8 @@ const PackageSettings = () => {
             </thead>
             <tbody>
               {filteredPackages.map((pkg) => {
-                // FIX: always resolve id with fallback to _id
-                const pkgId = pkg.id || pkg._id;
-                const packageName = pkg.packageName || pkg.name || "Unnamed";
+                const packageName =
+                  pkg.packageName || pkg.name || "Unnamed Package";
                 const price = pkg.amount || pkg.price || 0;
                 const packageType = pkg.packageType || pkg.type || "Standard";
                 const status = pkg.status || "active";
@@ -489,10 +465,15 @@ const PackageSettings = () => {
                   : "N/A";
 
                 return (
-                  <tr key={pkgId}>
+                  <tr key={pkg.id || pkg._id}>
                     <td>
                       <div className="package-name-cell">
                         <span className="package-name">{packageName}</span>
+                        {pkg.description && (
+                          <span className="package-desc">
+                            {pkg.description.slice(0, 50)}...
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="package-price">
@@ -515,32 +496,22 @@ const PackageSettings = () => {
                       <div className="action-buttons">
                         <button
                           className="action-btn view"
-                          onClick={() =>
-                            navigate(`/vendor/package/${pkgId}`)
-                          }
+                          onClick={() => handleView(pkg.id || pkg._id)}
+                          title="View Package"
                         >
                           <Eye size={16} />
                         </button>
                         <button
                           className="action-btn edit"
-                          onClick={() => {
-                            setFormData({
-                              id: pkgId,
-                              packageName: pkg.packageName || pkg.name || "",
-                              packageType: pkg.packageType || pkg.type || "",
-                              numberOfPeople:
-                                pkg.numberOfPeople || pkg.maxPeople || "",
-                              // Keep as string in the input, convert to Number on submit
-                              amount: String(pkg.amount || pkg.price || ""),
-                            });
-                            setShowEditModal(true);
-                          }}
+                          onClick={() => handleEditClick(pkg)}
+                          title="Edit Package"
                         >
                           <Edit size={16} />
                         </button>
                         <button
                           className="action-btn delete"
-                          onClick={() => setDeleteTargetId(pkgId)}
+                          onClick={() => handleDeleteClick(pkg.id || pkg._id)}
+                          title="Delete Package"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -554,12 +525,12 @@ const PackageSettings = () => {
         </div>
       )}
 
-      {/* Add Modal */}
+      {/* --- ADD NEW PACKAGE MODAL --- */}
       {showAddModal && (
-        <div className="modal-backdrop">
-          <div className="modal-card">
+        <div className="modal-backdrop" onClick={() => setShowAddModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <div>
+              <div className="modal-title-area">
                 <h2>Add New Package</h2>
                 <p>Create a new tour package</p>
               </div>
@@ -572,62 +543,58 @@ const PackageSettings = () => {
             </div>
             <form onSubmit={handleAddSubmit} className="modal-form">
               <div className="form-group">
-                <label>Package Name *</label>
+                <label className="form-label">Package Name *</label>
                 <input
                   type="text"
                   name="packageName"
                   className="form-input"
-                  placeholder="e.g. Lekki Conservation Trail"
+                  placeholder="e.g. Family Package"
                   value={formData.packageName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, packageName: e.target.value })
-                  }
+                  onChange={handleInputChange}
                   required
                 />
               </div>
+
               <div className="form-group">
-                <label>Package Type *</label>
+                <label className="form-label">Package Type</label>
                 <input
                   type="text"
                   name="packageType"
                   className="form-input"
-                  placeholder="e.g. recreational centre"
+                  placeholder="e.g. Premium, Standard, Economy"
                   value={formData.packageType}
-                  onChange={(e) =>
-                    setFormData({ ...formData, packageType: e.target.value })
-                  }
-                  required
+                  onChange={handleInputChange}
                 />
               </div>
+
               <div className="form-group">
-                <label>Number of People *</label>
+                <label className="form-label">Number of people</label>
                 <input
                   type="text"
                   name="numberOfPeople"
                   className="form-input"
-                  placeholder="e.g. 10"
+                  placeholder="e.g. 5"
                   value={formData.numberOfPeople}
-                  onChange={(e) =>
-                    setFormData({ ...formData, numberOfPeople: e.target.value })
-                  }
-                  required
+                  onChange={handleInputChange}
                 />
+                <small className="form-hint">
+                  Maximum number of people per booking
+                </small>
               </div>
+
               <div className="form-group">
-                <label>Amount (₦) *</label>
+                <label className="form-label">Amount (₦) *</label>
                 <input
                   type="number"
                   name="amount"
-                  className="form-input short-input"
-                  placeholder="e.g. 15000"
-                  min="0"
+                  className="form-input"
+                  placeholder="e.g. 50000"
                   value={formData.amount}
-                  onChange={(e) =>
-                    setFormData({ ...formData, amount: e.target.value })
-                  }
+                  onChange={handleInputChange}
                   required
                 />
               </div>
+
               <div className="modal-actions">
                 <button
                   type="button"
@@ -636,8 +603,12 @@ const PackageSettings = () => {
                 >
                   Cancel
                 </button>
-                <button type="submit" className="modal-btn-submit">
-                  <Check size={16} /> Add Package
+                <button
+                  type="submit"
+                  className="modal-btn-submit"
+                  disabled={loading}
+                >
+                  <Check size={16} /> {loading ? "Adding..." : "Add Package"}
                 </button>
               </div>
             </form>
@@ -645,14 +616,14 @@ const PackageSettings = () => {
         </div>
       )}
 
-      {/* Edit Modal */}
+      {/* --- EDIT PACKAGE MODAL --- */}
       {showEditModal && (
-        <div className="modal-backdrop">
-          <div className="modal-card">
+        <div className="modal-backdrop" onClick={() => setShowEditModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <div>
+              <div className="modal-title-area">
                 <h2>Edit Package</h2>
-                <p>Update package details</p>
+                <p>Edit tour package</p>
               </div>
               <button
                 className="close-modal-btn"
@@ -663,58 +634,55 @@ const PackageSettings = () => {
             </div>
             <form onSubmit={handleEditSubmit} className="modal-form">
               <div className="form-group">
-                <label>Package Name *</label>
+                <label className="form-label">Package Name *</label>
                 <input
                   type="text"
                   name="packageName"
                   className="form-input"
+                  placeholder="Package name"
                   value={formData.packageName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, packageName: e.target.value })
-                  }
+                  onChange={handleInputChange}
                   required
                 />
               </div>
+
               <div className="form-group">
-                <label>Package Type *</label>
+                <label className="form-label">Package Type</label>
                 <input
                   type="text"
                   name="packageType"
                   className="form-input"
+                  placeholder="Package type"
                   value={formData.packageType}
-                  onChange={(e) =>
-                    setFormData({ ...formData, packageType: e.target.value })
-                  }
-                  required
+                  onChange={handleInputChange}
                 />
               </div>
+
               <div className="form-group">
-                <label>Number of People *</label>
+                <label className="form-label">Number of people</label>
                 <input
                   type="text"
                   name="numberOfPeople"
                   className="form-input"
+                  placeholder="Max people"
                   value={formData.numberOfPeople}
-                  onChange={(e) =>
-                    setFormData({ ...formData, numberOfPeople: e.target.value })
-                  }
-                  required
+                  onChange={handleInputChange}
                 />
               </div>
+
               <div className="form-group">
-                <label>Amount (₦) *</label>
+                <label className="form-label">Amount (₦) *</label>
                 <input
                   type="number"
                   name="amount"
-                  className="form-input short-input"
-                  min="0"
+                  className="form-input"
+                  placeholder="Amount"
                   value={formData.amount}
-                  onChange={(e) =>
-                    setFormData({ ...formData, amount: e.target.value })
-                  }
+                  onChange={handleInputChange}
                   required
                 />
               </div>
+
               <div className="modal-actions">
                 <button
                   type="button"
@@ -723,8 +691,12 @@ const PackageSettings = () => {
                 >
                   Cancel
                 </button>
-                <button type="submit" className="modal-btn-submit">
-                  <Check size={16} /> Save Changes
+                <button
+                  type="submit"
+                  className="modal-btn-submit"
+                  disabled={loading}
+                >
+                  <Check size={16} /> {loading ? "Saving..." : "Save changes"}
                 </button>
               </div>
             </form>
@@ -732,10 +704,36 @@ const PackageSettings = () => {
         </div>
       )}
 
-      {/* Delete Confirmation */}
+      {/* --- SUCCESS STATUS MODAL --- */}
+      {showSuccessModal && (
+        <div
+          className="modal-backdrop"
+          onClick={() => setShowSuccessModal(false)}
+        >
+          <div
+            className="alert-modal-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="success-icon">✓</div>
+            <h2 className="alert-title">Success!</h2>
+            <p className="alert-message">{successMessage}</p>
+            <button
+              className="alert-btn-continue"
+              onClick={() => setShowSuccessModal(false)}
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* --- CONFIRM DELETE MODAL --- */}
       {deleteTargetId && (
-        <div className="modal-backdrop">
-          <div className="alert-modal-card">
+        <div className="modal-backdrop" onClick={() => setDeleteTargetId(null)}>
+          <div
+            className="alert-modal-card"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h2 className="alert-title">Delete Package</h2>
             <p className="alert-message">
               Are you sure you want to delete this package? This action cannot
@@ -748,8 +746,12 @@ const PackageSettings = () => {
               >
                 Cancel
               </button>
-              <button className="alert-btn-delete" onClick={handleDelete}>
-                Delete
+              <button
+                className="alert-btn-delete"
+                onClick={handleConfirmDelete}
+                disabled={loading}
+              >
+                {loading ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>

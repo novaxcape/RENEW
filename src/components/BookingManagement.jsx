@@ -1,8 +1,13 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import "./css/BookingManagement.css";
 import { useDispatch, useSelector } from "react-redux";
 import { getVendorBookings, getVendorTouristCenters } from "../redox/apiSlice";
+import {
+  persistCentreId,
+  resolveCentreIds,
+  resolveCentreIdsFromSources,
+} from "../utils/vendorCentre";
 
 const tabs = [
   { label: "All Booking", count: 0, active: true },
@@ -39,6 +44,11 @@ export default function BookingManagement() {
     bookingLoading,
   } = useSelector((state) => state.api);
   const { vendorDetails } = useSelector((state) => state.auth);
+  const vendorId =
+    vendorDetails?.id ||
+    vendorDetails?._id ||
+    vendorDetails?.vendorId ||
+    localStorage.getItem("vendorId");
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 600);
@@ -47,45 +57,41 @@ export default function BookingManagement() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Fetch vendor's centres on load
   useEffect(() => {
-    console.log("🔍 [BookingManagement] vendorDetails:", vendorDetails);
-    if (vendorDetails?.id) {
-      console.log(
-        "🔍 [BookingManagement] dispatching getVendorTouristCenters for vendorId:",
-        vendorDetails.id,
-      );
-      dispatch(getVendorTouristCenters(vendorDetails.id));
-    } else {
-      console.warn(
-        "⚠️ [BookingManagement] No vendorDetails.id found — getVendorTouristCenters NOT dispatched. Check state.auth.vendorDetails shape (maybe it's _id instead of id?).",
-      );
-    }
-  }, [dispatch, vendorDetails]);
+    if (!vendorId || vendorCentres?.length > 0) return;
 
-  // When centres are loaded, fetch bookings for the first centre
-  // GET /api/v1/booking/get-all/{touristId}
+    dispatch(getVendorTouristCenters(vendorId)).catch((error) => {
+      console.warn("[BookingManagement] Unable to load vendor centres:", error);
+    });
+  }, [dispatch, vendorCentres, vendorId]);
+
+  // Fetch bookings for the vendor's centre(s). The booking API expects tourist/centre ids.
   useEffect(() => {
-    console.log("🔍 [BookingManagement] vendorCentres:", vendorCentres);
-    if (vendorCentres && vendorCentres.length > 0) {
-      const firstCentre = vendorCentres[0];
-      console.log(
-        "🔍 [BookingManagement] dispatching getVendorBookings for touristId:",
-        firstCentre.id,
-      );
-      dispatch(
-        getVendorBookings({
-          touristId: firstCentre.id,
-          pageNumber: currentPage,
-          pageSize,
-        }),
-      );
-    } else {
+    const centreIdsFromApi = resolveCentreIdsFromSources(vendorCentres);
+    const touristIds =
+      centreIdsFromApi.length > 0 ? centreIdsFromApi : resolveCentreIds();
+
+    if (touristIds.length === 0) {
       console.warn(
-        "⚠️ [BookingManagement] vendorCentres is empty — getVendorBookings NOT dispatched.",
+        "⚠️ [BookingManagement] No centre IDs found — getVendorBookings NOT dispatched.",
       );
+      return;
     }
-  }, [dispatch, vendorCentres, currentPage]);
+
+    persistCentreId(touristIds[0]);
+
+    console.log(
+      "🔍 [BookingManagement] dispatching getVendorBookings for touristIds:",
+      touristIds,
+    );
+    dispatch(
+      getVendorBookings({
+        touristIds,
+        pageNumber: currentPage,
+        pageSize,
+      }),
+    );
+  }, [dispatch, vendorCentres, currentPage, pageSize]);
 
   // Map real API booking objects to the table row shape
   const mapRealBookings = () => {
@@ -162,8 +168,7 @@ export default function BookingManagement() {
     Cancelled: "status-cancelled",
   };
 
-  // Pull pagination directly from the API response shape:
-  // { pageNumber, pageSize, totalDocument, totalDocuments, totalPages, hasNextPage, hasPreviousPage }
+  // Pull pagination from vendorBookingPagination state
   const totalBookings =
     vendorBookingPagination?.totalDocuments ??
     vendorBookingPagination?.totalDocument ??
@@ -178,6 +183,16 @@ export default function BookingManagement() {
     vendorBookingPagination?.hasNextPage ?? currentPage < totalPages;
   const hasPreviousPage =
     vendorBookingPagination?.hasPreviousPage ?? currentPage > 1;
+
+  // Handle page change
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    // Scroll to top of table when changing pages
+    const tableElement = document.querySelector(".table-card");
+    if (tableElement) {
+      tableElement.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 
   if (bookingLoading && vendorBookings?.length === 0) {
     return (
@@ -285,22 +300,62 @@ export default function BookingManagement() {
           <span className="pagination-info">
             {isMobile
               ? `Page ${currentPage} of ${totalPages}`
-              : `Total of ${totalBookings} Bookings`}
+              : `Showing ${(currentPage - 1) * pageSize + 1} - ${Math.min(currentPage * pageSize, totalBookings)} of ${totalBookings} Bookings`}
           </span>
           <div className="pagination-controls">
             <button
               className="page-arrow page-arrow-text"
-              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
               disabled={!hasPreviousPage}
             >
               {isMobile && <span className="page-arrow-label">Back</span>}
               <ChevronLeft size={16} />
             </button>
-            <button className="page-btn page-btn-active">{currentPage}</button>
+
+            {/* Page numbers */}
+            {!isMobile && (
+              <>
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  return (
+                    <button
+                      key={pageNum}
+                      className={`page-btn ${currentPage === pageNum ? "page-btn-active" : ""}`}
+                      onClick={() => handlePageChange(pageNum)}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </>
+            )}
+
+            {!isMobile && totalPages > 5 && currentPage < totalPages - 2 && (
+              <span className="page-ellipsis">...</span>
+            )}
+
+            {!isMobile && totalPages > 5 && currentPage < totalPages - 2 && (
+              <button
+                className="page-btn"
+                onClick={() => handlePageChange(totalPages)}
+              >
+                {totalPages}
+              </button>
+            )}
+
             <button
               className="page-arrow page-arrow-text"
               onClick={() =>
-                setCurrentPage((page) => Math.min(totalPages, page + 1))
+                handlePageChange(Math.min(totalPages, currentPage + 1))
               }
               disabled={!hasNextPage}
             >

@@ -53,6 +53,8 @@ const KycForm = () => {
   const touristId =
     location.state?.touristId ||
     localStorage.getItem("latestTouristId") ||
+    localStorage.getItem("centreId") ||
+    localStorage.getItem("touristId") ||
     getEntityId(location.state?.centreData) ||
     null;
 
@@ -170,10 +172,6 @@ const KycForm = () => {
       accountNumber: String(formData.accountNumber),
       accountName: formData.accountName,
       bankCode: formData.bankCode || "",
-      // Optional fields
-      ...(formData.centreName && { centreName: formData.centreName }),
-      ...(formData.city && { city: formData.city }),
-      ...(formData.streetAddress && { streetAddress: formData.streetAddress }),
     };
 
     console.log("=== SENDING BOTH PHONE FIELDS ===");
@@ -187,10 +185,13 @@ const KycForm = () => {
   createKyc({ touristId, kycData })
 ).unwrap();
 
-// Remove temporary storage
-localStorage.removeItem("latestTouristId");
+// Keep the centre id available for dashboard wallet/package/booking APIs.
+localStorage.setItem("latestTouristId", touristId);
+localStorage.setItem("centreId", touristId);
+localStorage.setItem("touristId", touristId);
+localStorage.setItem("selectedCentreId", touristId);
 
-// ✅ Mark onboarding as completed
+// Mark onboarding as completed.
 localStorage.setItem("kycSubmitted", "true");
 localStorage.setItem("vendorHasCentre", "true");
 
