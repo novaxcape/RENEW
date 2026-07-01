@@ -1,6 +1,7 @@
-// Wallet.jsx
-import { useCallback, useEffect, useState } from "react";
+// Wallet.jsx - FULLY EDITED WITH SWEETALERT2
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import Swal from "sweetalert2";
 import {
   fetchWalletStart,
   fetchWalletSuccess,
@@ -43,6 +44,61 @@ const getWalletTouristId = (walletData) =>
   walletData?.touristCentre?.id ||
   walletData?.touristCentre?._id;
 
+// ✅ FIXED: Better transaction extraction with multiple fallbacks
+const getWalletTransactions = (walletData) => {
+  if (!walletData) return [];
+
+  // Try all possible locations for transactions
+  const possiblePaths = [
+    walletData?.transactions,
+    walletData?.data?.transactions,
+    walletData?.transactionHistory,
+    walletData?.data?.transactionHistory,
+    walletData?.walletTransactions,
+    walletData?.data?.walletTransactions,
+    walletData?.withdrawals,
+    walletData?.data?.withdrawals,
+    walletData?.payouts,
+    walletData?.data?.payouts,
+    walletData?.history,
+    walletData?.data?.history,
+    walletData?.transactions?.data,
+    walletData?.transactionHistory?.data,
+    walletData?.data?.transactions?.data,
+  ];
+
+  for (const path of possiblePaths) {
+    if (Array.isArray(path) && path.length > 0) {
+      console.log("✅ Found transactions at path:", path);
+      return path;
+    }
+  }
+
+  // If no transactions found, log the wallet structure for debugging
+  console.log("🔍 Wallet data structure:", JSON.stringify(walletData, null, 2));
+  console.log("🔍 Wallet keys:", Object.keys(walletData || {}));
+  
+  // Check if there's any array in the wallet data
+  for (const key of Object.keys(walletData || {})) {
+    if (Array.isArray(walletData[key]) && walletData[key].length > 0) {
+      console.log(`✅ Found array at key "${key}":`, walletData[key]);
+      return walletData[key];
+    }
+  }
+
+  return [];
+};
+
+const getWithdrawalHistoryPayload = (responseData) => {
+  const withdrawals =
+    responseData?.withdrawals ||
+    responseData?.data?.withdrawals ||
+    responseData?.data ||
+    [];
+
+  return Array.isArray(withdrawals) ? withdrawals : [];
+};
+
 const parseResponseBody = async (response) => {
   const text = await response.text();
   if (!text) return {};
@@ -57,7 +113,6 @@ const parseResponseBody = async (response) => {
 const getWalletErrorMessage = (status, data) => {
   const message = data?.message || "Failed to fetch wallet data";
 
-  // Handle specific error cases
   if (message.toLowerCase().includes("tourist not found")) {
     return "No tourist centre is linked to your account yet. Please create a tourist centre first to access your wallet.";
   }
@@ -77,12 +132,64 @@ const getWalletErrorMessage = (status, data) => {
   return message;
 };
 
+// ✅ SweetAlert helper functions
+const showSuccessAlert = (title, text) => {
+  Swal.fire({
+    icon: "success",
+    title: title,
+    text: text,
+    confirmButtonColor: "#ff6b35",
+    timer: 3000,
+    timerProgressBar: true,
+  });
+};
+
+const showErrorAlert = (title, text) => {
+  Swal.fire({
+    icon: "error",
+    title: title,
+    text: text,
+    confirmButtonColor: "#ff6b35",
+  });
+};
+
+const showWarningAlert = (title, text, confirmText, callback) => {
+  Swal.fire({
+    icon: "warning",
+    title: title,
+    text: text,
+    confirmButtonColor: "#ff6b35",
+    confirmButtonText: confirmText || "OK",
+    showCancelButton: true,
+    cancelButtonColor: "#6c757d",
+  }).then((result) => {
+    if (callback && result.isConfirmed) {
+      callback();
+    }
+  });
+};
+
+const showInfoAlert = (title, text, callback) => {
+  Swal.fire({
+    icon: "info",
+    title: title,
+    text: text,
+    confirmButtonColor: "#ff6b35",
+  }).then((result) => {
+    if (callback && result.isConfirmed) {
+      callback();
+    }
+  });
+};
+
 const Wallet = () => {
   const dispatch = useDispatch();
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawing, setWithdrawing] = useState(false);
+  const [withdrawals, setWithdrawals] = useState([]);
+  const [withdrawalsLoading, setWithdrawalsLoading] = useState(false);
+  const [withdrawalsError, setWithdrawalsError] = useState(null);
 
-  // Get wallet data from Redux
   const wallet = useSelector(selectWallet);
   const loading = useSelector(selectWalletLoading);
   const error = useSelector(selectWalletError);
@@ -90,6 +197,51 @@ const Wallet = () => {
   const totalEarnings = useSelector(selectWalletTotalEarnings);
 
   const { userToken, isAuthenticated } = useSelector((state) => state.auth);
+
+  const fetchWithdrawalHistory = useCallback(
+    async (touristId, authToken = getAuthToken(userToken)) => {
+      if (!touristId || !authToken) {
+        setWithdrawals([]);
+        return;
+      }
+
+      try {
+        setWithdrawalsLoading(true);
+        setWithdrawalsError(null);
+
+        const response = await fetch(
+          `${API_URL}/withdrawal/withdrawals/${encodeURIComponent(
+            touristId,
+          )}?page=1&limit=10`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+
+        const data = await parseResponseBody(response);
+        console.log("Withdrawal history response:", data);
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to load withdrawal history");
+        }
+
+        setWithdrawals(getWithdrawalHistoryPayload(data));
+      } catch (error) {
+        console.error("Withdrawal history fetch error:", error);
+        setWithdrawals([]);
+        setWithdrawalsError(
+          error.message || "Failed to load withdrawal history",
+        );
+      } finally {
+        setWithdrawalsLoading(false);
+      }
+    },
+    [userToken],
+  );
 
   // Fetch wallet data
   const fetchWalletData = useCallback(async () => {
@@ -112,20 +264,25 @@ const Wallet = () => {
       });
 
       const data = await parseResponseBody(response);
+      console.log("📦 Wallet API Response:", JSON.stringify(data, null, 2));
 
       if (!response.ok) {
         if (response.status === 401) {
           dispatch(logout());
           dispatch(fetchWalletFail("Session expired. Please login again."));
+          showWarningAlert(
+            "Session Expired",
+            "Your session has expired. Please login again.",
+            "Login",
+            () => (window.location.href = "/signin")
+          );
           return;
         }
 
-        // Handle tourist not found specifically
         if (
           response.status === 404 &&
           data?.message?.toLowerCase().includes("tourist")
         ) {
-          // Don't store error state, just show friendly message
           dispatch(fetchWalletFail("No tourist centre found"));
           return;
         }
@@ -141,7 +298,17 @@ const Wallet = () => {
         localStorage.setItem("latestTouristId", touristId);
       }
 
+      // ✅ Log transaction data for debugging
+      const transactions = getWalletTransactions(walletData);
+      console.log("📊 Extracted transactions:", transactions);
+      console.log("📊 Transaction count:", transactions.length);
+
       dispatch(fetchWalletSuccess(walletData));
+
+      // Show success notification if transactions found
+      if (transactions.length > 0) {
+        console.log(`✅ Found ${transactions.length} transactions`);
+      }
     } catch (error) {
       console.error("Wallet fetch error:", error);
       dispatch(
@@ -161,28 +328,71 @@ const Wallet = () => {
     };
   }, [dispatch, fetchWalletData, isAuthenticated, userToken]);
 
-  // Handle withdraw
+  useEffect(() => {
+    const touristId = getWalletTouristId(wallet) || getStoredTouristId();
+
+    if (wallet && touristId) {
+      fetchWithdrawalHistory(touristId);
+    }
+  }, [fetchWithdrawalHistory, wallet]);
+
+  // Handle withdraw with SweetAlert
   const handleWithdraw = async () => {
     const amount = parseFloat(withdrawAmount);
     const touristId = getWalletTouristId(wallet) || getStoredTouristId();
     const token = getAuthToken(userToken);
 
     if (!amount || amount <= 0) {
-      alert("Please enter a valid amount");
+      showWarningAlert("Invalid Amount", "Please enter a valid amount.");
       return;
     }
+    
     if (amount > balance) {
-      alert("Insufficient balance");
+      showWarningAlert("Insufficient Balance", "You don't have enough balance to withdraw this amount.");
       return;
     }
+    
     if (!touristId) {
-      alert("Tourist centre not found. Please refresh or add a centre first.");
+      showWarningAlert(
+        "Tourist Centre Not Found",
+        "Please refresh or add a centre first before withdrawing.",
+        "Create Centre",
+        () => (window.location.href = "/vendor/create-centre")
+      );
       return;
     }
+    
     if (!token) {
-      alert("Please login to withdraw funds");
+      showWarningAlert(
+        "Authentication Required",
+        "Please login to withdraw funds.",
+        "Login",
+        () => (window.location.href = "/signin")
+      );
       return;
     }
+
+    // ✅ Confirm withdrawal with SweetAlert
+    const confirmResult = await Swal.fire({
+      title: "Confirm Withdrawal",
+      html: `
+        <p>You are about to withdraw:</p>
+        <p style="font-size: 24px; font-weight: bold; color: #ff6b35;">
+          ${formatCurrency(amount)}
+        </p>
+        <p style="font-size: 14px; color: #666; margin-top: 8px;">
+          Available balance: ${formatCurrency(balance)}
+        </p>
+      `,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#28a745",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Yes, Withdraw",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!confirmResult.isConfirmed) return;
 
     try {
       setWithdrawing(true);
@@ -205,7 +415,11 @@ const Wallet = () => {
         throw new Error(data.message || "Withdrawal failed");
       }
 
-      alert(data.message || "Withdrawal initiated successfully");
+      showSuccessAlert(
+        "✅ Withdrawal Initiated!",
+        data.message || "Your withdrawal has been initiated successfully."
+      );
+      
       setWithdrawAmount("");
 
       dispatch(
@@ -215,9 +429,13 @@ const Wallet = () => {
         }),
       );
       fetchWalletData();
+      fetchWithdrawalHistory(touristId, token);
     } catch (error) {
       console.error("Withdrawal error:", error);
-      alert(error.message || "Withdrawal failed");
+      showErrorAlert(
+        "Withdrawal Failed",
+        error.message || "Failed to process withdrawal."
+      );
     } finally {
       setWithdrawing(false);
     }
@@ -230,7 +448,7 @@ const Wallet = () => {
       currency: "NGN",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(amount || 0);
   };
 
   // Stats cards data from API
@@ -243,7 +461,7 @@ const Wallet = () => {
       isNaira: true,
     },
     {
-      label: "Available balance",
+      label: "Available Balance",
       icon: "/novaxcape/dollar.png",
       value: formatCurrency(balance || 0),
       badge: "↑ 2.0%",
@@ -258,11 +476,64 @@ const Wallet = () => {
     },
   ];
 
+  const transactions = useMemo(() => {
+    const walletTransactions = getWalletTransactions(wallet);
+    return withdrawals.length > 0 ? withdrawals : walletTransactions;
+  }, [wallet, withdrawals]);
+
+  // ✅ Log transactions when they change
+  useEffect(() => {
+    console.log("📊 Transactions in state:", transactions);
+    console.log("📊 Transaction count:", transactions.length);
+  }, [transactions]);
+
+  const formatTransactionDate = (dateValue) => {
+    if (!dateValue) return "Date unavailable";
+
+    const parsedDate = new Date(dateValue);
+    if (Number.isNaN(parsedDate.getTime())) return "Date unavailable";
+
+    return parsedDate.toLocaleDateString("en-NG", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const getTransactionTitle = (transaction) =>
+    transaction.title ||
+    transaction.description ||
+    transaction.narration ||
+    transaction.type ||
+    transaction.transactionType ||
+    transaction.purpose ||
+    (transaction.bankName ? `Withdrawal to ${transaction.bankName}` : "") ||
+    "Wallet transaction";
+
+  const getTransactionAmount = (transaction) =>
+    transaction.amount ||
+    transaction.value ||
+    transaction.total ||
+    transaction.payoutAmount ||
+    0;
+
+  const getTransactionStatus = (transaction) =>
+    transaction.status || transaction.paymentStatus || "Completed";
+
+  const isWithdrawalTransaction = (transaction) =>
+    Boolean(
+      transaction.bankName ||
+        transaction.bankCode ||
+        transaction.providerReference ||
+        transaction.walletId,
+    );
+
   // Show loading state
   if (loading) {
     return (
       <div className="wallet-page">
         <div className="wallet-loading">
+          <div className="spinner"></div>
           <p>Loading wallet...</p>
         </div>
       </div>
@@ -402,6 +673,8 @@ const Wallet = () => {
             value={withdrawAmount}
             onChange={(e) => setWithdrawAmount(e.target.value)}
             className="wallet-withdraw-field"
+            min="0"
+            step="100"
           />
           <button
             className="wallet-withdraw-btn"
@@ -410,17 +683,96 @@ const Wallet = () => {
               withdrawing || !withdrawAmount || parseFloat(withdrawAmount) <= 0
             }
           >
-            {withdrawing ? "Withdrawing..." : "Withdraw"}
+            {withdrawing ? (
+              <>
+                <span className="spinner-small"></span> Withdrawing...
+              </>
+            ) : (
+              "Withdraw"
+            )}
           </button>
         </div>
       </div>
 
       <div className="wallet-transactions-panel">
+        <h3 className="wallet-transactions-title">Transaction History</h3>
         <div className="wallet-transactions">
-          {/* You can fetch and display transactions here */}
-          <p style={{ textAlign: "center", padding: "20px", color: "#666" }}>
-            No transactions yet
-          </p>
+          {withdrawalsLoading ? (
+            <p style={{ textAlign: "center", padding: "20px", color: "#666" }}>
+              Loading withdrawal history...
+            </p>
+          ) : withdrawalsError ? (
+            <p style={{ textAlign: "center", padding: "20px", color: "#d92d20" }}>
+              {withdrawalsError}
+            </p>
+          ) : transactions && transactions.length > 0 ? (
+            transactions.map((transaction, index) => (
+              <div
+                className="wallet-tx-card"
+                key={transaction.id || transaction._id || index}
+              >
+                <div className="wallet-tx-card__left">
+                  <div className="wallet-tx-card__icon-wrap">
+                    <span className="wallet-tx-card__dollar-icon">₦</span>
+                  </div>
+                  <div className="wallet-tx-card__info">
+                    <p className="wallet-tx-card__title">
+                      {getTransactionTitle(transaction)}
+                    </p>
+                    <p className="wallet-tx-card__date">
+                      {formatTransactionDate(
+                        transaction.createdAt ||
+                          transaction.date ||
+                          transaction.updatedAt ||
+                          transaction.timestamp,
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <div className="wallet-tx-card__right">
+                  <p
+                    className="wallet-tx-card__amount"
+                    style={{
+                      color: isWithdrawalTransaction(transaction)
+                        ? "#dc3545"
+                        : "#28a745",
+                    }}
+                  >
+                    {isWithdrawalTransaction(transaction)
+                      ? "-"
+                      : getTransactionAmount(transaction) > 0
+                      ? "+"
+                      : ""}
+                    {formatCurrency(getTransactionAmount(transaction))}
+                  </p>
+                  <span
+                    className={`wallet-tx-card__status ${
+                      getTransactionStatus(transaction).toLowerCase() === "completed" ||
+                      getTransactionStatus(transaction).toLowerCase() === "success" ||
+                      getTransactionStatus(transaction).toLowerCase() === "successful"
+                        ? "status-completed"
+                        : getTransactionStatus(transaction).toLowerCase() === "pending" ||
+                          getTransactionStatus(transaction).toLowerCase() === "processing"
+                        ? "status-pending"
+                        : "status-failed"
+                    }`}
+                  >
+                    {getTransactionStatus(transaction)}
+                  </span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div style={{ textAlign: "center", padding: "40px 20px" }}>
+              <div style={{ fontSize: "48px", marginBottom: "16px" }}>📭</div>
+              <p style={{ color: "#666", fontSize: "16px" }}>
+                No transactions yet
+              </p>
+              <p style={{ color: "#999", fontSize: "14px" }}>
+                Your transaction history will appear here once you start earning.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -637,6 +637,13 @@ export const createBooking = createAsyncThunk(
       const payload = {
         visitDate: bookingData.visitDate,
         clientId: bookingClientId,
+        amount: bookingData.amount,
+        totalAmount: bookingData.totalAmount,
+        subtotal: bookingData.subtotal,
+        serviceFee: bookingData.serviceFee,
+        paymentMethod: bookingData.paymentMethod,
+        numberOfPeople: bookingData.numberOfPeople,
+        ticketDetails: bookingData.ticketDetails,
       };
 
       console.log("📦 Final payload:", JSON.stringify(payload, null, 2));
@@ -840,7 +847,7 @@ export const verifyPasscode = createThunk(
 // ✅ FIXED: Backend uses booking data - no request body needed
 export const initializePayment = createAsyncThunk(
   "api/payment/initialize",
-  async ({ bookingId }, { getState, rejectWithValue }) => {
+  async ({ bookingId, paymentData }, { getState, rejectWithValue }) => {
     try {
       console.log(`💳 Initializing payment for booking ${bookingId}...`);
 
@@ -849,7 +856,7 @@ export const initializePayment = createAsyncThunk(
       // ✅ Send empty body - backend reads all data from the booking record
       const response = await axios.post(
         `${API_BASE_URL}/payment/make-payment/${bookingId}`,
-        {}, // Empty body
+        paymentData || {},
         {
           headers: {
             "Content-Type": "application/json",
@@ -937,6 +944,15 @@ export const getPaymentStatus = createThunk(
   (bookingId, { getState }) =>
     axios.get(
       `${API_BASE_URL}/payment/status/${bookingId}`,
+      authConfig(getState()),
+    ),
+);
+
+export const getInstallmentPaymentStatus = createThunk(
+  "api/payment/installmentStatus",
+  (bookingId, { getState }) =>
+    axios.get(
+      `${API_BASE_URL}/payment/installment-status/${bookingId}`,
       authConfig(getState()),
     ),
 );
@@ -1755,6 +1771,21 @@ const apiSlice = createSlice({
         state.paymentLoading = false;
         state.paymentError = action.payload;
         console.error("❌ Payment status load failed:", action.payload);
+      })
+
+      .addCase(getInstallmentPaymentStatus.pending, (state) => {
+        state.paymentLoading = true;
+        state.paymentError = null;
+      })
+      .addCase(getInstallmentPaymentStatus.fulfilled, (state, action) => {
+        state.paymentLoading = false;
+        state.paymentData = action.payload?.data || action.payload;
+        console.log("✅ Installment payment status loaded:", state.paymentData);
+      })
+      .addCase(getInstallmentPaymentStatus.rejected, (state, action) => {
+        state.paymentLoading = false;
+        state.paymentError = action.payload;
+        console.error("❌ Installment payment status load failed:", action.payload);
       })
 
       // ========== REVIEWS REDUCERS ==========

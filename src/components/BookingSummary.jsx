@@ -389,7 +389,7 @@ export default function BookingSummaryPage() {
     summaryItems.length > 0;
 
   // ✅ Handle payment - FIXED: initializePayment now only sends bookingId
-  const handleContinueToPayment = async () => {
+  const handleContinueToPayment = async ({ isInstallment = false } = {}) => {
     console.log("🚀 Starting payment process...");
     
     const token = localStorage.getItem("token") || localStorage.getItem("userToken");
@@ -443,12 +443,30 @@ export default function BookingSummaryPage() {
     try {
       const [year, month, day] = date.split("-");
       const formattedDate = `${month}/${day}/${year}`;
+      const selectedTicketDetails = summaryItems.map((t) => ({
+        ticketType: t.id,
+        ticketLabel: t.label,
+        quantity: quantities[t.id] || 0,
+        price: t.price,
+        amount: t.price * (quantities[t.id] || 0),
+      }));
+      const numberOfPeople = selectedTicketDetails.reduce(
+        (sum, ticket) => sum + ticket.quantity,
+        0,
+      );
 
       const bookingDataPayload = {
         visitDate: formattedDate,
         touristId: bookingTouristId,
         centreId: bookingTouristId,
         packageId,
+        amount: total,
+        totalAmount: total,
+        subtotal,
+        serviceFee: SERVICE_FEE,
+        ...(isInstallment && { paymentMethod: "installment" }),
+        numberOfPeople,
+        ticketDetails: selectedTicketDetails,
       };
 
       if (authenticatedRole === "vendor") {
@@ -522,28 +540,44 @@ export default function BookingSummaryPage() {
         serviceFee: SERVICE_FEE,
         centreDetails: bookingData.centreDetails,
         packageDetails: bookingData.packageDetails,
-        ticketDetails: summaryItems.map((t) => ({
-          ticketType: t.id,
-          ticketLabel: t.label,
-          quantity: quantities[t.id] || 0,
-          price: t.price,
-        })),
-        numberOfPeople: summaryItems.reduce(
-          (sum, t) => sum + (quantities[t.id] || 0),
-          0,
-        ),
+        ticketDetails: selectedTicketDetails,
+        numberOfPeople,
         date: formattedDate,
         packageId: packageId,
         touristId: bookingTouristId,
         clientId: authenticatedClientId,
         centreId: bookingTouristId,
+        isInstallment,
       };
       localStorage.setItem("pendingBookingState", JSON.stringify(bookingState));
+
+      if (isInstallment) {
+        navigate(`/payment-checkout/${bookingId}`, { state: bookingState });
+        return;
+      }
 
       try {
         // ✅ FIXED: Only pass bookingId — backend reads everything else from the booking record
         const paymentResponse = await dispatch(
-          initializePayment({ bookingId })
+          initializePayment({
+            bookingId,
+            paymentData: {
+              amount: total,
+              totalAmount: total,
+              subtotal,
+              serviceFee: SERVICE_FEE,
+              currency: "NGN",
+              callbackUrl: `${window.location.origin}/booking-confirmation/${bookingId}`,
+              metadata: {
+                bookingId,
+                packageId,
+                touristId: bookingTouristId,
+                clientId: authenticatedClientId,
+                ticketDetails: selectedTicketDetails,
+                numberOfPeople,
+              },
+            },
+          })
         ).unwrap();
 
         console.log("PAYMENT RESPONSE:", paymentResponse);
@@ -904,12 +938,21 @@ export default function BookingSummaryPage() {
 
           <button
             className="bp-cta-btn"
-            onClick={handleContinueToPayment}
+            onClick={() => handleContinueToPayment()}
             disabled={!canContinueToPayment}
           >
             {bookingLoading || isProcessing
               ? "Processing..."
               : "Continue To Payment"}
+          </button>
+
+          <button
+            type="button"
+            className="bp-installment"
+            onClick={() => handleContinueToPayment({ isInstallment: true })}
+            disabled={!canContinueToPayment}
+          >
+            or pay in installments
           </button>
 
           {bookingError && (

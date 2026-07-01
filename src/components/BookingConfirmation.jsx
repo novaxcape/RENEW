@@ -67,7 +67,11 @@ const BookingConfirmation = () => {
     // The payload might be the root response (with location, otp, visitDate) 
     // and a nested 'data' object (with amount, reference, status).
     const nestedData = payload.data || {};
+    const paymentDetails = nestedData.data || payload.payment || payload.paymentData || {};
     const rootData = payload.data?.data ? payload.data : payload; // Handle double nesting if axios unwrap differs
+    const pendingBookingState = JSON.parse(
+      localStorage.getItem("pendingBookingState") || "{}",
+    );
 
     setBookingDetails((prev) => ({
       ...prev,
@@ -78,9 +82,22 @@ const BookingConfirmation = () => {
       passcode: rootData.otp || rootData.passcode || nestedData.passcode || prev.passcode,
       
       // Payment details are nested inside 'data'
-      amount: nestedData.amount || rootData.amount || prev.amount,
-      status: nestedData.status || rootData.status || prev.status,
-      reference: nestedData.reference || rootData.reference || prev.reference,
+      amount:
+        paymentDetails.amount ||
+        paymentDetails.totalAmount ||
+        nestedData.amount ||
+        nestedData.totalAmount ||
+        rootData.amount ||
+        rootData.totalAmount ||
+        pendingBookingState.amount ||
+        pendingBookingState.totalAmount ||
+        prev.amount,
+      status: paymentDetails.status || nestedData.status || rootData.status || prev.status,
+      reference:
+        paymentDetails.reference ||
+        nestedData.reference ||
+        rootData.reference ||
+        prev.reference,
     }));
   };
 

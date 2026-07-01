@@ -124,7 +124,7 @@ const Pricing = ({ formData, onChange, onPackagesChange, onDocumentsChange, docu
           <small className="input-hint">Maximum number of visitors allowed per day</small>
         </div>
 
-        {/* <label className="checkbox-label">
+        <label className="checkbox-label">
           <input
             type="checkbox"
             name="installmentPayment"
@@ -133,7 +133,7 @@ const Pricing = ({ formData, onChange, onPackagesChange, onDocumentsChange, docu
           />
           <span>Accept Installment Payment</span>
         </label>
-        <p className="checkbox-hint">Allow customers to pay in installment (1, 2, or 3 months)</p> */}
+        <p className="checkbox-hint">Allow customers to pay in installment (1, 2, or 3 months)</p>
       </div>
 
       {/* Legal Information Section */}
