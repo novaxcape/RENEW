@@ -355,11 +355,25 @@
 
 /* Instalment link */
 .bp-installment {
+  border: 0;
+  background: transparent;
+  padding: 0;
   text-align: center;
   font-family: 'Manrope', sans-serif;
   font-weight: 500;
   font-size: 14px;
   color: #271A13;
+  cursor: pointer;
+}
+
+.bp-installment:hover {
+  color: #FF6B35;
+}
+
+.bp-installment:disabled,
+.bp-installment:disabled:hover {
+  color: #9f9f9f;
+  cursor: not-allowed;
 }
 
 .bp-installment-link {

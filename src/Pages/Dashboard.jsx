@@ -298,13 +298,13 @@ const Dashboard = () => {
       <RecentBookings bookings={stats.recentBookings || []} />
 
       <div className="bottom-section">
-        <PerformanceInsight
+        {/* <PerformanceInsight
           data={{
             revenue: revenue,
             bookings: bookings,
             ratings: ratings,
           }}
-        />
+        /> */}
         <CapacityGoals
           centreName={vendorName || "Lekki Conservation"}
           capacity={bookings?.total || 1200}

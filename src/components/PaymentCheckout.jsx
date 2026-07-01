@@ -5,89 +5,137 @@ import { CiCalendar } from "react-icons/ci";
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
-import { getPaymentPlans, initializePayment } from '../redox/apiSlice';
+import { initializePayment, getInstallmentPaymentStatus } from '../redox/apiSlice';
+
+const decodeJwtPayload = (token) => {
+  if (!token) return null;
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+    const normalizedPayload = payload.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(normalizedPayload));
+  } catch (error) {
+    console.warn("Unable to decode auth token payload:", error);
+    return null;
+  }
+};
+
+const getEntityId = (value) =>
+  value?.id ||
+  value?._id ||
+  value?.clientId ||
+  value?.ClientId ||
+  value?.userId ||
+  value?.UserId ||
+  null;
 
 const PaymentCheckout = () => {
   const navigate = useNavigate();
-  const { bookingId } = useParams();
+  const params = useParams();
+  const bookingId = params.bookingId || params.touristId;
   const location = useLocation();
   const dispatch = useDispatch();
-  
-  const [selectedPlanId, setSelectedPlanId] = useState(null);
+
   const [loading, setLoading] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState(null);
   const [paymentInitialized, setPaymentInitialized] = useState(false);
-  
-  // ✅ Get state from Redux
-  const { paymentPlans, paymentPlanLoading } = useSelector((state) => state.api);
+  const [selectedPlanId, setSelectedPlanId] = useState(null);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+
   const { loggedInUser, userToken } = useSelector((state) => state.auth);
   const { paymentLoading, paymentError, paymentData } = useSelector((state) => state.api);
 
-  // Get booking data from location state
-  const bookingData = location.state || {};
+  const storedBookingState = (() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("pendingBookingState") || "null");
+      return stored?.bookingId === bookingId ? stored : {};
+    } catch (error) {
+      console.error("Error reading pending booking state:", error);
+      return {};
+    }
+  })();
+
+  const bookingData = location.state || storedBookingState || {};
+  const isInstallment = bookingData.isInstallment || false;
   const totalAmount = bookingData.amount || bookingData.totalAmount || 0;
   const subtotal = bookingData.subtotal || 0;
   const serviceFee = bookingData.serviceFee || 0;
   const centreDetails = bookingData.centreDetails || {};
   const packageDetails = bookingData.packageDetails || {};
-  const packageId = packageDetails?.id || bookingData.packageId;
-  const clientId = loggedInUser?.id || localStorage.getItem('clientId');
+
+  const authToken =
+    userToken ||
+    localStorage.getItem("userToken") ||
+    localStorage.getItem("token");
+  const tokenPayload = decodeJwtPayload(authToken);
+  const clientId =
+    getEntityId(loggedInUser) ||
+    bookingData.clientId ||
+    localStorage.getItem('clientId') ||
+    getEntityId(tokenPayload);
 
   console.log("📄 PaymentCheckout - Mounted");
-  console.log("📄 bookingId from URL:", bookingId);
-  console.log("📄 bookingData:", bookingData);
+  console.log("📄 bookingId:", bookingId);
+  console.log("📄 isInstallment:", isInstallment);
   console.log("📄 totalAmount:", totalAmount);
-  console.log("📄 isInstallment:", bookingData.isInstallment);
 
-  // Fetch payment plans when component mounts (for installment)
+  // ✅ Fetch installment status if this is an installment booking
   useEffect(() => {
-    if (bookingData.isInstallment && packageId) {
-      dispatch(getPaymentPlans(packageId));
+    if (bookingId && isInstallment) {
+      dispatch(getInstallmentPaymentStatus(bookingId));
     }
-  }, [dispatch, packageId, bookingData.isInstallment]);
+  }, [dispatch, bookingId, isInstallment]);
+
+  // Installment data from API: { data: { totalInstallments, amountPerInstallment, installmentsPaid, ... } }
+  const installmentStatus = isInstallment ? (paymentData || {}) : null;
+  const totalInstallments = installmentStatus?.totalInstallments || 2;
+  const amountPerInstallment = installmentStatus?.amountPerInstallment || Math.ceil(totalAmount / totalInstallments);
+  const installmentsPaid = installmentStatus?.installmentsPaid || 0;
+
+  const plans = isInstallment ? [
+    {
+      id: `installment-${totalInstallments}`,
+      totalInstallments,
+      installmentAmount: amountPerInstallment,
+      installmentsPaid,
+    }
+  ] : [];
+
+  useEffect(() => {
+    if (isInstallment && plans.length === 1 && !selectedPlanId) {
+      setSelectedPlanId(plans[0].id);
+      setSelectedPlan(plans[0]);
+    }
+  }, [isInstallment, plans.length]);
 
   // ✅ Auto-initialize payment for non-installment bookings
   useEffect(() => {
-    if (bookingId && !bookingData.isInstallment && !paymentInitialized && !paymentLoading) {
-      // Auto-init payment for regular bookings
-      handleContinueToPayment(true);
+    if (bookingId && !isInstallment && !paymentInitialized && !loading) {
+      handleContinueToPayment();
     }
-  }, [bookingId, bookingData.isInstallment, paymentInitialized, paymentLoading]);
+  }, [bookingId, isInstallment]);
 
-  // Format currency
   const formatNaira = (amount) => {
     if (!amount) return '₦0';
     return `₦${Number(amount).toLocaleString('en-NG')}`;
   };
 
-  // Calculate installment amounts based on plan
-  const calculateInstallment = (plan) => {
-    if (!plan) return 0;
-    const total = Number(totalAmount) || 0;
-    const months = plan.durationInMonths || 1;
-    return Math.ceil(total / months);
-  };
-
-  // Handle plan selection
   const handlePlanSelect = (planId) => {
     setSelectedPlanId(planId);
     const plan = plans.find(p => p.id === planId);
     setSelectedPlan(plan);
   };
 
-  // ✅ Main handler for continue to payment using Redux thunk
-  const handleContinueToPayment = async (autoInit = false) => {
-    // For installment, validate plan selection
-    if (bookingData.isInstallment && !autoInit) {
-      if (!selectedPlanId) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Select a Plan',
-          text: 'Please select an installment plan to continue.',
-          confirmButtonColor: '#ff6b35',
-        });
-        return;
-      }
+  // ✅ FIXED: Only pass bookingId — no paymentData body
+  // ✅ FIXED: Correct redirect URL path — result.data.data.checkout_url
+  const handleContinueToPayment = async () => {
+    if (isInstallment && !selectedPlanId) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Select a Plan',
+        text: 'Please select an installment plan to continue.',
+        confirmButtonColor: '#ff6b35',
+      });
+      return;
     }
 
     if (!bookingId) {
@@ -100,10 +148,10 @@ const PaymentCheckout = () => {
       return;
     }
 
-    if (!clientId) {
+    if (!authToken) {
       Swal.fire({
         icon: 'error',
-        title: 'User Not Found',
+        title: 'Login Required',
         text: 'Please log in again to continue.',
         confirmButtonColor: '#ff6b35',
       });
@@ -114,121 +162,90 @@ const PaymentCheckout = () => {
     setLoading(true);
 
     try {
-      // ✅ Prepare payment data
-      const paymentDataPayload = {
-        amount: totalAmount,
-        currency: 'NGN',
-        // If installment, include plan details
-        ...(selectedPlanId && {
-          planId: selectedPlanId,
-          isInstallment: true,
-        }),
-        callbackUrl: `${window.location.origin}/booking-confirmation/${bookingId}`,
-        metadata: {
-          bookingId: bookingId,
-          isInstallment: !!selectedPlanId,
-          planDetails: selectedPlan,
-          centreName: centreDetails?.centreName || centreDetails?.name,
-          packageName: packageDetails?.packageName,
-          clientId: clientId,
-        }
-      };
+      console.log("💳 Initializing payment for bookingId:", bookingId);
 
-      console.log("📄 Initializing payment with:", paymentDataPayload);
-
-      // ✅ Dispatch the Redux thunk
-      const result = await dispatch(initializePayment({
-        bookingId: bookingId,
-        paymentData: paymentDataPayload,
-      })).unwrap();
+      // ✅ No body — backend reads everything from booking record
+      const result = await dispatch(initializePayment({ bookingId })).unwrap();
 
       console.log("✅ Payment initialized:", result);
+      console.log("✅ Full response:", JSON.stringify(result, null, 2));
 
       setPaymentInitialized(true);
 
-      // ✅ Extract data from response
-      const paymentResult = result?.data || result;
-      const redirectUrl = paymentResult?.redirect_url || 
-                         paymentResult?.authorization_url ||
-                         paymentResult?.paymentUrl ||
-                         result?.redirect_url;
+      // ✅ FIXED: API returns { message, data: { status, message, data: { reference, checkout_url } } }
+      const redirectUrl =
+        result?.data?.data?.checkout_url ||
+        result?.data?.data?.redirect_url ||
+        result?.data?.checkout_url ||
+        result?.data?.redirect_url ||
+        result?.data?.authorization_url ||
+        result?.checkout_url ||
+        result?.redirect_url;
 
-      const paymentReference = paymentResult?.reference || result?.reference;
-      const paymentStatus = paymentResult?.status || result?.status;
+      const reference =
+        result?.data?.data?.reference ||
+        result?.data?.reference ||
+        result?.reference;
 
-      // ✅ Handle redirect to payment gateway
-      if (redirectUrl) {
+      const status = result?.data?.status || result?.status;
+
+      console.log("🔗 redirectUrl:", redirectUrl);
+      console.log("🔗 reference:", reference);
+
+      if (redirectUrl && redirectUrl.startsWith('http')) {
+        console.log("🔄 Redirecting to Korapay:", redirectUrl);
+
         await Swal.fire({
           icon: 'success',
           title: 'Redirecting to Payment Gateway',
-          text: 'You will be redirected to complete your payment.',
-          timer: 2000,
+          text: 'You will be redirected to Korapay to complete your payment.',
+          timer: 1500,
+          timerProgressBar: true,
           showConfirmButton: false,
         });
-        
+
         window.location.href = redirectUrl;
-        
-      } else if (paymentReference) {
-        // Payment initialized but no redirect URL
+
+      } else if (reference) {
         Swal.fire({
           icon: 'info',
           title: 'Payment Initiated',
           html: `
             <p>Your payment has been initiated.</p>
-            <p><strong>Reference:</strong> ${paymentReference}</p>
-            <p><strong>Status:</strong> ${paymentStatus || 'Pending'}</p>
+            <p><strong>Reference:</strong> ${reference}</p>
+            <p><strong>Status:</strong> ${status || 'Pending'}</p>
             <p>Please check your email for payment instructions.</p>
           `,
           confirmButtonColor: '#ff6b35',
         }).then(() => {
           navigate(`/booking-confirmation/${bookingId}`, {
-            state: {
-              bookingId: bookingId,
-              amount: totalAmount,
-              paymentReference: paymentReference,
-              selectedPlanId: selectedPlanId,
-              selectedPlan: selectedPlan,
-              centreDetails: centreDetails,
-              packageDetails: packageDetails,
-              isInstallment: !!selectedPlanId,
-            }
+            state: { bookingId, amount: totalAmount, reference, centreDetails, packageDetails }
           });
         });
-        
+
       } else {
-        // Fallback - show success
+        console.warn("⚠️ No redirect_url or reference in response:", JSON.stringify(result, null, 2));
+
         Swal.fire({
-          icon: 'success',
-          title: 'Booking Confirmed!',
-          text: 'Your booking has been confirmed. Please check your email for details.',
+          icon: 'warning',
+          title: 'Unexpected Response',
+          text: 'Payment was processed but no redirect link was returned. Please contact support.',
           confirmButtonColor: '#ff6b35',
         }).then(() => {
-          navigate(`/booking-confirmation/${bookingId}`, {
-            state: {
-              bookingId: bookingId,
-              amount: totalAmount,
-              selectedPlanId: selectedPlanId,
-              selectedPlan: selectedPlan,
-              centreDetails: centreDetails,
-              packageDetails: packageDetails,
-              isInstallment: !!selectedPlanId,
-            }
-          });
+          navigate('/my-bookings');
         });
       }
 
     } catch (error) {
       console.error("❌ Payment error:", error);
-      
+
       let errorMessage = 'Unable to process payment. Please try again.';
-      if (error === 'Please log in to continue' || error?.message?.includes('login')) {
-        errorMessage = 'Please log in to continue with payment.';
-      } else if (error?.message?.includes('404') || error?.message?.includes('not found')) {
-        errorMessage = 'Booking not found. Please try again.';
+      if (typeof error === 'string') {
+        errorMessage = error;
       } else if (error?.message) {
         errorMessage = error.message;
       }
-      
+
       Swal.fire({
         icon: 'error',
         title: 'Payment Error',
@@ -241,55 +258,34 @@ const PaymentCheckout = () => {
     }
   };
 
-  // Get plans from API or use fallback
-  const plans = paymentPlans && paymentPlans.length > 0 ? paymentPlans : [
-    { id: '1', durationInMonths: 1, frequency: 'monthly', installmentAmount: Math.ceil(totalAmount / 1) },
-    { id: '2', durationInMonths: 2, frequency: 'monthly', installmentAmount: Math.ceil(totalAmount / 2) },
-    { id: '3', durationInMonths: 3, frequency: 'monthly', installmentAmount: Math.ceil(totalAmount / 3) },
-  ];
+  // Amount due today
+  const amountDueToday = isInstallment && selectedPlan
+    ? selectedPlan.installmentAmount
+    : totalAmount;
 
-  // Loading state for auto-init
-  if (loading && !bookingData.isInstallment) {
+  // Loading / auto-initializing for non-installment
+  if ((loading || paymentLoading) && !isInstallment) {
     return (
       <div className="payment-page-wrapper">
-        <div className="loading-container">
+        <div style={{ textAlign: 'center', padding: '80px 20px' }}>
           <div className="spinner"></div>
-          <p>Initializing payment...</p>
+          <p style={{ marginTop: '16px', color: '#666' }}>Initializing payment...</p>
         </div>
       </div>
     );
   }
 
-  // Loading state for installment plans
-  if (bookingData.isInstallment && paymentPlanLoading) {
+  // Error state for non-installment
+  if (paymentError && !loading && !isInstallment) {
     return (
       <div className="payment-page-wrapper">
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p>Loading payment plans...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Payment error display
-  if (paymentError && !bookingData.isInstallment) {
-    return (
-      <div className="payment-page-wrapper">
-        <div className="error-container">
+        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
           <h2>Payment Error</h2>
-          <p>{paymentError}</p>
-          <button 
-            className="checkout-submit-btn" 
-            onClick={() => handleContinueToPayment(true)}
-          >
+          <p style={{ color: 'red', margin: '16px 0' }}>{paymentError}</p>
+          <button className="checkout-submit-btn" onClick={handleContinueToPayment} style={{ marginBottom: '12px' }}>
             Retry Payment
           </button>
-          <button 
-            className="back-nav-btn" 
-            onClick={() => navigate(-1)}
-            style={{ marginTop: '12px' }}
-          >
+          <button className="back-nav-btn" onClick={() => navigate(-1)}>
             Go Back
           </button>
         </div>
@@ -299,7 +295,7 @@ const PaymentCheckout = () => {
 
   return (
     <div className="payment-page-wrapper">
-      
+
       <div className="back-btn-container">
         <button className="back-nav-btn" onClick={() => navigate(-1)}>Back</button>
       </div>
@@ -307,55 +303,58 @@ const PaymentCheckout = () => {
       <div className="payment-page-header">
         <h1 className="main-title">Payment</h1>
         <p className="main-subtitle">
-          {bookingData.isInstallment 
+          {isInstallment
             ? 'Choose your payment plan and complete your booking'
             : 'Complete your payment to confirm your booking'
           }
         </p>
       </div>
 
-      {/* Installment Banner - Only for installment bookings */}
-      {bookingData.isInstallment && (
+      {/* Installment Banner */}
+      {isInstallment && (
         <div className="installment-banner-container">
           <div className="installment-banner-card">
             <div className="banner-icon-box">
-              <CiCalendar size={28}/>
+              <CiCalendar size={28} />
             </div>
             <h2 className="banner-title">Installment Payment</h2>
-            <p className="banner-subtitle">Split payment into smaller amount</p>
-            <span className="banner-badge">Flexible plan Available</span>
+            <p className="banner-subtitle">Split payment into smaller amounts</p>
+            <span className="banner-badge">Flexible Plan Available</span>
+            {installmentStatus && (
+              <span className="banner-badge">
+                {installmentsPaid} of {totalInstallments} paid
+              </span>
+            )}
           </div>
         </div>
       )}
 
       <div className="payment-layout-container">
-        
-        {/* Plan Selector - Only for installment bookings */}
-        {bookingData.isInstallment && (
+
+        {/* Plan Selector — installment only */}
+        {isInstallment && (
           <div className="plan-selector-card">
             <h3 className="card-section-heading">Choose Installment Plan</h3>
 
             <div className="plans-list-wrapper">
               {plans.map((plan) => {
-                const installmentAmount = plan.installmentAmount || calculateInstallment(plan);
                 const isSelected = selectedPlanId === plan.id;
-                const frequency = plan.frequency || 'monthly';
-                const duration = plan.durationInMonths || 1;
-                
                 return (
-                  <div 
+                  <div
                     key={plan.id}
                     className={`plan-option-row ${isSelected ? 'selected' : ''}`}
                     onClick={() => handlePlanSelect(plan.id)}
                     style={{ cursor: 'pointer' }}
                   >
                     <div className="plan-left-meta">
-                      <span className="plan-duration-title">{duration} Month{duration > 1 ? 's' : ''}</span>
-                      <span className="plan-interval-subtitle">{frequency} payment</span>
+                      <span className="plan-duration-title">{plan.totalInstallments} Installments</span>
+                      <span className="plan-interval-subtitle">
+                        {plan.installmentsPaid} of {plan.totalInstallments} paid
+                      </span>
                     </div>
                     <div className="plan-right-price">
-                      <span className="plan-price-value">{formatNaira(installmentAmount)}</span>
-                      <span className="plan-price-label">Per {frequency}</span>
+                      <span className="plan-price-value">{formatNaira(plan.installmentAmount)}</span>
+                      <span className="plan-price-label">Per installment</span>
                     </div>
                   </div>
                 );
@@ -368,7 +367,10 @@ const PaymentCheckout = () => {
                 <span className="info-alert-title">Installment plan detail</span>
               </div>
               <p className="info-alert-text">
-                First payment due today. Subsequent payments will be automatically charged {selectedPlan?.frequency || 'monthly'}.
+                {installmentsPaid === 0
+                  ? 'First installment due today. The remaining installment will be paid separately.'
+                  : `You have paid ${installmentsPaid} of ${totalInstallments} installments. Next payment due now.`
+                }
               </p>
             </div>
           </div>
@@ -378,9 +380,44 @@ const PaymentCheckout = () => {
         <div className="booking-summary-card">
           <h3 className="summary-card-title">Booking Summary</h3>
 
+          {/* Centre & Package Info */}
+          {(centreDetails?.centreName || centreDetails?.name) && (
+            <div style={{ marginBottom: '16px', padding: '12px', background: '#f8f9fa', borderRadius: '8px' }}>
+              <p style={{ fontWeight: 600, marginBottom: '4px' }}>
+                {centreDetails.centreName || centreDetails.name}
+              </p>
+              {(centreDetails.city || centreDetails.state) && (
+                <p style={{ color: '#666', fontSize: '14px' }}>
+                  {centreDetails.city}, {centreDetails.state}
+                </p>
+              )}
+              {(packageDetails?.packageName || packageDetails?.name) && (
+                <p style={{ color: '#666', fontSize: '14px', marginTop: '4px' }}>
+                  Package: {packageDetails.packageName || packageDetails.name}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Ticket breakdown */}
+          {bookingData.ticketDetails && bookingData.ticketDetails.length > 0 && (
+            <div style={{ marginBottom: '16px' }}>
+              {bookingData.ticketDetails.map((ticket, index) => (
+                <div key={index} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0' }}>
+                  <span className="summary-row-label">
+                    {ticket.ticketLabel || ticket.ticketType} x {ticket.quantity}
+                  </span>
+                  <span className="summary-row-val">
+                    {formatNaira(ticket.price * ticket.quantity)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="summary-breakdown-table">
             <div className="summary-data-row">
-              <span className="summary-row-label">Ticket total</span>
+              <span className="summary-row-label">Subtotal</span>
               <span className="summary-row-val">{formatNaira(subtotal)}</span>
             </div>
             <div className="summary-data-row">
@@ -394,34 +431,29 @@ const PaymentCheckout = () => {
               <span className="toast-label-txt">Total</span>
               <span className="toast-val-price">{formatNaira(totalAmount)}</span>
             </div>
-            {selectedPlan && (
+            {isInstallment && selectedPlan && (
               <p className="toast-sub-caption">
-                Due today - {selectedPlan.durationInMonths} Month{selectedPlan.durationInMonths > 1 ? 's' : ''}
+                Due today — installment {installmentsPaid + 1} of {totalInstallments}
               </p>
             )}
           </div>
 
           <div className="due-date-row-block">
-            <span className="due-main-heading">Due today</span>
-            <span className="due-main-amount">
-              {selectedPlan 
-                ? formatNaira(selectedPlan.installmentAmount || calculateInstallment(selectedPlan))
-                : formatNaira(totalAmount)
-              }
-            </span>
+            <span className="due-main-heading">Due Today</span>
+            <span className="due-main-amount">{formatNaira(amountDueToday)}</span>
           </div>
 
-          <button 
-            className="checkout-submit-btn" 
-            onClick={() => handleContinueToPayment(false)}
-            disabled={loading || paymentLoading}
+          <button
+            className="checkout-submit-btn"
+            onClick={handleContinueToPayment}
+            disabled={loading || paymentLoading || (isInstallment && !selectedPlanId)}
           >
-            {loading || paymentLoading ? 'Processing...' : 
-             bookingData.isInstallment ? 'Continue To Payment' : 'Pay Now'}
+            {loading || paymentLoading ? 'Processing...' :
+              isInstallment ? 'Continue To Payment' : 'Pay Now'}
           </button>
 
           {paymentError && (
-            <p className="payment-error-text" style={{ color: 'red', textAlign: 'center', marginTop: '12px' }}>
+            <p style={{ color: 'red', textAlign: 'center', marginTop: '12px', fontSize: '14px' }}>
               {paymentError}
             </p>
           )}

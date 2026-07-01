@@ -87,6 +87,14 @@ const App = () => {
           }
         />
         <Route
+          path="/payment-checkout/:bookingId"
+          element={
+            <PrivateRoute>
+              <PaymentCheckout />
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/payment-checkout/:touristId/:packageId"
           element={
             <PrivateRoute>
