@@ -296,27 +296,35 @@ const BookingConfirmation = () => {
   };
 
   const handleRetryPayment = () => {
-    navigate(`/payment/${bookingId}`, {
+    navigate(`/payment-checkout/${bookingId}`, {
       state: {
         bookingId: bookingId,
         amount: bookingDetails.amount,
+        totalAmount: bookingDetails.totalAmount || bookingDetails.amount,
         bookingData: locationBookingData,
         reference: bookingDetails.reference,
+        isInstallment: bookingDetails.isInstallment || false,
+        centreDetails: locationBookingData.centreDetails,
+        packageDetails: locationBookingData.packageDetails,
       },
     });
   };
 
   // For partial-success: navigate to pay the next installment specifically
   const handlePayNextInstallment = () => {
-    navigate(`/payment/${bookingId}`, {
+    navigate(`/payment-checkout/${bookingId}`, {
       state: {
         bookingId: bookingId,
-        amount: bookingDetails.amountPerInstallment,
+        amount: bookingDetails.totalAmount || bookingDetails.amount,
+        totalAmount: bookingDetails.totalAmount || bookingDetails.amount,
+        subtotal: locationBookingData.subtotal,
+        serviceFee: locationBookingData.serviceFee,
         bookingData: locationBookingData,
         reference: bookingDetails.reference,
         isInstallment: true,
-        installmentNumber: bookingDetails.installmentsPaid + 1,
-        totalInstallments: bookingDetails.totalInstallments,
+        centreDetails: locationBookingData.centreDetails,
+        packageDetails: locationBookingData.packageDetails,
+        ticketDetails: locationBookingData.ticketDetails,
       },
     });
   };
