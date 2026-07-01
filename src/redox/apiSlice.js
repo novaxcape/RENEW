@@ -1,4 +1,8 @@
 // apiSlice.js - FULLY EDITED WITH PAYMENT FIX
+// NOTE: No changes were needed here. getInstallmentPaymentStatus is already
+// correctly implemented and wired into extraReducers/paymentData below.
+// The bug was entirely in BookingConfirmation.jsx's success-detection logic,
+// which never called this endpoint and misread the installment response shape.
 
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
