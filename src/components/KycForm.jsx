@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { LuBuilding2, LuCreditCard, LuUser } from "react-icons/lu";
 import { FiCheckCircle } from "react-icons/fi";
-import { createKyc } from "../redox/apiSlice";
+import { createKyc } from "../data/mockData.js";
 import "./css/KycForm.css";
-
+import { dispatch, mockState } from "../data/mockData.js";
 const initialFormData = {
   centreName: "",
   lankmark: "",
@@ -15,7 +14,8 @@ const initialFormData = {
   yearEstablished: "",
   centreType: "",
   phoneNumber: "",
-  centrePhoneNumber: "", // Add both fields
+  centrePhoneNumber: "",
+  // Add both fields
   postal: "",
   city: "",
   state: "",
@@ -26,74 +26,49 @@ const initialFormData = {
   bankName: "",
   accountNumber: "",
   accountName: "",
-  bankCode: "",
+  bankCode: ""
 };
-
-const getEntityId = (value) =>
-  value?.id ||
-  value?._id ||
-  value?.touristId ||
-  value?.data?.id ||
-  value?.data?._id ||
-  value?.tourist?.id ||
-  value?.tourist?._id ||
-  value?.touristCenter?.id ||
-  value?.touristCenter?._id;
-
+const getEntityId = value => value?.id || value?._id || value?.touristId || value?.data?.id || value?.data?._id || value?.tourist?.id || value?.tourist?._id || value?.touristCenter?.id || value?.touristCenter?._id;
 const KycForm = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { kycLoading } = useSelector((state) => state.api);
+  const {
+    kycLoading
+  } = (state => state.api)(mockState);
   const [formData, setFormData] = useState(() => ({
     ...initialFormData,
-    ...(location.state?.centreName ? { centreName: location.state.centreName } : {}),
+    ...(location.state?.centreName ? {
+      centreName: location.state.centreName
+    } : {})
   }));
-
-  const touristId =
-    location.state?.touristId ||
-    localStorage.getItem("latestTouristId") ||
-    localStorage.getItem("centreId") ||
-    localStorage.getItem("touristId") ||
-    getEntityId(location.state?.centreData) ||
-    null;
-
+  const touristId = location.state?.touristId || localStorage.getItem("latestTouristId") || localStorage.getItem("centreId") || localStorage.getItem("touristId") || getEntityId(location.state?.centreData) || null;
   useEffect(() => {
     if (!touristId) {
       Swal.fire({
         icon: "info",
         title: "Add Your Centre First",
         text: "Please add your tourism centre before completing KYC verification.",
-        confirmButtonColor: "#ff6b35",
+        confirmButtonColor: "#ff6b35"
       }).then(() => {
-        navigate("/add-centre", { replace: true });
+        navigate("/add-centre", {
+          replace: true
+        });
       });
     }
   }, [navigate, touristId]);
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleChange = event => {
+    const {
+      name,
+      value
+    } = event.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
-
   const validateForm = () => {
-    const requiredFields = [
-      "lankmark",
-      "CAC",
-      "yearEstablished",
-      "phoneNumber",
-      "centreType",
-      "postal",
-      "state",
-      "directorFullName",
-      "directorEmail",
-      "directorPhoneNumber",
-      "bankName",
-      "accountNumber",
-      "accountName",
-    ];
-
-    const missingField = requiredFields.find((field) => !formData[field]);
+    const requiredFields = ["lankmark", "CAC", "yearEstablished", "phoneNumber", "centreType", "postal", "state", "directorFullName", "directorEmail", "directorPhoneNumber", "bankName", "accountNumber", "accountName"];
+    const missingField = requiredFields.find(field => !formData[field]);
     if (missingField) {
       const fieldNames = {
         lankmark: "Landmark",
@@ -108,48 +83,40 @@ const KycForm = () => {
         directorPhoneNumber: "Director Phone Number",
         bankName: "Bank Name",
         accountNumber: "Account Number",
-        accountName: "Account Name",
+        accountName: "Account Name"
       };
       return `Please complete the required field: ${fieldNames[missingField] || missingField}`;
     }
-
     if (formData.directorEmail && !/\S+@\S+\.\S+/.test(formData.directorEmail)) {
       return "Please enter a valid email address for the director";
     }
-
-    if (
-      formData.yearEstablished &&
-      (formData.yearEstablished < 1800 ||
-        formData.yearEstablished > new Date().getFullYear())
-    ) {
+    if (formData.yearEstablished && (formData.yearEstablished < 1800 || formData.yearEstablished > new Date().getFullYear())) {
       return "Please enter a valid year established (between 1800 and current year)";
     }
-
     return "";
   };
-
-  const handleSubmit = async (event) => {
+  const handleSubmit = async event => {
     event.preventDefault();
-
     if (!touristId) {
       Swal.fire({
         icon: "info",
         title: "Add Your Centre First",
         text: "Please add your tourism centre before completing KYC verification.",
-        confirmButtonColor: "#ff6b35",
+        confirmButtonColor: "#ff6b35"
       }).then(() => {
-        navigate("/add-centre", { replace: true });
+        navigate("/add-centre", {
+          replace: true
+        });
       });
       return;
     }
-
     const validationError = validateForm();
     if (validationError) {
       Swal.fire({
         icon: "error",
         title: "Missing Information",
         text: validationError,
-        confirmButtonColor: "#ff6b35",
+        confirmButtonColor: "#ff6b35"
       });
       return;
     }
@@ -160,7 +127,8 @@ const KycForm = () => {
       CAC: formData.CAC,
       yearEstablished: Number(formData.yearEstablished),
       phoneNumber: String(formData.phoneNumber),
-      centrePhoneNumber: String(formData.phoneNumber), // Send same value as centrePhoneNumber
+      centrePhoneNumber: String(formData.phoneNumber),
+      // Send same value as centrePhoneNumber
       centreEmail: formData.centreEmail,
       centreType: formData.centreType,
       postal: formData.postal,
@@ -171,49 +139,47 @@ const KycForm = () => {
       bankName: formData.bankName,
       accountNumber: String(formData.accountNumber),
       accountName: formData.accountName,
-      bankCode: formData.bankCode || "",
+      bankCode: formData.bankCode || ""
     };
-
     console.log("=== SENDING BOTH PHONE FIELDS ===");
     console.log("Submitting KYC data:", JSON.stringify(kycData, null, 2));
     console.log("Tourist ID:", touristId);
     console.log("Has phoneNumber:", Object.hasOwn(kycData, "phoneNumber"));
     console.log("Has centrePhoneNumber:", Object.hasOwn(kycData, "centrePhoneNumber"));
-
     try {
-   await dispatch(
-  createKyc({ touristId, kycData })
-).unwrap();
+      await dispatch(createKyc({
+        touristId,
+        kycData
+      })).unwrap();
 
-// Keep the centre id available for dashboard wallet/package/booking APIs.
-localStorage.setItem("latestTouristId", touristId);
-localStorage.setItem("centreId", touristId);
-localStorage.setItem("touristId", touristId);
-localStorage.setItem("selectedCentreId", touristId);
+      // Keep the centre id available for dashboard wallet/package/booking APIs.
+      localStorage.setItem("latestTouristId", touristId);
+      localStorage.setItem("centreId", touristId);
+      localStorage.setItem("touristId", touristId);
+      localStorage.setItem("selectedCentreId", touristId);
 
-// Mark onboarding as completed.
-localStorage.setItem("kycSubmitted", "true");
-localStorage.setItem("vendorHasCentre", "true");
+      // Mark onboarding as completed.
+      localStorage.setItem("kycSubmitted", "true");
+      localStorage.setItem("vendorHasCentre", "true");
 
-// If you want vendors to access the dashboard immediately,
-// temporarily mark packages as complete too.
-localStorage.setItem("vendorHasPackages", "true");
-
-Swal.fire({
-  icon: "success",
-  title: "KYC Submitted Successfully!",
-  text: "Your verification details have been submitted. You will be notified once verified.",
-  confirmButtonColor: "#ff6b35",
-  timer: 3000,
-  timerProgressBar: true,
-}).then(() => {
-  navigate("/vendor/dashboard");
-});
+      // If you want vendors to access the dashboard immediately,
+      // temporarily mark packages as complete too.
+      localStorage.setItem("vendorHasPackages", "true");
+      Swal.fire({
+        icon: "success",
+        title: "KYC Submitted Successfully!",
+        text: "Your verification details have been submitted. You will be notified once verified.",
+        confirmButtonColor: "#ff6b35",
+        timer: 3000,
+        timerProgressBar: true
+      }).then(() => {
+        navigate("/vendor/dashboard");
+      });
     } catch (error) {
       console.error("KYC submission error:", error);
       console.error("Error response data:", error.response?.data);
       console.error("Error response status:", error.response?.status);
-      
+
       // Try to get the actual error message from backend
       let errorMessage = "Unable to submit KYC. Please try again.";
       if (error.response?.data) {
@@ -227,25 +193,18 @@ Swal.fire({
           errorMessage = JSON.stringify(error.response.data);
         }
       }
-      
       Swal.fire({
         icon: "error",
         title: "KYC Submission Failed",
         text: errorMessage,
-        confirmButtonColor: "#ff6b35",
+        confirmButtonColor: "#ff6b35"
       });
     }
   };
-
-  return (
-    <main className="kyc-page-wrapper">
+  return <main className="kyc-page-wrapper">
       <div className="back-button-row">
         <div className="back-button-container">
-          <button
-            type="button"
-            className="kyc-back-btn"
-            onClick={() => navigate(-1)}
-          >
+          <button type="button" className="kyc-back-btn" onClick={() => navigate(-1)}>
             ← Back to Centre Details
           </button>
         </div>
@@ -258,12 +217,12 @@ Swal.fire({
             <p className="kyc-sub-title">
               Complete your verification to start receiving bookings
             </p>
-            {touristId && (
-              <div className="kyc-info-banner">
-                <FiCheckCircle style={{ marginRight: "8px" }} />
+            {touristId && <div className="kyc-info-banner">
+                <FiCheckCircle style={{
+              marginRight: "8px"
+            }} />
                 Centre ID: {touristId}
-              </div>
-            )}
+              </div>}
           </div>
 
           <form className="kyc-multi-block-form" onSubmit={handleSubmit}>
@@ -277,144 +236,60 @@ Swal.fire({
               <div className="form-grid-layout">
                 <div className="form-input-group">
                   <label className="form-field-label">Centre Name</label>
-                  <input
-                    name="centreName"
-                    value={formData.centreName}
-                    onChange={handleChange}
-                    type="text"
-                    className="form-text-input"
-                    placeholder="e.g., Lekki Tourism Limited"
-                  />
+                  <input name="centreName" value={formData.centreName} onChange={handleChange} type="text" className="form-text-input" placeholder="e.g., Lekki Tourism Limited" />
                   <small className="field-hint">Optional</small>
                 </div>
 
                 <div className="form-input-group">
                   <label className="form-field-label">Landmark *</label>
-                  <input
-                    name="lankmark"
-                    value={formData.lankmark}
-                    onChange={handleChange}
-                    type="text"
-                    className="form-text-input"
-                    placeholder="e.g., Near Lekki Toll Gate"
-                    required
-                  />
+                  <input name="lankmark" value={formData.lankmark} onChange={handleChange} type="text" className="form-text-input" placeholder="e.g., Near Lekki Toll Gate" required />
                 </div>
 
                 <div className="form-input-group">
                   <label className="form-field-label">CAC Registration Number *</label>
-                  <input
-                    name="CAC"
-                    value={formData.CAC}
-                    onChange={handleChange}
-                    type="text"
-                    className="form-text-input"
-                    placeholder="e.g., RC 123456"
-                    required
-                  />
+                  <input name="CAC" value={formData.CAC} onChange={handleChange} type="text" className="form-text-input" placeholder="e.g., RC 123456" required />
                 </div>
 
                 <div className="form-input-group">
                   <label className="form-field-label">Centre Email</label>
-                  <input
-                    name="centreEmail"
-                    value={formData.centreEmail}
-                    onChange={handleChange}
-                    type="email"
-                    className="form-text-input"
-                    placeholder="info@business.com"
-                  />
+                  <input name="centreEmail" value={formData.centreEmail} onChange={handleChange} type="email" className="form-text-input" placeholder="info@business.com" />
                   <small className="field-hint">Optional</small>
                 </div>
 
                 <div className="form-input-group">
                   <label className="form-field-label">Year Established *</label>
-                  <input
-                    name="yearEstablished"
-                    value={formData.yearEstablished}
-                    onChange={handleChange}
-                    type="number"
-                    className="form-text-input"
-                    placeholder="e.g., 2020"
-                    required
-                  />
+                  <input name="yearEstablished" value={formData.yearEstablished} onChange={handleChange} type="number" className="form-text-input" placeholder="e.g., 2020" required />
                 </div>
 
                 <div className="form-input-group">
                   <label className="form-field-label">Centre Type *</label>
-                  <input
-                    name="centreType"
-                    value={formData.centreType}
-                    onChange={handleChange}
-                    type="text"
-                    className="form-text-input"
-                    placeholder="e.g., recreation, museum"
-                    required
-                  />
+                  <input name="centreType" value={formData.centreType} onChange={handleChange} type="text" className="form-text-input" placeholder="e.g., recreation, museum" required />
                 </div>
 
                 <div className="form-input-group">
                   <label className="form-field-label">Centre Phone *</label>
-                  <input
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
-                    onChange={handleChange}
-                    type="tel"
-                    className="form-text-input"
-                    placeholder="08012345678"
-                    required
-                  />
+                  <input name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} type="tel" className="form-text-input" placeholder="08012345678" required />
                 </div>
 
                 <div className="form-input-group">
                   <label className="form-field-label">Postal Code *</label>
-                  <input
-                    name="postal"
-                    value={formData.postal}
-                    onChange={handleChange}
-                    type="text"
-                    className="form-text-input"
-                    placeholder="e.g., 101245"
-                    required
-                  />
+                  <input name="postal" value={formData.postal} onChange={handleChange} type="text" className="form-text-input" placeholder="e.g., 101245" required />
                 </div>
 
                 <div className="form-input-group">
                   <label className="form-field-label">City</label>
-                  <input
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    type="text"
-                    className="form-text-input"
-                    placeholder="e.g., Lagos"
-                  />
+                  <input name="city" value={formData.city} onChange={handleChange} type="text" className="form-text-input" placeholder="e.g., Lagos" />
                   <small className="field-hint">Optional</small>
                 </div>
 
                 <div className="form-input-group">
                   <label className="form-field-label">State *</label>
-                  <input
-                    name="state"
-                    value={formData.state}
-                    onChange={handleChange}
-                    type="text"
-                    className="form-text-input"
-                    placeholder="e.g., Lagos"
-                    required
-                  />
+                  <input name="state" value={formData.state} onChange={handleChange} type="text" className="form-text-input" placeholder="e.g., Lagos" required />
                 </div>
 
                 <div className="form-input-group full-width-field">
                   <label className="form-field-label">Street Address</label>
-                  <input
-                    name="streetAddress"
-                    value={formData.streetAddress}
-                    onChange={handleChange}
-                    type="text"
-                    className="form-text-input"
-                    placeholder="Street address"
-                  />
+                  <input name="streetAddress" value={formData.streetAddress} onChange={handleChange} type="text" className="form-text-input" placeholder="Street address" />
                   <small className="field-hint">Optional</small>
                 </div>
               </div>
@@ -430,41 +305,17 @@ Swal.fire({
               <div className="form-grid-layout">
                 <div className="form-input-group">
                   <label className="form-field-label">Full Name *</label>
-                  <input
-                    name="directorFullName"
-                    value={formData.directorFullName}
-                    onChange={handleChange}
-                    type="text"
-                    className="form-text-input"
-                    placeholder="John Doe"
-                    required
-                  />
+                  <input name="directorFullName" value={formData.directorFullName} onChange={handleChange} type="text" className="form-text-input" placeholder="John Doe" required />
                 </div>
 
                 <div className="form-input-group">
                   <label className="form-field-label">Email Address *</label>
-                  <input
-                    name="directorEmail"
-                    value={formData.directorEmail}
-                    onChange={handleChange}
-                    type="email"
-                    className="form-text-input"
-                    placeholder="director@example.com"
-                    required
-                  />
+                  <input name="directorEmail" value={formData.directorEmail} onChange={handleChange} type="email" className="form-text-input" placeholder="director@example.com" required />
                 </div>
 
                 <div className="form-input-group">
                   <label className="form-field-label">Phone Number *</label>
-                  <input
-                    name="directorPhoneNumber"
-                    value={formData.directorPhoneNumber}
-                    onChange={handleChange}
-                    type="tel"
-                    className="form-text-input"
-                    placeholder="08012345678"
-                    required
-                  />
+                  <input name="directorPhoneNumber" value={formData.directorPhoneNumber} onChange={handleChange} type="tel" className="form-text-input" placeholder="08012345678" required />
                 </div>
               </div>
             </section>
@@ -479,76 +330,38 @@ Swal.fire({
               <div className="form-grid-layout">
                 <div className="form-input-group">
                   <label className="form-field-label">Bank Name *</label>
-                  <input
-                    name="bankName"
-                    value={formData.bankName}
-                    onChange={handleChange}
-                    type="text"
-                    className="form-text-input"
-                    placeholder="e.g., Access Bank"
-                    required
-                  />
+                  <input name="bankName" value={formData.bankName} onChange={handleChange} type="text" className="form-text-input" placeholder="e.g., Access Bank" required />
                 </div>
 
                 <div className="form-input-group">
                   <label className="form-field-label">Account Number *</label>
-                  <input
-                    name="accountNumber"
-                    value={formData.accountNumber}
-                    onChange={handleChange}
-                    type="text"
-                    className="form-text-input"
-                    placeholder="1234567890"
-                    required
-                  />
+                  <input name="accountNumber" value={formData.accountNumber} onChange={handleChange} type="text" className="form-text-input" placeholder="1234567890" required />
                 </div>
 
                 <div className="form-input-group">
                   <label className="form-field-label">Account Name *</label>
-                  <input
-                    name="accountName"
-                    value={formData.accountName}
-                    onChange={handleChange}
-                    type="text"
-                    className="form-text-input"
-                    placeholder="As it appears in bank records"
-                    required
-                  />
+                  <input name="accountName" value={formData.accountName} onChange={handleChange} type="text" className="form-text-input" placeholder="As it appears in bank records" required />
                 </div>
 
                 <div className="form-input-group">
                   <label className="form-field-label">Bank Code</label>
-                  <input
-                    name="bankCode"
-                    value={formData.bankCode}
-                    onChange={handleChange}
-                    type="text"
-                    className="form-text-input"
-                    placeholder="e.g., 044"
-                  />
+                  <input name="bankCode" value={formData.bankCode} onChange={handleChange} type="text" className="form-text-input" placeholder="e.g., 044" />
                   <small className="field-hint">Optional</small>
                 </div>
               </div>
             </section>
 
             <div className="submit-action-row">
-              <button
-                type="submit"
-                className="kyc-submit-btn"
-                disabled={kycLoading}
-                style={{ opacity: kycLoading ? 0.7 : 1 }}
-              >
-                {kycLoading
-                  ? "Submitting..."
-                  : "Submit for Verification"}
+              <button type="submit" className="kyc-submit-btn" disabled={kycLoading} style={{
+              opacity: kycLoading ? 0.7 : 1
+            }}>
+                {kycLoading ? "Submitting..." : "Submit for Verification"}
                 <FiCheckCircle className="btn-success-check-icon" />
               </button>
             </div>
           </form>
         </div>
       </div>
-    </main>
-  );
+    </main>;
 };
-
 export default KycForm;

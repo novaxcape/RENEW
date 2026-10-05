@@ -1,25 +1,26 @@
 // components/TopNavbar.jsx
 import { useState, useRef, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { FiBell, FiChevronDown, FiSearch, FiMenu } from "react-icons/fi";
-import { logout } from "../redox/authSlice";
+import { logout } from "../data/mockData.js";
 import "../Styles/Dashboard.css";
-
-const TopNavbar = ({ onMenuOpen = () => {} }) => {
-  const dispatch = useDispatch();
+import { dispatch, mockState } from "../data/mockData.js";
+const TopNavbar = ({
+  onMenuOpen = () => {}
+}) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const notifRef = useRef(null);
-  
+
   // Get vendor name from Redux state instead of localStorage
-  const { loggedInUser, isVendor } = useSelector((state) => state.auth);
-  const vendorName = isVendor 
-    ? loggedInUser?.vendorName || loggedInUser?.name || "Vendor" 
-    : "Guest";
+  const {
+    loggedInUser,
+    isVendor
+  } = (state => state.auth)(mockState);
+  const vendorName = isVendor ? loggedInUser?.vendorName || loggedInUser?.name || "Vendor" : "Guest";
 
   // Handle click outside for notifications
   useEffect(() => {
-    const handleClickOutside = (e) => {
+    const handleClickOutside = e => {
       if (notifRef.current && !notifRef.current.contains(e.target)) {
         setShowNotifications(false);
       }
@@ -33,9 +34,7 @@ const TopNavbar = ({ onMenuOpen = () => {} }) => {
     dispatch(logout());
     window.location.href = "/signinscreen";
   };
-
-  return (
-    <div className="top-navbar">
+  return <div className="top-navbar">
       <div className="navbar-left">
         <h2 className="analytics-title">Analytics</h2>
       </div>
@@ -46,12 +45,7 @@ const TopNavbar = ({ onMenuOpen = () => {} }) => {
 
       <div className="search-bar">
         <FiSearch size={15} color="#1e293b" />
-        <input
-          type="text"
-          placeholder="Search reports..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
+        <input type="text" placeholder="Search reports..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
       </div>
 
       <div className="top-right">
@@ -75,7 +69,7 @@ const TopNavbar = ({ onMenuOpen = () => {} }) => {
               ))}
               <button className="notification-view-all">View all notifications</button>
             </div>
-          )} */}
+           )} */}
         </div>
 
         <div className="profile">
@@ -86,17 +80,11 @@ const TopNavbar = ({ onMenuOpen = () => {} }) => {
           </div>
         </div>
 
-        <button
-          className="hamburger-btn"
-          type="button"
-          onClick={onMenuOpen}
-          aria-label="Open menu"
-        >
+        <button className="hamburger-btn" type="button" onClick={onMenuOpen} aria-label="Open menu">
           <FiMenu size={24} />
         </button>
       </div>
-    // </div>
-  );
+  // </div>
+;
 };
-
 export default TopNavbar;

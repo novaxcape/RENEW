@@ -2,45 +2,37 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
 import Swal from "sweetalert2";
-import {
-  FaMapMarkerAlt,
-  FaClock,
-  FaStar,
-  FaCheckCircle,
-  FaHeart,
-  FaRegHeart,
-} from "react-icons/fa";
+import { FaMapMarkerAlt, FaClock, FaStar, FaCheckCircle, FaHeart, FaRegHeart } from "react-icons/fa";
 import "../Styles/Product.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { getTouristCenterById, getAllPackages } from "../redox/apiSlice";
-
+import { getTouristCenterById, getAllPackages } from "../data/mockData.js";
+import { dispatch, mockState } from "../data/mockData.js";
 const ProductDetails = () => {
-  const { id } = useParams();
+  const {
+    id
+  } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const dispatch = useDispatch();
   const [isWishlist, setIsWishlist] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [, setSelectedPackage] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [centrePackages, setCentrePackages] = useState([]);
-
-  const { selectedTouristCenter, touristCentresLoading, touristCentresError, packages, packagesLoading } =
-    useSelector((state) => state.api);
-
+  const {
+    selectedTouristCenter,
+    touristCentresLoading,
+    touristCentresError,
+    packages,
+    packagesLoading
+  } = (state => state.api)(mockState);
   const getCentreData = () => {
     if (location.state?.centre) return location.state.centre;
     if (location.state?.centreDetails) return location.state.centreDetails;
-
     if (selectedTouristCenter) {
-      return selectedTouristCenter?.data || 
-             selectedTouristCenter?.tourist || 
-             selectedTouristCenter;
+      return selectedTouristCenter?.data || selectedTouristCenter?.tourist || selectedTouristCenter;
     }
-
     const pendingBooking = localStorage.getItem('pendingBooking');
     if (pendingBooking) {
       try {
@@ -52,7 +44,6 @@ const ProductDetails = () => {
     }
     return null;
   };
-
   const centre = getCentreData();
 
   // ✅ FIXED: Load wishlist from localStorage on component mount
@@ -64,7 +55,6 @@ const ProductDetails = () => {
       setIsWishlist(isSaved);
     }
   }, [id, centre]);
-
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -81,7 +71,6 @@ const ProductDetails = () => {
     };
     fetchData();
   }, [dispatch, id, centre]);
-
   useEffect(() => {
     if (!packages || packages.length === 0) {
       setCentrePackages([]);
@@ -101,21 +90,16 @@ const ProductDetails = () => {
       });
       return;
     }
-
     const centreId = centre.id || centre._id || id;
-    
+
     // Get current wishlist from localStorage
     const savedWishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-    
-    // Check if centre is already in wishlist
-    const existingIndex = savedWishlist.findIndex(item => 
-      item.id === centreId || item._id === centreId
-    );
 
+    // Check if centre is already in wishlist
+    const existingIndex = savedWishlist.findIndex(item => item.id === centreId || item._id === centreId);
     let newWishlist;
     let message;
     let icon;
-
     if (existingIndex !== -1) {
       // Remove from wishlist
       newWishlist = savedWishlist.filter((_, index) => index !== existingIndex);
@@ -140,9 +124,8 @@ const ProductDetails = () => {
         image: images[0],
         price: centrePackages[0]?.amount || centrePackages[0]?.price || 2500,
         description: description,
-        facilities: facilities,
+        facilities: facilities
       };
-      
       newWishlist = [...savedWishlist, wishlistItem];
       message = `${centreName} added to your favorites! ❤️`;
       icon = 'success';
@@ -151,7 +134,7 @@ const ProductDetails = () => {
 
     // Save to localStorage
     localStorage.setItem('wishlist', JSON.stringify(newWishlist));
-    
+
     // Show success message
     Swal.fire({
       icon: icon,
@@ -160,7 +143,7 @@ const ProductDetails = () => {
       position: 'top-end',
       showConfirmButton: false,
       timer: 3000,
-      timerProgressBar: true,
+      timerProgressBar: true
     });
 
     // Dispatch custom event to update wishlist count in header
@@ -169,22 +152,19 @@ const ProductDetails = () => {
 
   // Show loading state
   if (touristCentresLoading || packagesLoading || isLoading) {
-    return (
-      <>
+    return <>
         <Header />
         <div className="loading-container">
           <div className="spinner"></div>
           <p>Loading centre details...</p>
         </div>
         <Footer />
-      </>
-    );
+      </>;
   }
 
   // Show error state
-  if ((touristCentresError && !centre) || !centre) {
-    return (
-      <>
+  if (touristCentresError && !centre || !centre) {
+    return <>
         <Header />
         <div className="error-container">
           <h2>Centre Not Found</h2>
@@ -194,8 +174,7 @@ const ProductDetails = () => {
           </button>
         </div>
         <Footer />
-      </>
-    );
+      </>;
   }
 
   // Parse fields safely (only runs if centre exists)
@@ -205,36 +184,21 @@ const ProductDetails = () => {
   const rating = centre.rating || centre.averageRating || 5.0;
   const reviewCount = centre.reviews || centre.reviewCount || 567;
   const description = centre.description || "No description available";
-  
-  const facilities = typeof centre.facilitiesAndAmenities === "string"
-    ? centre.facilitiesAndAmenities.split(", ")
-    : Array.isArray(centre.facilitiesAndAmenities) 
-    ? centre.facilitiesAndAmenities 
-    : ["Nature trails", "Picnic Areas", "WildLife Viewing"];
-
-  const rawImages = Array.isArray(centre.images)
-    ? centre.images.map(img => (img && typeof img === "object" ? img.secureUrl : img))
-    : Array.isArray(centre.imagesPublicUrl)
-    ? centre.imagesPublicUrl
-    : typeof centre.imagesPublicUrl === "string"
-    ? [centre.imagesPublicUrl]
-    : [];
-
-  const images = [
-    rawImages[0] || "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
-    rawImages[1] || "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
-    rawImages[2] || "https://images.unsplash.com/photo-1441974231531-c6227db76b6e"
-  ];
-
-  const handleBookNow = (pkg) => {
+  const facilities = typeof centre.facilitiesAndAmenities === "string" ? centre.facilitiesAndAmenities.split(", ") : Array.isArray(centre.facilitiesAndAmenities) ? centre.facilitiesAndAmenities : ["Nature trails", "Picnic Areas", "WildLife Viewing"];
+  const rawImages = Array.isArray(centre.images) ? centre.images.map(img => img && typeof img === "object" ? img.secureUrl : img) : Array.isArray(centre.imagesPublicUrl) ? centre.imagesPublicUrl : typeof centre.imagesPublicUrl === "string" ? [centre.imagesPublicUrl] : [];
+  const images = [rawImages[0] || "https://images.unsplash.com/photo-1506744038136-46273834b3fb", rawImages[1] || "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee", rawImages[2] || "https://images.unsplash.com/photo-1441974231531-c6227db76b6e"];
+  const handleBookNow = pkg => {
     if (!pkg) {
-      Swal.fire({ icon: "warning", title: "No Package Selected", text: "Please select a package.", confirmButtonColor: "#ff6b35" });
+      Swal.fire({
+        icon: "warning",
+        title: "No Package Selected",
+        text: "Please select a package.",
+        confirmButtonColor: "#ff6b35"
+      });
       return;
     }
-
     const centreId = centre.id || centre._id || id;
     setSelectedPackage(pkg);
-    
     const bookingData = {
       touristId: centreId,
       packageId: pkg.id,
@@ -245,7 +209,7 @@ const ProductDetails = () => {
         price: pkg.amount || pkg.price || 0,
         packageType: pkg.packageType || "Standard",
         numberOfPeople: pkg.numberOfPeople || 1,
-        description: pkg.description || "",
+        description: pkg.description || ""
       },
       centreDetails: {
         id: centreId,
@@ -254,23 +218,26 @@ const ProductDetails = () => {
         state: centre.state || "",
         openingHours,
         description,
-        images,
+        images
       },
       returnUrl: `/booking-summary/${centreId}/${pkg.id}`
     };
-
     localStorage.setItem('pendingBooking', JSON.stringify(bookingData));
     const token = localStorage.getItem('token') || localStorage.getItem('userToken');
-
     if (!token) {
-      navigate("/signin", { state: { from: `/centre/${centreId}`, bookingData } });
+      navigate("/signin", {
+        state: {
+          from: `/centre/${centreId}`,
+          bookingData
+        }
+      });
       return;
     }
-
-    navigate(`/booking-summary/${centreId}/${pkg.id}`, { state: bookingData });
+    navigate(`/booking-summary/${centreId}/${pkg.id}`, {
+      state: bookingData
+    });
   };
-
-  const renderStars = (ratingValue) => {
+  const renderStars = ratingValue => {
     const stars = [];
     const fullStars = Math.floor(ratingValue);
     for (let i = 0; i < fullStars; i++) {
@@ -281,20 +248,27 @@ const ProductDetails = () => {
     }
     return stars;
   };
-
   const getDescription = () => {
     if (showFullDescription || description.length <= 400) return description;
     return description.slice(0, 400) + "...";
   };
-
-  const reviews = [
-    { id: 1, name: "Nnaneme O.", rating: 5, comment: "Absolutely loved the canopy walkway! It was so long and the view from the top is breathtaking. A must visit for anyone in Lagos. Very well maintained." },
-    { id: 2, name: "Tunde S.", rating: 5, comment: "Perfect for a family outing. My kids enjoyed the canopy walk and the playground area. The boardwalks are clean and safe. Highly recommended!" },
-    { id: 3, name: "Salewa Ahmed", rating: 4, comment: "The place is beautiful and peaceful. Saw so many monkeys and birds. However, the ticket price is a bit high compared to other parks. Still worth it though." }
-  ];
-
-  return (
-    <>
+  const reviews = [{
+    id: 1,
+    name: "Nnaneme O.",
+    rating: 5,
+    comment: "Absolutely loved the canopy walkway! It was so long and the view from the top is breathtaking. A must visit for anyone in Lagos. Very well maintained."
+  }, {
+    id: 2,
+    name: "Tunde S.",
+    rating: 5,
+    comment: "Perfect for a family outing. My kids enjoyed the canopy walk and the playground area. The boardwalks are clean and safe. Highly recommended!"
+  }, {
+    id: 3,
+    name: "Salewa Ahmed",
+    rating: 4,
+    comment: "The place is beautiful and peaceful. Saw so many monkeys and birds. However, the ticket price is a bit high compared to other parks. Still worth it though."
+  }];
+  return <>
       <Header />
       <main className="product-page">
         <div className="container">
@@ -311,32 +285,24 @@ const ProductDetails = () => {
               </span>
             </div>
             <div className="tags">
-              {facilities.slice(0, 6).map((facility, index) => (
-                <span key={index}>{facility}</span>
-              ))}
+              {facilities.slice(0, 6).map((facility, index) => <span key={index}>{facility}</span>)}
             </div>
           </section>
 
           {/* IMAGE GALLERY */}
           <section className="gallery">
             <div className="main-image">
-              <img
-                src={images[0]}
-                alt={centreName}
-                onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1506744038136-46273834b3fb"; }}
-              />
+              <img src={images[0]} alt={centreName} onError={e => {
+              e.target.src = "https://images.unsplash.com/photo-1506744038136-46273834b3fb";
+            }} />
             </div>
             <div className="side-images">
-              <img 
-                src={images[1]} 
-                alt="" 
-                onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee"; }}
-              />
-              <img 
-                src={images[2]} 
-                alt="" 
-                onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1441974231531-c6227db76b6e"; }}
-              />
+              <img src={images[1]} alt="" onError={e => {
+              e.target.src = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee";
+            }} />
+              <img src={images[2]} alt="" onError={e => {
+              e.target.src = "https://images.unsplash.com/photo-1441974231531-c6227db76b6e";
+            }} />
             </div>
           </section>
 
@@ -371,51 +337,61 @@ const ProductDetails = () => {
               <h2>Description</h2>
               <p>
                 {getDescription()}
-                {description.length > 400 && (
-                  <span className="readmore-btn" onClick={() => setShowFullDescription(!showFullDescription)}>
+                {description.length > 400 && <span className="readmore-btn" onClick={() => setShowFullDescription(!showFullDescription)}>
                     {showFullDescription ? " Read less" : " Read more"}
-                  </span>
-                )}
+                  </span>}
               </p>
               
-              <div style={{ marginTop: '20px', fontSize: '13.5px', color: '#4a5568', background: '#f7fafc', padding: '15px', borderRadius: '8px' }}>
-                <strong style={{ display: 'block', marginBottom: '6px', color: '#112244' }}>🕒 Schedule Breakdown:</strong>
-                {openingHours.split(" | ").map((day, i) => <div key={i} style={{ marginBottom: '3px' }}>{day}</div>)}
+              <div style={{
+              marginTop: '20px',
+              fontSize: '13.5px',
+              color: '#4a5568',
+              background: '#f7fafc',
+              padding: '15px',
+              borderRadius: '8px'
+            }}>
+                <strong style={{
+                display: 'block',
+                marginBottom: '6px',
+                color: '#112244'
+              }}>🕒 Schedule Breakdown:</strong>
+                {openingHours.split(" | ").map((day, i) => <div key={i} style={{
+                marginBottom: '3px'
+              }}>{day}</div>)}
               </div>
 
               <div className="actions">
-                <button 
-                  className="book-btn" 
-                  onClick={() => handleBookNow(centrePackages[0] || { id: "default", price: 2500 })}
-                >
+                <button className="book-btn" onClick={() => handleBookNow(centrePackages[0] || {
+                id: "default",
+                price: 2500
+              })}>
                   Book Now
                 </button>
-                <button 
-                  className={`fav-btn ${isWishlist ? 'active' : ''}`} 
-                  onClick={handleWishlistToggle}
-                >
-                  {isWishlist ? (
-                    <>
-                      <FaHeart style={{ color: '#ff6b35', marginRight: '8px' }} />
+                <button className={`fav-btn ${isWishlist ? 'active' : ''}`} onClick={handleWishlistToggle}>
+                  {isWishlist ? <>
+                      <FaHeart style={{
+                    color: '#ff6b35',
+                    marginRight: '8px'
+                  }} />
                       Remove from favorite
-                    </>
-                  ) : (
-                    <>
-                      <FaRegHeart style={{ marginRight: '8px' }} />
+                    </> : <>
+                      <FaRegHeart style={{
+                    marginRight: '8px'
+                  }} />
                       Add to favorite
-                    </>
-                  )}
+                    </>}
                 </button>
               </div>
             </div>
 
             {/* MAP BLOCK */}
             <div className="map-block">
-              <img 
-                src="https://i.postimg.cc/N0F86Np4/map.jpg" 
-                alt="Location Map" 
-                style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "12px" }}
-              />
+              <img src="https://i.postimg.cc/N0F86Np4/map.jpg" alt="Location Map" style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              borderRadius: "12px"
+            }} />
             </div>
           </section>
 
@@ -444,7 +420,7 @@ const ProductDetails = () => {
               <button className="arrow-btn">‹</button>
               <button className="arrow-btn active">›</button>
             </div>
-          </section> */}
+           </section> */}
 
           {/* DISCOVER RECOMMENDATIONS */}
           <section className="recommendations-section">
@@ -494,8 +470,6 @@ const ProductDetails = () => {
         </div>
       </main>
       <Footer />
-    </>
-  );
+    </>;
 };
-
 export default ProductDetails;

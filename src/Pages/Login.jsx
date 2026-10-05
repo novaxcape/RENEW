@@ -1,287 +1,9 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { z } from "zod";
-import Swal from "sweetalert2";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
-import axios from "axios";
-import { setUserDetails, updateToken, loginSuccess } from "../redox/authSlice";
+import { Link } from "react-router-dom";
+import { FaEye } from "react-icons/fa";
 import "../Styles/Login.css";
 import Image from "../components/Image";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "https://novaxcape.onrender.com/api/v1";
-
-const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
-});
-
 const Login = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const dispatch = useDispatch();
-  const {
-    loading: reduxLoading,
-    error,
-    isAuthenticated,
-  } = useSelector((state) => state.auth);
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [localError, setLocalError] = useState(null);
-
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-
-  const [errors, setErrors] = useState({});
-
-  // Get booking data from location state
-  const from = location.state?.from || "/";
-  const bookingData = location.state?.bookingData || null;
-
-  console.log("🔐 Login - location.state:", location.state);
-  console.log("🔐 Login - bookingData from state:", bookingData);
-  console.log("🔐 Login - from:", from);
-
-  // ✅ Redirect after successful login - runs when isAuthenticated becomes true
-  useEffect(() => {
-    if (isAuthenticated) {
-      console.log("✅ Login - User authenticated, checking for redirect...");
-
-      // Check for pending booking from state or localStorage
-      const pendingBooking =
-        bookingData || localStorage.getItem("pendingBooking");
-
-      console.log("📦 Login - pendingBooking:", pendingBooking);
-
-      if (pendingBooking) {
-        let booking = pendingBooking;
-        if (typeof booking === "string") {
-          try {
-            booking = JSON.parse(booking);
-          } catch (e) {
-            booking = pendingBooking;
-          }
-        }
-
-        console.log("📦 Login - Parsed booking:", booking);
-
-        // Clear the pending booking from localStorage
-        localStorage.removeItem("pendingBooking");
-
-        // Navigate to booking summary
-        if (booking.touristId && booking.packageId) {
-          console.log(
-            "➡️ Login - Redirecting to booking summary:",
-            `/booking-summary/${booking.touristId}/${booking.packageId}`,
-          );
-          navigate(
-            `/booking-summary/${booking.touristId}/${booking.packageId}`,
-            {
-              state: {
-                touristId: booking.touristId,
-                packageDetails: booking.packageDetails,
-                centreDetails: booking.centreDetails,
-              },
-              replace: true,
-            }
-          );
-          return;
-        }
-      }
-
-      // If no booking, navigate to the page they came from
-      console.log("➡️ Login - No booking found, redirecting to:", from);
-      navigate(from, { replace: true });
-    }
-  }, [isAuthenticated, navigate, from, bookingData]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
-    }
-
-    if (localError) {
-      setLocalError(null);
-    }
-  };
-
-  // Helper function to extract error message from response
-  const extractErrorMessage = (error) => {
-    console.error("Full error object:", error);
-    console.error("Response status:", error.response?.status);
-    console.error("Response headers:", error.response?.headers);
-    console.error("Response data:", error.response?.data);
-    console.error("Response data type:", typeof error.response?.data);
-
-    let errorMessage = "Invalid email or password. Please try again.";
-
-    if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
-      const responseData = error.response.data;
-
-      if (typeof responseData === "string") {
-        // If response is a string
-        errorMessage = responseData;
-      } else if (responseData.message) {
-        // If response has a message property
-        errorMessage = responseData.message;
-      } else if (responseData.error) {
-        // If response has an error property
-        errorMessage = responseData.error;
-      } else if (responseData.msg) {
-        // If response has a msg property
-        errorMessage = responseData.msg;
-      } else if (responseData.detail) {
-        // If response has a detail property
-        errorMessage = responseData.detail;
-      } else if (responseData.errors && Array.isArray(responseData.errors)) {
-        // If response has an errors array
-        errorMessage = responseData.errors
-          .map((e) => e.msg || e.message || e)
-          .join(", ");
-      } else if (typeof responseData === "object") {
-        // Try to get the first error message from the object
-        const firstError = Object.values(responseData)[0];
-        if (typeof firstError === "string") {
-          errorMessage = firstError;
-        } else if (Array.isArray(firstError) && firstError.length > 0) {
-          errorMessage = firstError[0];
-        }
-      }
-    } else if (error.request) {
-      // The request was made but no response was received
-      errorMessage = "No response from server. Please check your internet connection.";
-    } else {
-      // Something happened in setting up the request that triggered an Error
-      errorMessage = error.message || "An unexpected error occurred";
-    }
-
-    return errorMessage;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // Validate form data
-    const result = loginSchema.safeParse(formData);
-
-    if (!result.success) {
-      const fieldErrors = {};
-      result.error.issues.forEach((issue) => {
-        fieldErrors[issue.path[0]] = issue.message;
-      });
-      setErrors(fieldErrors);
-      Swal.fire({
-        icon: "error",
-        title: "Validation Error",
-        text: "Please fill all fields correctly.",
-        confirmButtonColor: "#ff6b35",
-      });
-      return;
-    }
-
-    setErrors({});
-    setLoading(true);
-    setLocalError(null);
-
-    try {
-      const response = await axios.post(`${API_BASE_URL}/client/login`, {
-        email: formData.email,
-        password: formData.password,
-      });
-
-      console.log("✅ Login response:", response);
-
-      // ✅ Store token and user details
-      if (response.data?.token) {
-        dispatch(updateToken(response.data.token));
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("userToken", response.data.token);
-      }
-
-      if (response.data) {
-        dispatch(setUserDetails(response.data));
-        const clientId = response.data.id || response.data._id;
-        if (clientId) {
-          localStorage.setItem("clientId", clientId);
-        }
-      }
-
-      // ✅ Set login success to update isAuthenticated
-      dispatch(loginSuccess());
-
-      localStorage.setItem("email", formData.email);
-
-      Swal.fire({
-        icon: "success",
-        title: "Login Successful",
-        text: "Welcome back!",
-        confirmButtonColor: "#ff6b35",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-
-      // ✅ The useEffect will handle the redirect
-    } catch (error) {
-      // Extract error message using helper function
-      const errorMessage = extractErrorMessage(error);
-      
-      setLocalError(errorMessage);
-
-      // 🚨 UNVERIFIED EMAIL LOGIC: Check if the error indicates an unverified email
-      const isUnverified = 
-        errorMessage.toLowerCase().includes("verify") || 
-        errorMessage.toLowerCase().includes("unverified") ||
-        error.response?.status === 403; // Standard status for unverified accounts, adjust if your API uses 401/400 for this
-
-      if (isUnverified) {
-        Swal.fire({
-          icon: "warning",
-          title: "Email Not Verified",
-          text: "Please verify your email address to continue.",
-          confirmButtonColor: "#ff6b35",
-          confirmButtonText: "Go to Verification",
-        }).then(() => {
-          // Send them to the OTP page with the email and booking data
-          navigate("/verify-otp", {
-            state: {
-              email: formData.email,
-              from: from,
-              bookingData: bookingData || localStorage.getItem("pendingBooking")
-            },
-          });
-        });
-        
-        setLoading(false);
-        return; // Exit early so we don't show the generic error alert below
-      }
-
-      Swal.fire({
-        icon: "error",
-        title: "Login Failed",
-        text: errorMessage,
-        confirmButtonColor: "#ff6b35",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="login-wrapper">
       <div className="login-container">
@@ -292,58 +14,20 @@ const Login = () => {
         <div className="rightLogin-panel">
           <h2>Login</h2>
 
-          {(localError || error) && (
-            <div
-              className="error-message"
-              style={{
-                color: "red",
-                textAlign: "center",
-                marginBottom: "15px",
-                padding: "10px",
-                backgroundColor: "#ffeeee",
-                borderRadius: "5px",
-                fontSize: "14px",
-              }}
-            >
-              {localError || error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit}>
+          <form>
             <div className="form-group">
               <label>Email</label>
-              <input
-                type="email"
-                name="email"
-                placeholder="Enter your Email"
-                value={formData.email}
-                onChange={handleChange}
-                className={errors.email ? "errorInput" : ""}
-              />
-              {errors.email && <span className="error">{errors.email}</span>}
+              <input type="email" name="email" placeholder="Enter your Email" />
             </div>
 
             <div className="form-group">
               <label>Password</label>
               <div className="login-password-input">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  placeholder="Enter your Password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className={errors.password ? "errorInput" : ""}
-                />
-                <span
-                  className="eye-icon"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                <input type="password" name="password" placeholder="Enter your Password" />
+                <span className="eye-icon">
+                  <FaEye />
                 </span>
               </div>
-              {errors.password && (
-                <span className="error">{errors.password}</span>
-              )}
               <div className="forgot-password-row">
                 <Link to="/forgot-password" className="forgot-link">
                   Forgot Password?
@@ -351,24 +35,14 @@ const Login = () => {
               </div>
             </div>
 
-            <button
-              type="submit"
-              className="signup-btn"
-              disabled={loading || reduxLoading}
-            >
-              {loading || reduxLoading ? "Logging In..." : "Login"}
-            </button>
+            <button type="button" className="signup-btn">Login</button>
 
             <div className="divider">
               <span>Or Continue with</span>
             </div>
 
             <button type="button" className="google-btn">
-              <img
-                className="google-icon"
-                src="/novaxcape/google.png"
-                alt="Google"
-              />
+              <img className="google-icon" src="/novaxcape/google.png" alt="Google" />
               Continue with Google
             </button>
 

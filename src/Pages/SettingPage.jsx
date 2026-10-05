@@ -1,37 +1,35 @@
 import React, { useState, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import TopNavbar2 from "../components/TopNavbar2";
-import { useDispatch, useSelector } from "react-redux";
 import Swal from "sweetalert2";
 import { FaEyeSlash, FaSave, FaEye } from "react-icons/fa";
 import "../Styles/Setting.css";
-import {
-  updateVendorProfile,
-  getVendorDetails,
-  changeVendorPassword,
-  clearVendorError,
-  clearVendorSuccess
-} from "../redox/apiSlice";
-
+import { updateVendorProfile, getVendorDetails, changeVendorPassword, clearVendorError, clearVendorSuccess } from "../data/mockData.js";
+import { dispatch, mockState } from "../data/mockData.js";
 const SettingsPage = () => {
-  const { openMobileMenu = () => {} } = useOutletContext() || {};
-  const dispatch = useDispatch();
-  const { vendorProfile, vendorLoading, vendorError, vendorSuccessMessage } = useSelector((state) => state.api);
-  const { vendorDetails } = useSelector((state) => state.auth);
-
+  const {
+    openMobileMenu = () => {}
+  } = useOutletContext() || {};
+  const {
+    vendorProfile,
+    vendorLoading,
+    vendorError,
+    vendorSuccessMessage
+  } = (state => state.api)(mockState);
+  const {
+    vendorDetails
+  } = (state => state.auth)(mockState);
   const [businessData, setBusinessData] = useState({
     businessName: "",
     address: "",
     phoneNumber: "",
     email: ""
   });
-
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: ""
   });
-
   const [showPasswords, setShowPasswords] = useState({
     current: false,
     new: false,
@@ -77,7 +75,6 @@ const SettingsPage = () => {
       dispatch(clearVendorSuccess());
     }
   }, [vendorSuccessMessage, dispatch]);
-
   useEffect(() => {
     if (vendorError) {
       Swal.fire({
@@ -89,30 +86,39 @@ const SettingsPage = () => {
       dispatch(clearVendorError());
     }
   }, [vendorError, dispatch]);
-
-  const handleBusinessChange = (e) => {
-    const { name, value } = e.target;
-    setBusinessData(prev => ({ ...prev, [name]: value }));
+  const handleBusinessChange = e => {
+    const {
+      name,
+      value
+    } = e.target;
+    setBusinessData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
-
-  const handlePasswordChange = (e) => {
-    const { name, value } = e.target;
-    setPasswordData(prev => ({ ...prev, [name]: value }));
+  const handlePasswordChange = e => {
+    const {
+      name,
+      value
+    } = e.target;
+    setPasswordData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
-
-  const togglePasswordVisibility = (field) => {
-    setShowPasswords(prev => ({ ...prev, [field]: !prev[field] }));
+  const togglePasswordVisibility = field => {
+    setShowPasswords(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
   };
-
-  const handleBusinessSubmit = async (e) => {
+  const handleBusinessSubmit = async e => {
     e.preventDefault();
-
     const formData = new FormData();
     formData.append('businessName', businessData.businessName);
     formData.append('address', businessData.address);
     formData.append('phoneNumber', businessData.phoneNumber);
     formData.append('email', businessData.email);
-
     try {
       await dispatch(updateVendorProfile(formData)).unwrap();
       dispatch(getVendorDetails()); // Refresh data
@@ -120,8 +126,7 @@ const SettingsPage = () => {
       console.error('Update error:', error);
     }
   };
-
-  const handlePasswordSubmit = async (e) => {
+  const handlePasswordSubmit = async e => {
     e.preventDefault();
 
     // Validate passwords
@@ -134,7 +139,6 @@ const SettingsPage = () => {
       });
       return;
     }
-
     if (passwordData.newPassword.length < 6) {
       Swal.fire({
         icon: 'error',
@@ -144,7 +148,6 @@ const SettingsPage = () => {
       });
       return;
     }
-
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       Swal.fire({
         icon: 'error',
@@ -154,7 +157,6 @@ const SettingsPage = () => {
       });
       return;
     }
-
     try {
       await dispatch(changeVendorPassword({
         currentPassword: passwordData.currentPassword,
@@ -167,12 +169,10 @@ const SettingsPage = () => {
         newPassword: "",
         confirmPassword: ""
       });
-
     } catch (error) {
       console.error('Password change error:', error);
     }
   };
-
   const handleSaveAllChanges = async () => {
     // Save business info
     const formData = new FormData();
@@ -184,7 +184,6 @@ const SettingsPage = () => {
     try {
       await dispatch(updateVendorProfile(formData)).unwrap();
       dispatch(getVendorDetails());
-
       Swal.fire({
         icon: 'success',
         title: 'All Changes Saved!',
@@ -195,9 +194,7 @@ const SettingsPage = () => {
       console.error('Save error:', error);
     }
   };
-
-  return (
-    <>
+  return <>
     <div className="sticky-wrapper">
         <TopNavbar2 onMenuOpen={openMobileMenu} />
       </div>
@@ -211,38 +208,17 @@ const SettingsPage = () => {
 
         <div className="form-group">
           <label>Business Name</label>
-          <input
-            type="text"
-            name="businessName"
-            value={businessData.businessName}
-            onChange={handleBusinessChange}
-            placeholder="Lekki Conservation Centre"
-            required
-          />
+          <input type="text" name="businessName" value={businessData.businessName} onChange={handleBusinessChange} placeholder="Lekki Conservation Centre" required />
         </div>
 
         <div className="form-group">
           <label>Address</label>
-          <input
-            type="text"
-            name="address"
-            value={businessData.address}
-            onChange={handleBusinessChange}
-            placeholder="Lekki Peninsula, Lagos Nigeria"
-            required
-          />
+          <input type="text" name="address" value={businessData.address} onChange={handleBusinessChange} placeholder="Lekki Peninsula, Lagos Nigeria" required />
         </div>
 
         <div className="form-group">
           <label>Phone Number</label>
-          <input
-            type="tel"
-            name="phoneNumber"
-            value={businessData.phoneNumber}
-            onChange={handleBusinessChange}
-            placeholder="+234 706 394 1359"
-            required
-          />
+          <input type="tel" name="phoneNumber" value={businessData.phoneNumber} onChange={handleBusinessChange} placeholder="+234 706 394 1359" required />
         </div>
 
         {/* <div className="form-group">
@@ -255,7 +231,7 @@ const SettingsPage = () => {
             placeholder="lekkiconservationcenter688@gmail.com"
             required
           />
-        </div> */}
+         </div> */}
 
         <button type="submit" className="orange-btn" disabled={vendorLoading}>
           {vendorLoading ? "Saving..." : "Update Business Info"}
@@ -269,19 +245,8 @@ const SettingsPage = () => {
         <div className="form-group">
           <label>Current Password</label>
           <div className="password-field">
-            <input 
-              type={showPasswords.current ? "text" : "password"}
-              name="currentPassword"
-              value={passwordData.currentPassword}
-              onChange={handlePasswordChange}
-              placeholder="Input current password"
-              required
-            />
-            <button 
-              type="button"
-              className="toggle-password-btn"
-              onClick={() => togglePasswordVisibility('current')}
-            >
+            <input type={showPasswords.current ? "text" : "password"} name="currentPassword" value={passwordData.currentPassword} onChange={handlePasswordChange} placeholder="Input current password" required />
+            <button type="button" className="toggle-password-btn" onClick={() => togglePasswordVisibility('current')}>
               {showPasswords.current ? <FaEye /> : <FaEyeSlash />}
             </button>
           </div>
@@ -290,19 +255,8 @@ const SettingsPage = () => {
         <div className="form-group">
           <label>New Password</label>
           <div className="password-field">
-            <input 
-              type={showPasswords.new ? "text" : "password"}
-              name="newPassword"
-              value={passwordData.newPassword}
-              onChange={handlePasswordChange}
-              placeholder="Input new password"
-              required
-            />
-            <button 
-              type="button"
-              className="toggle-password-btn"
-              onClick={() => togglePasswordVisibility('new')}
-            >
+            <input type={showPasswords.new ? "text" : "password"} name="newPassword" value={passwordData.newPassword} onChange={handlePasswordChange} placeholder="Input new password" required />
+            <button type="button" className="toggle-password-btn" onClick={() => togglePasswordVisibility('new')}>
               {showPasswords.new ? <FaEye /> : <FaEyeSlash />}
             </button>
           </div>
@@ -312,19 +266,8 @@ const SettingsPage = () => {
         <div className="form-group">
           <label>Confirm New Password</label>
           <div className="password-field">
-            <input 
-              type={showPasswords.confirm ? "text" : "password"}
-              name="confirmPassword"
-              value={passwordData.confirmPassword}
-              onChange={handlePasswordChange}
-              placeholder="Confirm new password"
-              required
-            />
-            <button 
-              type="button"
-              className="toggle-password-btn"
-              onClick={() => togglePasswordVisibility('confirm')}
-            >
+            <input type={showPasswords.confirm ? "text" : "password"} name="confirmPassword" value={passwordData.confirmPassword} onChange={handlePasswordChange} placeholder="Confirm new password" required />
+            <button type="button" className="toggle-password-btn" onClick={() => togglePasswordVisibility('confirm')}>
               {showPasswords.confirm ? <FaEye /> : <FaEyeSlash />}
             </button>
           </div>
@@ -337,9 +280,6 @@ const SettingsPage = () => {
 
       
     </div>
-    </>
-
-  );
+    </>;
 };
-
 export default SettingsPage;

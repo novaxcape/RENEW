@@ -1,17 +1,16 @@
+import { mockState } from "../data/mockData.js";
 // components/WelcomeSection.jsx
-import { useSelector } from "react-redux";
 
 const WelcomeSection = () => {
   // Get vendor name from Redux state
-  const { loggedInUser, isVendor } = useSelector((state) => state.auth);
-  
-  // Get vendor name from Redux state
-  const displayName = isVendor 
-    ? loggedInUser?.vendorName || loggedInUser?.name || "Vendor" 
-    : "Vendor";
+  const {
+    loggedInUser,
+    isVendor
+  } = (state => state.auth)(mockState);
 
-  return (
-    <section className="welcome-section">
+  // Get vendor name from Redux state
+  const displayName = isVendor ? loggedInUser?.vendorName || loggedInUser?.name || "Vendor" : "Vendor";
+  return <section className="welcome-section">
       <div>
         <h1>Welcome back, {displayName}</h1>
         <p>
@@ -21,8 +20,6 @@ const WelcomeSection = () => {
       <button className="manage-centre-btn">
         Manage Centre
       </button>
-    </section>
-  );
+    </section>;
 };
-
 export default WelcomeSection;
