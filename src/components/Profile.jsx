@@ -1,32 +1,26 @@
 // File: src/Pages/Profile.jsx
 
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { FiUpload, FiTrash2 } from 'react-icons/fi';
 import { LuSave } from 'react-icons/lu';
-import {
-  updateClientProfile,
-  updateVendorProfile,
-  getVendorDetails,
-  clearClientError,
-  clearClientSuccess,
-  clearVendorError,
-  clearVendorSuccess
-} from '../redox/apiSlice';
+import { updateClientProfile, updateVendorProfile, getVendorDetails, clearClientError, clearClientSuccess, clearVendorError, clearVendorSuccess } from "../data/mockData.js";
 import './css/Profile.css';
-
+import { dispatch, mockState } from "../data/mockData.js";
 const Profile = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+
   // Tab control state
   const [activeTab, setActiveTab] = useState('account');
-  
+
   // Get auth state to determine if user is client or vendor
-  const { loggedInUser, vendorDetails, isVendor } = useSelector((state) => state.auth);
-  
+  const {
+    loggedInUser,
+    vendorDetails,
+    isVendor
+  } = (state => state.auth)(mockState);
+
   // Get API state
   const {
     clientProfile,
@@ -37,8 +31,7 @@ const Profile = () => {
     vendorLoading,
     vendorError,
     vendorSuccessMessage
-  } = useSelector((state) => state.api);
-
+  } = (state => state.api)(mockState);
   const [formData, setFormData] = useState({
     userName: '',
     firstName: '',
@@ -50,7 +43,6 @@ const Profile = () => {
     city: '',
     state: ''
   });
-
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState('/novaxcape/avatar.png');
   const [isAvatarRemoved, setIsAvatarRemoved] = useState(false);
@@ -76,7 +68,6 @@ const Profile = () => {
         return {};
       }
     })();
-    
     if (profileData) {
       setFormData({
         firstName: profileData.firstName || profileData.first_name || localExtra.firstName || '',
@@ -88,7 +79,6 @@ const Profile = () => {
         city: profileData.city || localExtra.city || '',
         state: profileData.state || localExtra.state || ''
       });
-      
       const avatarUrl = profileData.profilePicture || profileData.avatar || profileData.avatarUrl;
       if (avatarUrl && !avatarFile && !isAvatarRemoved) {
         setAvatarPreview(avatarUrl);
@@ -120,7 +110,6 @@ const Profile = () => {
       dispatch(isVendor ? clearVendorSuccess() : clearClientSuccess());
     }
   }, [clientSuccessMessage, vendorSuccessMessage, dispatch, isVendor]);
-
   useEffect(() => {
     if (clientError || vendorError) {
       Swal.fire({
@@ -132,13 +121,17 @@ const Profile = () => {
       dispatch(isVendor ? clearVendorError() : clearClientError());
     }
   }, [clientError, vendorError, dispatch, isVendor]);
-
-  const handleChange = (e) => {
-    const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
+  const handleChange = e => {
+    const {
+      id,
+      value
+    } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [id]: value
+    }));
   };
-
-  const handleAvatarChange = (e) => {
+  const handleAvatarChange = e => {
     const file = e.target.files[0];
     if (file) {
       // Validate file size (20MB max)
@@ -151,7 +144,7 @@ const Profile = () => {
         });
         return;
       }
-      
+
       // Validate file type
       const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
       if (!allowedTypes.includes(file.type)) {
@@ -163,23 +156,20 @@ const Profile = () => {
         });
         return;
       }
-      
       setAvatarFile(file);
       setIsAvatarRemoved(false);
       const previewUrl = URL.createObjectURL(file);
       setAvatarPreview(previewUrl);
     }
   };
-
   const handleRemoveAvatar = () => {
     setAvatarFile(null);
     setIsAvatarRemoved(true);
     setAvatarPreview('/novaxcape/avatar.png');
   };
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    
+
     // Validate required fields
     if (!formData.userName && !formData.firstName) {
       Swal.fire({
@@ -193,18 +183,15 @@ const Profile = () => {
 
     // Create FormData for multipart/form-data upload
     const profileData = new FormData();
-    
+
     // 1. Add userName (required by API)
-    const userName = formData.userName.trim() || 
-                     formData.nickname.trim() || 
-                     `${formData.firstName} ${formData.lastName}`.trim();
-    
+    const userName = formData.userName.trim() || formData.nickname.trim() || `${formData.firstName} ${formData.lastName}`.trim();
+
     // 2. profilePicture is REQUIRED by the API on every update (400 if missing).
     // If the user picked a new file, use it directly.
     // Otherwise, fall back to fetching their current avatar as a Blob/File
     // so the request always includes a profilePicture.
     let fileToSend = avatarFile;
-
     if (!fileToSend) {
       // If the user clicked "Remove", there's no current avatar to fall back to
       if (isAvatarRemoved) {
@@ -216,12 +203,13 @@ const Profile = () => {
         });
         return;
       }
-
       try {
         const response = await fetch(avatarPreview);
         const blob = await response.blob();
         const fileName = avatarPreview.split('/').pop().split('?')[0] || 'avatar.png';
-        fileToSend = new File([blob], fileName, { type: blob.type || 'image/png' });
+        fileToSend = new File([blob], fileName, {
+          type: blob.type || 'image/png'
+        });
       } catch (fetchError) {
         console.error('Failed to fetch existing avatar as blob:', fetchError);
         Swal.fire({
@@ -233,7 +221,6 @@ const Profile = () => {
         return;
       }
     }
-
     profileData.append('profilePicture', fileToSend);
 
     // Backend only accepts userName + profilePicture right now.
@@ -246,23 +233,22 @@ const Profile = () => {
       gender: formData.gender,
       email: formData.email,
       city: formData.city,
-      state: formData.state,
+      state: formData.state
     }));
 
     // Note: Other input form values remain visible locally in UI, 
     // but are not appended to stay compliant with your strict API validation
-    
+
     try {
       console.log('📤 Submitting profile update...');
       console.log('📤 userName:', userName);
       console.log('📤 profilePicture:', avatarFile ? avatarFile.name : 'No change');
-      
       if (isVendor) {
         await dispatch(updateVendorProfile(profileData)).unwrap();
       } else {
         await dispatch(updateClientProfile(profileData)).unwrap();
       }
-      
+
       // Refresh vendor details if vendor
       if (isVendor) {
         dispatch(getVendorDetails());
@@ -277,7 +263,6 @@ const Profile = () => {
       // Error is handled by useEffect
     }
   };
-
   const handleDeleteAccount = () => {
     Swal.fire({
       title: 'Are you sure?',
@@ -288,7 +273,7 @@ const Profile = () => {
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Yes, delete my account',
       cancelButtonText: 'Cancel'
-    }).then((result) => {
+    }).then(result => {
       if (result.isConfirmed) {
         Swal.fire({
           icon: 'info',
@@ -299,11 +284,8 @@ const Profile = () => {
       }
     });
   };
-
   const isLoading = isVendor ? vendorLoading : clientLoading;
-
-  return (
-    <div className="profile-page-wrapper">
+  return <div className="profile-page-wrapper">
       <div className="profile-settings-container">
         
         <header className="settings-header">
@@ -313,25 +295,21 @@ const Profile = () => {
 
         <section className="profile-photo-section">
           <div className="avatar-wrapper">
-            <img 
-              src={avatarPreview} 
-              alt="User avatar" 
-              className="avatar-image" 
-              onError={(e) => { e.target.src = '/novaxcape/avatar.png'; }}
-            />
+            <img src={avatarPreview} alt="User avatar" className="avatar-image" onError={e => {
+            e.target.src = '/novaxcape/avatar.png';
+          }} />
           </div>
           <div className="photo-controls">
             <h2 className="profile-label">Profile</h2>
             <div className="photo-actions">
-              <label className="btn-upload" style={{ cursor: 'pointer' }}>
+              <label className="btn-upload" style={{
+              cursor: 'pointer'
+            }}>
                 <FiUpload className="react-icon" />
                 Upload Image
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/gif,image/webp"
-                  onChange={handleAvatarChange}
-                  style={{ display: 'none' }}
-                />
+                <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" onChange={handleAvatarChange} style={{
+                display: 'none'
+              }} />
               </label>
               <button type="button" className="btn-remove" onClick={handleRemoveAvatar}>
                 Remove
@@ -343,18 +321,10 @@ const Profile = () => {
 
         <div className="settings-tabs-wrapper">
           <nav className="settings-tabs-nav">
-            <button 
-              type="button" 
-              className={activeTab === 'account' ? 'tab-pill-blue' : 'tab-pill-white'}
-              onClick={() => setActiveTab('account')}
-            >
+            <button type="button" className={activeTab === 'account' ? 'tab-pill-blue' : 'tab-pill-white'} onClick={() => setActiveTab('account')}>
               Account Setting
             </button>
-            <button 
-              type="button" 
-              className={activeTab === 'general' ? 'tab-pill-blue' : 'tab-pill-white'}
-              onClick={() => setActiveTab('general')}
-            >
+            <button type="button" className={activeTab === 'general' ? 'tab-pill-blue' : 'tab-pill-white'} onClick={() => setActiveTab('general')}>
               Setting
             </button>
           </nav>
@@ -367,14 +337,7 @@ const Profile = () => {
             <div className="form-group">
               <label htmlFor="userName">Username *</label>
               <div className="input-wrapper">
-                <input 
-                  type="text" 
-                  id="userName" 
-                  value={formData.userName}
-                  onChange={handleChange}
-                  placeholder="Enter your username" 
-                  required
-                />
+                <input type="text" id="userName" value={formData.userName} onChange={handleChange} placeholder="Enter your username" required />
                 <small className="field-hint">This is your display name. Required for API.</small>
               </div>
             </div>
@@ -382,63 +345,35 @@ const Profile = () => {
             <div className="form-group">
               <label htmlFor="firstName">First Name</label>
               <div className="input-wrapper">
-                <input 
-                  type="text" 
-                  id="firstName" 
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  placeholder="Enter your first name" 
-                />
+                <input type="text" id="firstName" value={formData.firstName} onChange={handleChange} placeholder="Enter your first name" />
               </div>
             </div>
             
             <div className="form-group">
               <label htmlFor="lastName">Last Name</label>
               <div className="input-wrapper">
-                <input 
-                  type="text" 
-                  id="lastName" 
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  placeholder="Enter your last name" 
-                />
+                <input type="text" id="lastName" value={formData.lastName} onChange={handleChange} placeholder="Enter your last name" />
               </div>
             </div>
 
             <div className="form-group">
               <label htmlFor="nickname">Nickname</label>
               <div className="input-wrapper">
-                <input 
-                  type="text" 
-                  id="nickname" 
-                  value={formData.nickname}
-                  onChange={handleChange}
-                  placeholder="Your display name" 
-                />
+                <input type="text" id="nickname" value={formData.nickname} onChange={handleChange} placeholder="Your display name" />
               </div>
             </div>
             
             <div className="form-group">
               <label htmlFor="phoneNumber">Phone Number</label>
               <div className="input-wrapper">
-                <input 
-                  type="tel" 
-                  id="phoneNumber" 
-                  value={formData.phoneNumber}
-                  onChange={handleChange}
-                  placeholder="Input phone number" 
-                />
+                <input type="tel" id="phoneNumber" value={formData.phoneNumber} onChange={handleChange} placeholder="Input phone number" />
               </div>
             </div>
 
             <div className="form-group">
               <label htmlFor="gender">Gender</label>
               <div className="input-wrapper select-wrapper">
-                <select 
-                  id="gender" 
-                  value={formData.gender}
-                  onChange={handleChange}
-                >
+                <select id="gender" value={formData.gender} onChange={handleChange}>
                   <option value="" disabled>Select Option</option>
                   <option value="male">Male</option>
                   <option value="female">Female</option>
@@ -450,39 +385,21 @@ const Profile = () => {
             <div className="form-group">
               <label htmlFor="email">Email</label>
               <div className="input-wrapper">
-                <input 
-                  type="email" 
-                  id="email" 
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="Enter your Email" 
-                />
+                <input type="email" id="email" value={formData.email} onChange={handleChange} placeholder="Enter your Email" />
               </div>
             </div>
 
             <div className="form-group">
               <label htmlFor="city">City</label>
               <div className="input-wrapper">
-                <input 
-                  type="text" 
-                  id="city" 
-                  value={formData.city}
-                  onChange={handleChange}
-                  placeholder="Enter your city" 
-                />
+                <input type="text" id="city" value={formData.city} onChange={handleChange} placeholder="Enter your city" />
               </div>
             </div>
             
             <div className="form-group">
               <label htmlFor="state">State</label>
               <div className="input-wrapper">
-                <input 
-                  type="text" 
-                  id="state" 
-                  value={formData.state}
-                  onChange={handleChange}
-                  placeholder="Enter your state" 
-                />
+                <input type="text" id="state" value={formData.state} onChange={handleChange} placeholder="Enter your state" />
               </div>
             </div>
             
@@ -501,8 +418,6 @@ const Profile = () => {
         </form>
 
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Profile;

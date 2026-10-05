@@ -1,43 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import {
-  Search,
-  Package,
-  Check,
-  X,
-  Inbox,
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-} from "lucide-react";
-import {
-  getAllPackages,
-  deletePackage,
-  createPackage,
-  updatePackage,
-} from "../redox/apiSlice";
+import { Search, Package, Check, X, Inbox, Plus, Edit, Trash2, Eye } from "lucide-react";
+import { getAllPackages, deletePackage, createPackage, updatePackage } from "../data/mockData.js";
 import "./css/Package.css";
-
-const getEntityId = (value) =>
-  value?.id ||
-  value?._id ||
-  value?.touristId ||
-  value?.centreId ||
-  value?.centerId ||
-  value?.tourist?.id ||
-  value?.tourist?._id ||
-  value?.touristCentre?.id ||
-  value?.touristCentre?._id;
-
-const getStoredCentreId = () =>
-  localStorage.getItem("latestTouristId") ||
-  localStorage.getItem("centreId") ||
-  localStorage.getItem("touristId");
-
-const PackageLoadingState = () => (
-  <div className="package-container package-container--loading" aria-busy="true">
+import { dispatch, mockState } from "../data/mockData.js";
+const getEntityId = value => value?.id || value?._id || value?.touristId || value?.centreId || value?.centerId || value?.tourist?.id || value?.tourist?._id || value?.touristCentre?.id || value?.touristCentre?._id;
+const getStoredCentreId = () => localStorage.getItem("latestTouristId") || localStorage.getItem("centreId") || localStorage.getItem("touristId");
+const PackageLoadingState = () => <div className="package-container package-container--loading" aria-busy="true">
     <div className="package-header">
       <div className="package-loading-title-area">
         <span className="package-skeleton package-skeleton-title" />
@@ -57,43 +26,39 @@ const PackageLoadingState = () => (
     </div>
 
     <div className="stats-grid package-loading-stats">
-      {Array.from({ length: 3 }).map((_, index) => (
-        <div className="stat-card package-loading-stat-card" key={index}>
+      {Array.from({
+      length: 3
+    }).map((_, index) => <div className="stat-card package-loading-stat-card" key={index}>
           <span className="package-skeleton package-skeleton-stat-icon" />
           <div>
             <span className="package-skeleton package-skeleton-stat-number" />
             <span className="package-skeleton package-skeleton-stat-label" />
           </div>
-        </div>
-      ))}
+        </div>)}
     </div>
 
     <div className="package-list package-list--loading">
       <div className="package-loading-table-head">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <span className="package-skeleton package-skeleton-th" key={index} />
-        ))}
+        {Array.from({
+        length: 6
+      }).map((_, index) => <span className="package-skeleton package-skeleton-th" key={index} />)}
       </div>
       <div className="package-loading-table-body">
-        {Array.from({ length: 6 }).map((_, rowIndex) => (
-          <div className="package-loading-table-row" key={rowIndex}>
+        {Array.from({
+        length: 6
+      }).map((_, rowIndex) => <div className="package-loading-table-row" key={rowIndex}>
             <span className="package-skeleton package-skeleton-name-cell" />
             <span className="package-skeleton package-skeleton-price-cell" />
             <span className="package-skeleton package-skeleton-type-cell" />
             <span className="package-skeleton package-skeleton-status-cell" />
             <span className="package-skeleton package-skeleton-date-cell" />
             <span className="package-skeleton package-skeleton-actions-cell" />
-          </div>
-        ))}
+          </div>)}
       </div>
     </div>
-  </div>
-);
-
+  </div>;
 const PackageSettings = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [packages, setPackages] = useState([]);
@@ -114,21 +79,24 @@ const PackageSettings = () => {
     packageType: "",
     numberOfPeople: "",
     amount: "",
-    status: "active",
+    status: "active"
   });
 
   // Get packages and vendor centres from Redux state
   const {
     packages: packagesFromRedux,
     packagesLoading,
-    packagesError,
-  } = useSelector((state) => state.api);
-  const { vendorCentres } = useSelector((state) => state.api);
-  const { vendorDetails } = useSelector((state) => state.auth);
+    packagesError
+  } = (state => state.api)(mockState);
+  const {
+    vendorCentres
+  } = (state => state.api)(mockState);
+  const {
+    vendorDetails
+  } = (state => state.auth)(mockState);
 
   // Get the centre/tourist ID used by package APIs.
-  const centreId =
-    getEntityId(vendorCentres?.[0]) || getStoredCentreId() || getEntityId(vendorDetails);
+  const centreId = getEntityId(vendorCentres?.[0]) || getStoredCentreId() || getEntityId(vendorDetails);
 
   // Fetch packages when centreId changes
   useEffect(() => {
@@ -145,8 +113,7 @@ const PackageSettings = () => {
       setPackages(packagesFromRedux);
     }
   }, [packagesFromRedux]);
-
-  const fetchPackages = async (id) => {
+  const fetchPackages = async id => {
     try {
       setLoading(true);
       setError(null);
@@ -165,7 +132,7 @@ const PackageSettings = () => {
   };
 
   // Handle delete click
-  const handleDeleteClick = (packageId) => {
+  const handleDeleteClick = packageId => {
     setDeleteTargetId(packageId);
   };
 
@@ -197,31 +164,36 @@ const PackageSettings = () => {
       packageType: "",
       numberOfPeople: "",
       amount: "",
-      status: "active",
+      status: "active"
     });
     setShowAddModal(true);
   };
 
   // Open Edit popup and populate fields
-  const handleEditClick = (pkg) => {
+  const handleEditClick = pkg => {
     setFormData({
       id: pkg.id || pkg._id,
       packageName: pkg.packageName || pkg.name || "",
       packageType: pkg.packageType || pkg.type || "",
       numberOfPeople: pkg.numberOfPeople || pkg.maxPeople || "",
       amount: pkg.amount || pkg.price || "",
-      status: pkg.status || "active",
+      status: pkg.status || "active"
     });
     setShowEditModal(true);
   };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleInputChange = e => {
+    const {
+      name,
+      value
+    } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   // Handle Add Form Submission
-  const handleAddSubmit = async (e) => {
+  const handleAddSubmit = async e => {
     e.preventDefault();
 
     // Validate required fields
@@ -229,12 +201,10 @@ const PackageSettings = () => {
       setError("Package name is required");
       return;
     }
-
     if (!formData.amount) {
       setError("Amount is required");
       return;
     }
-
     try {
       setLoading(true);
       setError(null);
@@ -244,19 +214,14 @@ const PackageSettings = () => {
         packageName: formData.packageName,
         packageType: formData.packageType || "Standard",
         numberOfPeople: formData.numberOfPeople || "1",
-        amount: parseFloat(formData.amount),
+        amount: parseFloat(formData.amount)
       };
-
       console.log("📦 Creating package with data:", packageData);
       console.log("📦 For touristId:", centreId);
-
-      await dispatch(
-        createPackage({
-          touristId: centreId,
-          packageData,
-        }),
-      ).unwrap();
-
+      await dispatch(createPackage({
+        touristId: centreId,
+        packageData
+      })).unwrap();
       setShowAddModal(false);
       setSuccessMessage("Package added successfully");
       setShowSuccessModal(true);
@@ -272,7 +237,7 @@ const PackageSettings = () => {
   };
 
   // Handle Edit Form Submission
-  const handleEditSubmit = async (e) => {
+  const handleEditSubmit = async e => {
     e.preventDefault();
 
     // Validate required fields
@@ -280,12 +245,10 @@ const PackageSettings = () => {
       setError("Package name is required");
       return;
     }
-
     if (!formData.amount) {
       setError("Amount is required");
       return;
     }
-
     try {
       setLoading(true);
       setError(null);
@@ -295,18 +258,16 @@ const PackageSettings = () => {
         packageName: formData.packageName,
         packageType: formData.packageType || "Standard",
         numberOfPeople: formData.numberOfPeople || "1",
-        amount: parseFloat(formData.amount),
+        amount: parseFloat(formData.amount)
       };
-
-      console.log("📦 Updating package:", { id: formData.id, ...packageData });
-
-      await dispatch(
-        updatePackage({
-          id: formData.id,
-          packageData,
-        }),
-      ).unwrap();
-
+      console.log("📦 Updating package:", {
+        id: formData.id,
+        ...packageData
+      });
+      await dispatch(updatePackage({
+        id: formData.id,
+        packageData
+      })).unwrap();
       setShowEditModal(false);
       setSuccessMessage("Package updated successfully");
       setShowSuccessModal(true);
@@ -322,30 +283,19 @@ const PackageSettings = () => {
   };
 
   // Handle view package details
-  const handleView = (packageId) => {
+  const handleView = packageId => {
     navigate(`/vendor/package/${packageId}`);
   };
 
   // Filter package entries matching UI criteria
-  const filteredPackages = packages.filter((pkg) => {
-    const matchesSearch =
-      pkg.packageName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pkg.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pkg.description?.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesStatus =
-      filterStatus === "All" ||
-      (filterStatus === "Active" && pkg.status !== "inactive") ||
-      (filterStatus === "Inactive" && pkg.status === "inactive");
-
+  const filteredPackages = packages.filter(pkg => {
+    const matchesSearch = pkg.packageName?.toLowerCase().includes(searchTerm.toLowerCase()) || pkg.name?.toLowerCase().includes(searchTerm.toLowerCase()) || pkg.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === "All" || filterStatus === "Active" && pkg.status !== "inactive" || filterStatus === "Inactive" && pkg.status === "inactive";
     return matchesSearch && matchesStatus;
   });
-
   const totalPackages = packages.length;
-  const activePackages = packages.filter((p) => p.status !== "inactive").length;
-  const inactivePackages = packages.filter(
-    (p) => p.status === "inactive",
-  ).length;
+  const activePackages = packages.filter(p => p.status !== "inactive").length;
+  const inactivePackages = packages.filter(p => p.status === "inactive").length;
 
   // Show loading state
   if (loading || packagesLoading) {
@@ -354,8 +304,7 @@ const PackageSettings = () => {
 
   // Show error state
   if (error && packages.length === 0) {
-    return (
-      <div className="package-container">
+    return <div className="package-container">
         <div className="package-header">
           <div>
             <h2>Package Settings</h2>
@@ -368,12 +317,9 @@ const PackageSettings = () => {
             Retry
           </button>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="package-container">
+  return <div className="package-container">
       {/* Header element */}
       <div className="package-header">
         <div>
@@ -393,31 +339,17 @@ const PackageSettings = () => {
       <div className="package-filters">
         <div className="search-box">
           <Search size={18} />
-          <input
-            type="text"
-            placeholder="Search packages..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <input type="text" placeholder="Search packages..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
         </div>
 
         <div className="filter-buttons">
-          <button
-            className={`filter ${filterStatus === "All" ? "active" : ""}`}
-            onClick={() => setFilterStatus("All")}
-          >
+          <button className={`filter ${filterStatus === "All" ? "active" : ""}`} onClick={() => setFilterStatus("All")}>
             All
           </button>
-          <button
-            className={`filter ${filterStatus === "Active" ? "active" : ""}`}
-            onClick={() => setFilterStatus("Active")}
-          >
+          <button className={`filter ${filterStatus === "Active" ? "active" : ""}`} onClick={() => setFilterStatus("Active")}>
             Active
           </button>
-          <button
-            className={`filter ${filterStatus === "Inactive" ? "active" : ""}`}
-            onClick={() => setFilterStatus("Inactive")}
-          >
+          <button className={`filter ${filterStatus === "Inactive" ? "active" : ""}`} onClick={() => setFilterStatus("Inactive")}>
             Inactive
           </button>
           <span className="package-count">
@@ -460,29 +392,19 @@ const PackageSettings = () => {
       </div>
 
       {/* Main Datatable Render */}
-      {filteredPackages.length === 0 ? (
-        <div className="empty-state">
+      {filteredPackages.length === 0 ? <div className="empty-state">
           <Inbox size={35} strokeWidth={1.5} />
           <h3>No packages found</h3>
           <p>
-            {searchTerm || filterStatus !== "All"
-              ? "Try adjusting your search or filters"
-              : "Add your first package to get started"}
+            {searchTerm || filterStatus !== "All" ? "Try adjusting your search or filters" : "Add your first package to get started"}
           </p>
-          {(searchTerm || filterStatus !== "All") && (
-            <button
-              className="clear-filters-btn"
-              onClick={() => {
-                setSearchTerm("");
-                setFilterStatus("All");
-              }}
-            >
+          {(searchTerm || filterStatus !== "All") && <button className="clear-filters-btn" onClick={() => {
+        setSearchTerm("");
+        setFilterStatus("All");
+      }}>
               Clear Filters
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="package-list">
+            </button>}
+        </div> : <div className="package-list">
           <table className="package-table">
             <thead>
               <tr>
@@ -495,26 +417,19 @@ const PackageSettings = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredPackages.map((pkg) => {
-                const packageName =
-                  pkg.packageName || pkg.name || "Unnamed Package";
-                const price = pkg.amount || pkg.price || 0;
-                const packageType = pkg.packageType || pkg.type || "Standard";
-                const status = pkg.status || "active";
-                const createdAt = pkg.createdAt
-                  ? new Date(pkg.createdAt).toLocaleDateString()
-                  : "N/A";
-
-                return (
-                  <tr key={pkg.id || pkg._id}>
+              {filteredPackages.map(pkg => {
+            const packageName = pkg.packageName || pkg.name || "Unnamed Package";
+            const price = pkg.amount || pkg.price || 0;
+            const packageType = pkg.packageType || pkg.type || "Standard";
+            const status = pkg.status || "active";
+            const createdAt = pkg.createdAt ? new Date(pkg.createdAt).toLocaleDateString() : "N/A";
+            return <tr key={pkg.id || pkg._id}>
                     <td>
                       <div className="package-name-cell">
                         <span className="package-name">{packageName}</span>
-                        {pkg.description && (
-                          <span className="package-desc">
+                        {pkg.description && <span className="package-desc">
                             {pkg.description.slice(0, 50)}...
-                          </span>
-                        )}
+                          </span>}
                       </div>
                     </td>
                     <td className="package-price">
@@ -524,100 +439,56 @@ const PackageSettings = () => {
                       <span className="package-type-badge">{packageType}</span>
                     </td>
                     <td>
-                      <span
-                        className={`status-badge ${
-                          status === "inactive" ? "inactive" : "active"
-                        }`}
-                      >
+                      <span className={`status-badge ${status === "inactive" ? "inactive" : "active"}`}>
                         {status === "inactive" ? "Inactive" : "Active"}
                       </span>
                     </td>
                     <td className="package-date">{createdAt}</td>
                     <td>
                       <div className="action-buttons">
-                        <button
-                          className="action-btn view"
-                          onClick={() => handleView(pkg.id || pkg._id)}
-                          title="View Package"
-                        >
+                        <button className="action-btn view" onClick={() => handleView(pkg.id || pkg._id)} title="View Package">
                           <Eye size={16} />
                         </button>
-                        <button
-                          className="action-btn edit"
-                          onClick={() => handleEditClick(pkg)}
-                          title="Edit Package"
-                        >
+                        <button className="action-btn edit" onClick={() => handleEditClick(pkg)} title="Edit Package">
                           <Edit size={16} />
                         </button>
-                        <button
-                          className="action-btn delete"
-                          onClick={() => handleDeleteClick(pkg.id || pkg._id)}
-                          title="Delete Package"
-                        >
+                        <button className="action-btn delete" onClick={() => handleDeleteClick(pkg.id || pkg._id)} title="Delete Package">
                           <Trash2 size={16} />
                         </button>
                       </div>
                     </td>
-                  </tr>
-                );
-              })}
+                  </tr>;
+          })}
             </tbody>
           </table>
-        </div>
-      )}
+        </div>}
 
       {/* --- ADD NEW PACKAGE MODAL --- */}
-      {showAddModal && (
-        <div className="modal-backdrop" onClick={() => setShowAddModal(false)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+      {showAddModal && <div className="modal-backdrop" onClick={() => setShowAddModal(false)}>
+          <div className="modal-card" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-title-area">
                 <h2>Add New Package</h2>
                 <p>Create a new tour package</p>
               </div>
-              <button
-                className="close-modal-btn"
-                onClick={() => setShowAddModal(false)}
-              >
+              <button className="close-modal-btn" onClick={() => setShowAddModal(false)}>
                 <X size={20} />
               </button>
             </div>
             <form onSubmit={handleAddSubmit} className="modal-form">
               <div className="form-group">
                 <label className="form-label">Package Name *</label>
-                <input
-                  type="text"
-                  name="packageName"
-                  className="form-input"
-                  placeholder="e.g. Family Package"
-                  value={formData.packageName}
-                  onChange={handleInputChange}
-                  required
-                />
+                <input type="text" name="packageName" className="form-input" placeholder="e.g. Family Package" value={formData.packageName} onChange={handleInputChange} required />
               </div>
 
               <div className="form-group">
                 <label className="form-label">Package Type</label>
-                <input
-                  type="text"
-                  name="packageType"
-                  className="form-input"
-                  placeholder="e.g. Premium, Standard, Economy"
-                  value={formData.packageType}
-                  onChange={handleInputChange}
-                />
+                <input type="text" name="packageType" className="form-input" placeholder="e.g. Premium, Standard, Economy" value={formData.packageType} onChange={handleInputChange} />
               </div>
 
               <div className="form-group">
                 <label className="form-label">Number of people</label>
-                <input
-                  type="text"
-                  name="numberOfPeople"
-                  className="form-input"
-                  placeholder="e.g. 5"
-                  value={formData.numberOfPeople}
-                  onChange={handleInputChange}
-                />
+                <input type="text" name="numberOfPeople" className="form-input" placeholder="e.g. 5" value={formData.numberOfPeople} onChange={handleInputChange} />
                 <small className="form-hint">
                   Maximum number of people per booking
                 </small>
@@ -625,181 +496,96 @@ const PackageSettings = () => {
 
               <div className="form-group">
                 <label className="form-label">Amount (₦) *</label>
-                <input
-                  type="number"
-                  name="amount"
-                  className="form-input"
-                  placeholder="e.g. 50000"
-                  value={formData.amount}
-                  onChange={handleInputChange}
-                  required
-                />
+                <input type="number" name="amount" className="form-input" placeholder="e.g. 50000" value={formData.amount} onChange={handleInputChange} required />
               </div>
 
               <div className="modal-actions">
-                <button
-                  type="button"
-                  className="modal-btn-cancel"
-                  onClick={() => setShowAddModal(false)}
-                >
+                <button type="button" className="modal-btn-cancel" onClick={() => setShowAddModal(false)}>
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="modal-btn-submit"
-                  disabled={loading}
-                >
+                <button type="submit" className="modal-btn-submit" disabled={loading}>
                   <Check size={16} /> {loading ? "Adding..." : "Add Package"}
                 </button>
               </div>
             </form>
           </div>
-        </div>
-      )}
+        </div>}
 
       {/* --- EDIT PACKAGE MODAL --- */}
-      {showEditModal && (
-        <div className="modal-backdrop" onClick={() => setShowEditModal(false)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+      {showEditModal && <div className="modal-backdrop" onClick={() => setShowEditModal(false)}>
+          <div className="modal-card" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-title-area">
                 <h2>Edit Package</h2>
                 <p>Edit tour package</p>
               </div>
-              <button
-                className="close-modal-btn"
-                onClick={() => setShowEditModal(false)}
-              >
+              <button className="close-modal-btn" onClick={() => setShowEditModal(false)}>
                 <X size={20} />
               </button>
             </div>
             <form onSubmit={handleEditSubmit} className="modal-form">
               <div className="form-group">
                 <label className="form-label">Package Name *</label>
-                <input
-                  type="text"
-                  name="packageName"
-                  className="form-input"
-                  placeholder="Package name"
-                  value={formData.packageName}
-                  onChange={handleInputChange}
-                  required
-                />
+                <input type="text" name="packageName" className="form-input" placeholder="Package name" value={formData.packageName} onChange={handleInputChange} required />
               </div>
 
               <div className="form-group">
                 <label className="form-label">Package Type</label>
-                <input
-                  type="text"
-                  name="packageType"
-                  className="form-input"
-                  placeholder="Package type"
-                  value={formData.packageType}
-                  onChange={handleInputChange}
-                />
+                <input type="text" name="packageType" className="form-input" placeholder="Package type" value={formData.packageType} onChange={handleInputChange} />
               </div>
 
               <div className="form-group">
                 <label className="form-label">Number of people</label>
-                <input
-                  type="text"
-                  name="numberOfPeople"
-                  className="form-input"
-                  placeholder="Max people"
-                  value={formData.numberOfPeople}
-                  onChange={handleInputChange}
-                />
+                <input type="text" name="numberOfPeople" className="form-input" placeholder="Max people" value={formData.numberOfPeople} onChange={handleInputChange} />
               </div>
 
               <div className="form-group">
                 <label className="form-label">Amount (₦) *</label>
-                <input
-                  type="number"
-                  name="amount"
-                  className="form-input"
-                  placeholder="Amount"
-                  value={formData.amount}
-                  onChange={handleInputChange}
-                  required
-                />
+                <input type="number" name="amount" className="form-input" placeholder="Amount" value={formData.amount} onChange={handleInputChange} required />
               </div>
 
               <div className="modal-actions">
-                <button
-                  type="button"
-                  className="modal-btn-cancel"
-                  onClick={() => setShowEditModal(false)}
-                >
+                <button type="button" className="modal-btn-cancel" onClick={() => setShowEditModal(false)}>
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="modal-btn-submit"
-                  disabled={loading}
-                >
+                <button type="submit" className="modal-btn-submit" disabled={loading}>
                   <Check size={16} /> {loading ? "Saving..." : "Save changes"}
                 </button>
               </div>
             </form>
           </div>
-        </div>
-      )}
+        </div>}
 
       {/* --- SUCCESS STATUS MODAL --- */}
-      {showSuccessModal && (
-        <div
-          className="modal-backdrop"
-          onClick={() => setShowSuccessModal(false)}
-        >
-          <div
-            className="alert-modal-card"
-            onClick={(e) => e.stopPropagation()}
-          >
+      {showSuccessModal && <div className="modal-backdrop" onClick={() => setShowSuccessModal(false)}>
+          <div className="alert-modal-card" onClick={e => e.stopPropagation()}>
             <div className="success-icon">✓</div>
             <h2 className="alert-title">Success!</h2>
             <p className="alert-message">{successMessage}</p>
-            <button
-              className="alert-btn-continue"
-              onClick={() => setShowSuccessModal(false)}
-            >
+            <button className="alert-btn-continue" onClick={() => setShowSuccessModal(false)}>
               Continue
             </button>
           </div>
-        </div>
-      )}
+        </div>}
 
       {/* --- CONFIRM DELETE MODAL --- */}
-      {deleteTargetId && (
-        <div className="modal-backdrop" onClick={() => setDeleteTargetId(null)}>
-          <div
-            className="alert-modal-card"
-            onClick={(e) => e.stopPropagation()}
-          >
+      {deleteTargetId && <div className="modal-backdrop" onClick={() => setDeleteTargetId(null)}>
+          <div className="alert-modal-card" onClick={e => e.stopPropagation()}>
             <h2 className="alert-title">Delete Package</h2>
             <p className="alert-message">
               Are you sure you want to delete this package? This action cannot
               be undone.
             </p>
             <div className="alert-actions-row">
-              <button
-                className="alert-btn-cancel"
-                onClick={() => setDeleteTargetId(null)}
-              >
+              <button className="alert-btn-cancel" onClick={() => setDeleteTargetId(null)}>
                 Cancel
               </button>
-              <button
-                className="alert-btn-delete"
-                onClick={handleConfirmDelete}
-                disabled={loading}
-              >
+              <button className="alert-btn-delete" onClick={handleConfirmDelete} disabled={loading}>
                 {loading ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
+        </div>}
+    </div>;
 };
-
 export default PackageSettings;

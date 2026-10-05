@@ -1,27 +1,23 @@
 // Pages/Passcode.jsx
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { verifyPasscode } from '../redox/apiSlice';
+import { verifyPasscode } from "../data/mockData.js";
 import Swal from 'sweetalert2';
 import './css/Passcode.css';
-
+import { dispatch } from "../data/mockData.js";
 const Passcode = () => {
-  const dispatch = useDispatch();
   const [passcode, setPasscode] = useState([]);
   const [verificationStatus, setVerificationStatus] = useState('idle'); // 'idle', 'success', 'failed'
   const [bookingData, setBookingData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [responseMessage, setResponseMessage] = useState('');
-
-  const handleKeyPress = (num) => {
+  const handleKeyPress = num => {
     if (passcode.length < 6 && verificationStatus === 'idle') {
       setPasscode([...passcode, num]);
       setError('');
       setResponseMessage('');
     }
   };
-
   const handleBackspace = () => {
     if (passcode.length > 0 && verificationStatus === 'idle') {
       setPasscode(passcode.slice(0, -1));
@@ -29,78 +25,69 @@ const Passcode = () => {
       setResponseMessage('');
     }
   };
-
   const handleVerify = async () => {
     if (passcode.length === 6) {
       const codeString = passcode.join('');
       setLoading(true);
       setError('');
       setResponseMessage('');
-
       try {
-        const result = await dispatch(verifyPasscode({ passcode: codeString })).unwrap();
-
+        const result = await dispatch(verifyPasscode({
+          passcode: codeString
+        })).unwrap();
         console.log('✅ Full API Response:', result);
         console.log('✅ Response type:', typeof result);
         console.log('✅ Response keys:', result ? Object.keys(result) : 'null');
-
         const responseMessage = result?.message || '';
-
         if (responseMessage === 'Invalid passcode') {
           setVerificationStatus('failed');
           setError('Invalid passcode. Please try again.');
-
           Swal.fire({
             icon: 'error',
             title: 'Verification Failed',
             text: 'Invalid passcode. Please check and try again.',
-            confirmButtonColor: '#ff6b35',
+            confirmButtonColor: '#ff6b35'
           });
         } else if (result?.data || result?.booking) {
           const booking = result?.data || result?.booking || result;
           setBookingData(booking);
           setVerificationStatus('success');
           setResponseMessage(responseMessage || 'Passcode verified successfully!');
-
           Swal.fire({
             icon: 'success',
             title: 'Passcode Verified!',
             text: 'Customer is cleared for entry.',
             confirmButtonColor: '#ff6b35',
             timer: 3000,
-            timerProgressBar: true,
+            timerProgressBar: true
           });
         } else if (result && typeof result === 'object' && Object.keys(result).length > 0) {
           setBookingData(result);
           setVerificationStatus('success');
           setResponseMessage(responseMessage || 'Passcode verified successfully!');
-
           Swal.fire({
             icon: 'success',
             title: 'Passcode Verified!',
             text: 'Customer is cleared for entry.',
             confirmButtonColor: '#ff6b35',
             timer: 3000,
-            timerProgressBar: true,
+            timerProgressBar: true
           });
         } else {
           setVerificationStatus('failed');
           setError('Unexpected response from server.');
-
           Swal.fire({
             icon: 'error',
             title: 'Verification Failed',
             text: 'Unexpected response from server. Please try again.',
-            confirmButtonColor: '#ff6b35',
+            confirmButtonColor: '#ff6b35'
           });
         }
       } catch (error) {
         console.error('❌ Passcode verification failed:', error);
         console.error('❌ Error type:', typeof error);
         console.error('❌ Error value:', error);
-
         let errorMessage = 'Invalid passcode. Please try again.';
-
         if (typeof error === 'string') {
           if (error.includes('Invalid passcode')) {
             errorMessage = 'Invalid passcode. Please check and try again.';
@@ -118,22 +105,19 @@ const Passcode = () => {
         } else if (error?.response?.data?.message) {
           errorMessage = error.response.data.message;
         }
-
         setError(errorMessage);
         setVerificationStatus('failed');
-
         Swal.fire({
           icon: 'error',
           title: 'Verification Failed',
           text: errorMessage,
-          confirmButtonColor: '#ff6b35',
+          confirmButtonColor: '#ff6b35'
         });
       } finally {
         setLoading(false);
       }
     }
   };
-
   const handleReset = () => {
     setPasscode([]);
     setVerificationStatus('idle');
@@ -144,9 +128,8 @@ const Passcode = () => {
 
   // ✅ Keyboard support: digits, backspace, enter
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = e => {
       if (verificationStatus !== 'idle' || loading) return;
-
       if (/^[0-9]$/.test(e.key)) {
         e.preventDefault();
         handleKeyPress(Number(e.key));
@@ -158,25 +141,24 @@ const Passcode = () => {
         handleVerify();
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [passcode, verificationStatus, loading]);
 
   // Helper to format date
-  const formatDate = (dateString) => {
+  const formatDate = dateString => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric',
+      day: 'numeric'
     });
   };
 
   // Helper to format currency
-  const formatCurrency = (amount) => {
+  const formatCurrency = amount => {
     if (!amount) return '₦0';
     return `₦${amount.toLocaleString()}`;
   };
@@ -214,38 +196,24 @@ const Passcode = () => {
 
   // Get booking number
   const getBookingNumber = () => {
-    return bookingData?.bookingNumber ||
-           bookingData?.booking?.bookingNumber ||
-           bookingData?.id ||
-           'N/A';
+    return bookingData?.bookingNumber || bookingData?.booking?.bookingNumber || bookingData?.id || 'N/A';
   };
 
   // Get package name
   const getPackageName = () => {
-    return bookingData?.package?.packageName ||
-           bookingData?.packageName ||
-           bookingData?.ticketType ||
-           'Standard';
+    return bookingData?.package?.packageName || bookingData?.packageName || bookingData?.ticketType || 'Standard';
   };
 
   // Get amount
   const getAmount = () => {
-    return bookingData?.package?.amount ||
-           bookingData?.amount ||
-           bookingData?.price ||
-           0;
+    return bookingData?.package?.amount || bookingData?.amount || bookingData?.price || 0;
   };
 
   // Get visit date
   const getVisitDate = () => {
-    return bookingData?.visitDate ||
-           bookingData?.date ||
-           bookingData?.bookingDate ||
-           null;
+    return bookingData?.visitDate || bookingData?.date || bookingData?.bookingDate || null;
   };
-
-  return (
-    <div className="verifier-container">
+  return <div className="verifier-container">
       <div className="verifier-header">
         <h2>Verify Customer Passcode</h2>
         <p>Enter the customer's 6-digit passcode to confirm their booking upon arrival.</p>
@@ -266,48 +234,28 @@ const Passcode = () => {
 
           {/* 6-Digit Inputs */}
           <div className="passcode-inputs">
-            {[...Array(6)].map((_, index) => (
-              <div
-                key={index}
-                className={`input-box ${index === passcode.length && verificationStatus === 'idle' ? 'active' : ''} 
+            {[...Array(6)].map((_, index) => <div key={index} className={`input-box ${index === passcode.length && verificationStatus === 'idle' ? 'active' : ''} 
                   ${verificationStatus === 'success' ? 'success' : ''} 
-                  ${verificationStatus === 'failed' ? 'failed' : ''}`}
-              >
+                  ${verificationStatus === 'failed' ? 'failed' : ''}`}>
                 {passcode[index] !== undefined && <span className="dot"></span>}
-              </div>
-            ))}
+              </div>)}
           </div>
 
           {/* Error Message */}
           {error && <div className="error-message">{error}</div>}
 
           {/* Success Message */}
-          {responseMessage && verificationStatus === 'success' && (
-            <div className="success-message">{responseMessage}</div>
-          )}
+          {responseMessage && verificationStatus === 'success' && <div className="success-message">{responseMessage}</div>}
 
           {/* Number Keypad */}
           <div className={`keypad ${passcode.length === 6 ? 'disabled' : ''}`}>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-              <button
-                key={num}
-                onClick={() => handleKeyPress(num)}
-                disabled={passcode.length === 6 || loading}
-              >
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => <button key={num} onClick={() => handleKeyPress(num)} disabled={passcode.length === 6 || loading}>
                 {num}
-              </button>
-            ))}
-            <button
-              onClick={() => handleKeyPress(0)}
-              disabled={passcode.length === 6 || loading}
-            >
+              </button>)}
+            <button onClick={() => handleKeyPress(0)} disabled={passcode.length === 6 || loading}>
               0
             </button>
-            <button
-              className="backspace-btn"
-              onClick={handleBackspace}
-              disabled={passcode.length === 0 || loading}
-            >
+            <button className="backspace-btn" onClick={handleBackspace} disabled={passcode.length === 0 || loading}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z" />
                 <line x1="18" y1="9" x2="12" y2="15" />
@@ -317,29 +265,22 @@ const Passcode = () => {
           </div>
 
           {/* Action Button */}
-          <button
-            className={`action-btn ${passcode.length === 6 ? 'filled' : 'primary'}`}
-            onClick={handleVerify}
-            disabled={passcode.length < 6 || loading}
-          >
+          <button className={`action-btn ${passcode.length === 6 ? 'filled' : 'primary'}`} onClick={handleVerify} disabled={passcode.length < 6 || loading}>
             {loading ? 'Verifying...' : 'Verify Passcode'}
           </button>
 
           {/* Reset Link */}
-          {verificationStatus !== 'idle' && (
-            <button className="reset-link" onClick={handleReset}>
+          {verificationStatus !== 'idle' && <button className="reset-link" onClick={handleReset}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
               </svg>
               Verify another customer
-            </button>
-          )}
+            </button>}
         </div>
 
         {/* Right Card: Dynamic Status Panels */}
         <div className="right-panel">
-          {verificationStatus === 'idle' && (
-            <div className="card info-card">
+          {verificationStatus === 'idle' && <div className="card info-card">
               <h4>How it works</h4>
               <ol className="steps-list">
                 <li>
@@ -359,11 +300,9 @@ const Passcode = () => {
                   <p>Grant or deny entry based on the result.</p>
                 </li>
               </ol>
-            </div>
-          )}
+            </div>}
 
-          {verificationStatus === 'success' && bookingData && (
-            <div className="card status-card success-card">
+          {verificationStatus === 'success' && bookingData && <div className="card status-card success-card">
               <div className="status-header">
                 <div className="status-icon-container green-icon">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -405,11 +344,9 @@ const Passcode = () => {
                 </svg>
                 Grant Entry
               </div>
-            </div>
-          )}
+            </div>}
 
-          {verificationStatus === 'failed' && (
-            <div className="card status-card error-card">
+          {verificationStatus === 'failed' && <div className="card status-card error-card">
               <div className="status-header">
                 <div className="status-icon-container red-icon">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -439,12 +376,9 @@ const Passcode = () => {
                 </svg>
                 No Entry
               </div>
-            </div>
-          )}
+            </div>}
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Passcode;
