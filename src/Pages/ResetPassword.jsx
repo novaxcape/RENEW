@@ -2,10 +2,9 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Swal from "sweetalert2";
-import { axios } from "../data/mockData.js";
+import { api, getErrorMessage } from "../api/client";
 import "../Styles/Login.css";
 import Image from "../components/Image";
-const API_BASE_URL = "";
 const ResetPassword = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -47,8 +46,8 @@ const ResetPassword = () => {
       setError("Passwords do not match");
       return;
     }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password)) {
+      setError("Password needs 8+ characters with uppercase, lowercase, a number and a special character");
       return;
     }
     if (!email) {
@@ -59,11 +58,10 @@ const ResetPassword = () => {
     setError(null);
     try {
       // API CALL to reset password - matches the API spec
-      const response = await axios.post(`${API_BASE_URL}/client/reset-password`, {
+      await api.post("/client/reset-password", {
         email: email,
         password: password // The API expects 'password', not 'newPassword'
       });
-      console.log("Reset password response:", response.data);
       Swal.fire({
         icon: "success",
         title: "Success!",
@@ -73,7 +71,6 @@ const ResetPassword = () => {
         navigate("/signin");
       });
     } catch (error) {
-      console.error("Reset password error:", error.response?.data);
 
       // Handle specific error codes
       if (error.response?.status === 404) {
@@ -87,7 +84,7 @@ const ResetPassword = () => {
           navigate("/forgot-password");
         });
       } else {
-        const errorMessage = error.response?.data?.message || "Failed to reset password. Please try again.";
+        const errorMessage = getErrorMessage(error, "Failed to reset password. Please try again.");
         setError(errorMessage);
         Swal.fire({
           icon: "error",
@@ -139,7 +136,7 @@ const ResetPassword = () => {
           <p className="reset-description">
             Enter your new password twice below to reset your password.
             <br />
-            Your password must be at least 6 characters.
+            Use 8+ characters with uppercase, lowercase, a number and a special character.
           </p>
 
           {error && <div className="error-message" style={{

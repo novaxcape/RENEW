@@ -7,9 +7,11 @@ import { FaMapMarkerAlt, FaClock, FaStar, FaCheckCircle, FaHeart, FaRegHeart } f
 import "../Styles/Product.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { useAuth } from "../context/AuthContext";
 import { getTouristCenterById, getAllPackages } from "../data/mockData.js";
 import { dispatch, mockState } from "../data/mockData.js";
 const ProductDetails = () => {
+  const { isAuthenticated } = useAuth();
   const {
     id
   } = useParams();
@@ -223,8 +225,7 @@ const ProductDetails = () => {
       returnUrl: `/booking-summary/${centreId}/${pkg.id}`
     };
     localStorage.setItem('pendingBooking', JSON.stringify(bookingData));
-    const token = localStorage.getItem('token') || localStorage.getItem('userToken');
-    if (!token) {
+    if (!isAuthenticated) {
       navigate("/signin", {
         state: {
           from: `/centre/${centreId}`,

@@ -1,25 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
-import { axios } from "../data/mockData.js";
+import { api, getErrorMessage } from "../api/client";
 import Swal from "sweetalert2";
-import { verifyAdmin, verifyAdminSuccess, verifyAdminFail, clearError } from "../data/mockData.js";
 import "../Styles/Login.css";
 import Image from "../components/Image";
-import { dispatch, mockState } from "../data/mockData.js";
-const API_BASE_URL = "";
 const VerifyOtp = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const {
-    loading,
-    error
-  } = (state => state.auth)(mockState);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [canResend, setCanResend] = useState(false);
 
   // Get email from location state or localStorage
   const email = location.state?.email || localStorage.getItem("Name");
-  const from = location.state?.from || "/";
+  const isReset = location.state?.type === "reset";
   const bookingData = location.state?.bookingData || null;
 
   // Store booking data in state for later use
@@ -78,15 +73,19 @@ const VerifyOtp = () => {
       navigate("/signup");
       return;
     }
-    dispatch(verifyAdmin());
-    dispatch(clearError());
+    setLoading(true);
+    setError("");
     try {
-      const response = await axios.post(`${API_BASE_URL}/client/verify-email`, {
+      await api.post("/client/verify", {
         email: email,
         otp: otpCode
       });
-      console.log("Verification response:", response.data);
-      dispatch(verifyAdminSuccess());
+
+      // Password-reset flow: OTP is confirmed, now let them choose a new password
+      if (isReset) {
+        navigate("/reset-password", { state: { email } });
+        return;
+      }
 
       // ✅ Check for pending booking after successful verification
       const booking = pendingBooking || localStorage.getItem('pendingBooking');
@@ -141,15 +140,16 @@ const VerifyOtp = () => {
         });
       }
     } catch (error) {
-      console.error("Verification error:", error.response?.data);
-      const errorMessage = error.response?.data?.message || "Invalid OTP. Please try again.";
-      dispatch(verifyAdminFail(errorMessage));
+      const errorMessage = getErrorMessage(error, "Invalid OTP. Please try again.");
+      setError(errorMessage);
       Swal.fire({
         icon: "error",
         title: "Verification Failed",
         text: errorMessage,
         confirmButtonColor: "#ff6b35"
       });
+    } finally {
+      setLoading(false);
     }
   };
   const handleResendOTP = async () => {
@@ -172,13 +172,10 @@ const VerifyOtp = () => {
       navigate("/signup");
       return;
     }
-    dispatch(verifyAdmin());
-    dispatch(clearError());
     try {
-      const response = await axios.post(`${API_BASE_URL}/client/resend-otp`, {
+      await api.post("/client/resendOtp", {
         email: email
       });
-      console.log("Resend response:", response.data);
       Swal.fire({
         icon: "success",
         title: "OTP Resent!",
@@ -192,8 +189,7 @@ const VerifyOtp = () => {
         setCanResend(true);
       }, 59000);
     } catch (error) {
-      console.error("Resend error:", error.response?.data);
-      const errorMessage = error.response?.data?.message || "Failed to resend OTP. Please try again.";
+      const errorMessage = getErrorMessage(error, "Failed to resend OTP. Please try again.");
       Swal.fire({
         icon: "error",
         title: "Resend Failed",
