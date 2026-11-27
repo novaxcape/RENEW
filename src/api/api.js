@@ -1,10 +1,15 @@
 import axios from "axios";
 
 // VITE_API_URL=https://novaxcape.onrender.com  (set in .env, no trailing /api/v1)
-const ROOT = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+// Accepts https://host, https://host/ or https://host/api/v1 and keeps just the host
+const ROOT = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "").replace(/\/api\/v1$/, "");
+
+// Dev: use the Vite proxy (see vite.config.js) to avoid CORS on localhost.
+// Production build: call the backend directly.
+const BASE = import.meta.env.DEV ? "/api/v1" : `${ROOT}/api/v1`;
 
 const api = axios.create({
-  baseURL: `${ROOT}/api/v1`,
+  baseURL: BASE,
   timeout: 60000, // Render free instances can take a while to wake up
 });
 
