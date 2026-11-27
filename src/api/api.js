@@ -4,9 +4,7 @@ import axios from "axios";
 // Accepts https://host, https://host/ or https://host/api/v1 and keeps just the host
 const ROOT = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "").replace(/\/api\/v1$/, "");
 
-// Dev: use the Vite proxy (see vite.config.js) to avoid CORS on localhost.
-// Production build: call the backend directly.
-const BASE = import.meta.env.DEV ? "/api/v1" : `${ROOT}/api/v1`;
+const BASE = `${ROOT}/api/v1`;
 
 const api = axios.create({
   baseURL: BASE,
