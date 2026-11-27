@@ -1,20 +1,13 @@
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { isLoggedIn } from "../api/api";
 
-// <PrivateRoute>            -> any logged-in user
-// <PrivateRoute role="vendor"> -> only that role
-const PrivateRoute = ({ children, role }) => {
-  const { isAuthenticated, role: userRole } = useAuth();
+// Sends visitors without a login token to the right sign-in page.
+const PrivateRoute = ({ children }) => {
   const location = useLocation();
-  const loginPath = role === "vendor" ? "/vendor/login" : "/signin";
+  if (isLoggedIn()) return children;
 
-  if (!isAuthenticated) {
-    return <Navigate to={loginPath} replace state={{ from: location.pathname + location.search }} />;
-  }
-  if (role && userRole !== role.toLowerCase()) {
-    return <Navigate to="/" replace />;
-  }
-  return children;
+  const loginPath = localStorage.getItem("role") === "vendor" ? "/vendor/login" : "/signin";
+  return <Navigate to={loginPath} replace state={{ from: location.pathname }} />;
 };
 
 export default PrivateRoute;

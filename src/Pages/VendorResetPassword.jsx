@@ -2,12 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
-import { axios } from "../data/mockData.js";
+import axios from "../api/api";
 import Swal from 'sweetalert2';
 import { setLoading, setError, clearError } from "../data/mockData.js";
 import "../Styles/SignUpVendor.css";
 import { dispatch, mockState } from "../data/mockData.js";
-const API_BASE_URL = "";
+const API_BASE_URL = "";  // base URL now comes from src/api/api.js
 const VendorResetPassword = () => {
   const navigate = useNavigate();
   const location = useLocation();
