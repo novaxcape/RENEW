@@ -1,12 +1,12 @@
 // Pages/Vendor/VendorVerifyOtp.jsx
 import React, { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { axios } from "../data/mockData.js";
+import axios from "../api/api";
 import Swal from "sweetalert2";
 import { vendorVerifyOTP, vendorVerifyOTPSuccess, vendorVerifyOTPFail, updateVendorToken, setVendorDetails } from "../data/mockData.js";
 import "../Styles/SignUpVendor.css";
 import { dispatch, mockState } from "../data/mockData.js";
-const API_BASE_URL = "";
+const API_BASE_URL = "";  // base URL now comes from src/api/api.js
 const VendorVerifyOtp = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -59,11 +59,13 @@ const VendorVerifyOtp = () => {
       });
       console.log("Verification response:", response.data);
       dispatch(vendorVerifyOTPSuccess());
+      localStorage.setItem("role", "vendor");
       if (response.data.token) {
         dispatch(updateVendorToken(response.data.token));
         localStorage.setItem("vendorToken", response.data.token);
       }
-      if (response.data.user) {
+      if (response.data.user || response.data.vendor) {
+        response.data.user = response.data.user || response.data.vendor;
         dispatch(setVendorDetails(response.data.user));
         localStorage.setItem("vendorId", response.data.user.id || response.data.user._id);
         localStorage.setItem("vendorEmail", response.data.user.email);

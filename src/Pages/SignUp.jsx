@@ -1,17 +1,21 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import api, { errorMessage, googleAuthUrl } from "../api/api";
 import Swal from "sweetalert2";
 import "../Styles/Signup.css";
-import { api, getErrorMessage } from "../api/client";
 
 const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
 const SignUp = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", password: "", confirmPassword: "" });
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
   const [agreed, setAgreed] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -19,8 +23,8 @@ const SignUp = () => {
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    if (error) setError("");
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setError("");
   };
 
   const handleSubmit = async (e) => {
@@ -28,43 +32,50 @@ const SignUp = () => {
     const { firstName, lastName, email, password, confirmPassword } = form;
 
     if (!firstName.trim() || !lastName.trim() || !email.trim() || !password) {
-      setError("Please fill in all fields");
-      return;
+      return setError("Please fill in all fields.");
     }
     if (!PASSWORD_RULE.test(password)) {
-      setError("Password needs 8+ characters with uppercase, lowercase, a number and a special character");
-      return;
+      return setError(
+        "Password must be at least 8 characters and contain uppercase, lowercase, a number and a special character."
+      );
     }
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
+      return setError("Passwords do not match.");
     }
     if (!agreed) {
-      setError("Please accept the Terms & Conditions to continue");
-      return;
+      return setError("Please accept the Terms & Conditions and Privacy Policy.");
     }
 
     setLoading(true);
-    setError("");
     try {
-      await api.post("/client", {
+      const res = await api.post(`/client/register`, {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         password,
       });
+      console.log("Register response:", res.data);
 
-      localStorage.setItem("Name", email.trim()); // VerifyOtp falls back to this on refresh
+      const cleanEmail = email.trim().toLowerCase();
+      localStorage.setItem("Name", cleanEmail); // VerifyOtp reads this as a fallback
+
       await Swal.fire({
         icon: "success",
         title: "Account created",
         text: "We sent a verification code to your email.",
         confirmButtonColor: "#ff6b35",
       });
-      navigate("/verify-email", { state: { email: email.trim(), from: location.state?.from, bookingData: location.state?.bookingData } });
+      navigate("/verify-email", { state: { email: cleanEmail } });
     } catch (err) {
-      const message = getErrorMessage(err, "Sign up failed. Please try again.");
+      console.error("Register error:", err.response?.data || err.message);
+      const message = errorMessage(err);
       setError(message);
+      Swal.fire({
+        icon: "error",
+        title: "Sign up failed",
+        text: message,
+        confirmButtonColor: "#ff6b35",
+      });
     } finally {
       setLoading(false);
     }
@@ -78,59 +89,71 @@ const SignUp = () => {
         </div>
 
         <div className="signupRight">
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             <h1 className="signupTitle">Sign Up</h1>
 
             {error && (
-              <div style={{ color: "red", textAlign: "center", marginBottom: 15, padding: 10, backgroundColor: "#ffeeee", borderRadius: 5, fontSize: 14 }}>
+              <div className="error" style={{ textAlign: "center", marginBottom: "15px" }}>
                 {error}
               </div>
             )}
 
             <div className="field">
               <label>Last Name</label>
-              <input type="text" name="lastName" placeholder="Enter your last name" value={form.lastName} onChange={handleChange} disabled={loading} />
+              <input type="text" name="lastName" placeholder="Enter your last name"
+                value={form.lastName} onChange={handleChange} disabled={loading} />
             </div>
 
             <div className="field">
               <label>First Name</label>
-              <input type="text" name="firstName" placeholder="Enter your first name" value={form.firstName} onChange={handleChange} disabled={loading} />
+              <input type="text" name="firstName" placeholder="Enter your first name"
+                value={form.firstName} onChange={handleChange} disabled={loading} />
             </div>
 
             <div className="field">
               <label>Email</label>
-              <input type="email" name="email" placeholder="Enter your email" value={form.email} onChange={handleChange} disabled={loading} />
+              <input type="email" name="email" placeholder="Enter your email"
+                value={form.email} onChange={handleChange} disabled={loading} />
             </div>
 
             <div className="field">
               <label>Password</label>
               <div className="passwordWrapper">
-                <input type={showPassword ? "text" : "password"} name="password" placeholder="Enter your password" value={form.password} onChange={handleChange} disabled={loading} />
-                <span className="eyeIcon" onClick={() => setShowPassword((v) => !v)} style={{ cursor: "pointer" }}>
+                <input type={showPassword ? "text" : "password"} name="password"
+                  placeholder="Enter your password" value={form.password}
+                  onChange={handleChange} disabled={loading} />
+                <span className="eyeIcon" onClick={() => setShowPassword((s) => !s)}
+                  role="button" aria-label="Toggle password visibility">
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </span>
               </div>
-              <p className="passwordHint">Must contain uppercase, lowercase, number and special character.</p>
+              <p className="passwordHint">
+                Must contain uppercase, lowercase, number and special character.
+              </p>
             </div>
 
             <div className="field">
               <label>Confirm Password</label>
               <div className="passwordWrapper">
-                <input type={showConfirm ? "text" : "password"} name="confirmPassword" placeholder="Confirm your password" value={form.confirmPassword} onChange={handleChange} disabled={loading} />
-                <span className="eyeIcon" onClick={() => setShowConfirm((v) => !v)} style={{ cursor: "pointer" }}>
+                <input type={showConfirm ? "text" : "password"} name="confirmPassword"
+                  placeholder="Confirm your password" value={form.confirmPassword}
+                  onChange={handleChange} disabled={loading} />
+                <span className="eyeIcon" onClick={() => setShowConfirm((s) => !s)}
+                  role="button" aria-label="Toggle confirm password visibility">
                   {showConfirm ? <FaEyeSlash /> : <FaEye />}
                 </span>
               </div>
             </div>
 
             <div className="terms">
-              <input type="checkbox" id="terms" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
+              <input type="checkbox" id="terms" checked={agreed}
+                onChange={(e) => { setAgreed(e.target.checked); setError(""); }} />
               <label htmlFor="terms">
                 I agree to the <a href="#!">Terms & Conditions</a> and <a href="#!">Privacy Policy</a>
               </label>
             </div>
 
-            <button type="submit" className="signupBtn" disabled={loading} style={{ opacity: loading ? 0.7 : 1 }}>
+            <button type="submit" className="signupBtn" disabled={loading}>
               {loading ? "Creating account..." : "Sign Up"}
             </button>
 
@@ -138,7 +161,8 @@ const SignUp = () => {
               <span>Or Continue with</span>
             </div>
 
-            <button type="button" className="googleBtn">
+            <button type="button" className="googleBtn"
+              onClick={() => (window.location.href = googleAuthUrl)}>
               <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google" />
               Continue with Google
             </button>

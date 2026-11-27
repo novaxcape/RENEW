@@ -2,12 +2,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import { axios } from "../data/mockData.js";
+import axios from "../api/api";
 import Swal from 'sweetalert2';
 import { vendorLogout, setLoading, setError, clearError } from "../data/mockData.js";
 import "../Styles/SignUpVendor.css";
 import { dispatch, mockState } from "../data/mockData.js";
-const API_BASE_URL = "";
+const API_BASE_URL = "";  // base URL now comes from src/api/api.js
 const VendorChangePassword = () => {
   const navigate = useNavigate();
   const {
@@ -54,13 +54,10 @@ const VendorChangePassword = () => {
     dispatch(setLoading(true));
     dispatch(clearError());
     try {
-      const response = await axios.post(`${API_BASE_URL}/vendor/change-password`, {
-        oldPassword: formData.currentPassword,
-        newPassword: formData.newPassword
-      }, {
-        headers: {
-          Authorization: `Bearer ${userToken}`
-        }
+      const response = await axios.put(`${API_BASE_URL}/vendor/change-password`, {
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword,
+        confirmNewPassword: formData.confirmPassword ?? formData.newPassword
       });
       console.log("Change password response:", response.data);
       Swal.fire({

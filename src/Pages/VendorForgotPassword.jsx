@@ -1,12 +1,12 @@
 // Pages/Vendor/VendorForgotPassword.jsx
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { axios } from "../data/mockData.js";
+import axios from "../api/api";
 import Swal from 'sweetalert2';
 import { setLoading, setError, clearError } from "../data/mockData.js";
 import "../Styles/SignUpVendor.css";
 import { dispatch, mockState } from "../data/mockData.js";
-const API_BASE_URL = "";
+const API_BASE_URL = "";  // base URL now comes from src/api/api.js
 const VendorForgotPassword = () => {
   const navigate = useNavigate();
   const {

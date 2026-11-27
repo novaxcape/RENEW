@@ -1,11 +1,19 @@
 // src/components/RootLayout.jsx
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import Header from "../components/Header";
-import { useAuth } from "../context/AuthContext";
+import PaymentHeader from "../components/PaymentHeader";
 
 const RootLayout = () => {
-  const { isAuthenticated: isLoggedIn } = useAuth();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    
+    // ✅ FIX: Double exclamation marks convert a real token to 'true' 
+    // and a null token to 'false'
+    setIsLoggedIn(!!token); 
+  }, []);
 
   return (
     <>

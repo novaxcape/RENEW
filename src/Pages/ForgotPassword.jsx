@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import { api, getErrorMessage } from "../api/client";
+import axios from "../api/api";
 import "../Styles/Login.css";
 import Image from "../components/Image";
+const API_BASE_URL = "";  // base URL now comes from src/api/api.js
 const ForgotPassword = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -30,9 +31,10 @@ const ForgotPassword = () => {
     setError("");
     try {
       // API CALL to send OTP
-      await api.post("/client/forgot-password", {
+      const response = await axios.post(`${API_BASE_URL}/client/forget-password`, {
         email: email
       });
+      console.log("Forgot password response:", response.data);
       Swal.fire({
         icon: "success",
         title: "OTP Sent!",
@@ -48,7 +50,8 @@ const ForgotPassword = () => {
         }
       });
     } catch (error) {
-      const errorMessage = getErrorMessage(error, "Failed to send OTP. Please try again.");
+      console.error("Forgot password error:", error.response?.data);
+      const errorMessage = error.response?.data?.message || "Failed to send OTP. Please try again.";
       setError(errorMessage);
       Swal.fire({
         icon: "error",
